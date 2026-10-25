@@ -1,0 +1,465 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- People ----------
+
+enum Role {
+  TENANT
+  MANAGER
+  STAFF
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  phone        String
+  passwordHash String
+  role         Role     @default(TENANT)
+  trade        String? // for STAFF: plumber, electrician, ...
+  createdAt    DateTime @default(now())
+
+  applications     Application[]
+  leases           Lease[]
+  payments         Payment[]
+  reportedTickets  MaintenanceRequest[] @relation("ReportedTickets")
+  assignedTickets  MaintenanceRequest[] @relation("AssignedTickets")
+  comments         TicketComment[]
+  cleaningRequests CleaningRequest[]
+  notifications    Notification[]
+  activity         ActivityLog[]
+}
+
+// ---------- Buildings ----------
+
+// An apartment complex. Each one has its own room types, prices and units.
+model Property {
+  id          String   @id @default(cuid())
+  slug        String   @unique // used in the public URL: /complexes/east-legon
+  name        String
+  area        String // neighbourhood or town shown on listings, e.g. "East Legon"
+  address     String
+  description String?
+  amenities   String[] @default([]) // "Borehole", "Security", "Parking", ...
+  floors      Int      @default(3) // 0 = Ground, 1 = First, 2 = Second
+  photos      String[]
+  listed      Boolean  @default(true) // shown to the public and open for booking
+  createdAt   DateTime @default(now())
+
+  roomTypes RoomType[]
+  units     Unit[]
+  notices   BuildingNotice[]
+  tickets   MaintenanceRequest[]
+}
+
+// A kind of apartment a complex rents out ("Single room", "Chamber & hall", "2 bedroom").
+// Price lives here; units of the same type share it.
+model RoomType {
+  id            String   @id @default(cuid())
+  propertyId    String
+  property      Property @relation(fields: [propertyId], references: [id])
+  name          String
+  description   String?
+  rentAmount    Int // GH₵ per month, whole cedis; set by the manager
+  depositAmount Int // security deposit, set by the manager
+  sizeSqm       Int?
+  rooms         String[] // "1 bedroom", "Hall", "Bathroom", "Toilet", ...
+  photos        String[]
+  listed        Boolean  @default(true)
+  sortOrder     Int      @default(0)
+
+  units        Unit[]
+  applications Application[]
+
+  @@unique([propertyId, name])
+}
+
+enum UnitStatus {
+  VACANT
+  RESERVED
+  OCCUPIED
+  MAINTENANCE
+}
+
+model Unit {
+  id         String     @id @default(cuid())
+  propertyId String
+  property   Property   @relation(fields: [propertyId], references: [id])
+  roomTypeId String
+  roomType   RoomType   @relation(fields: [roomTypeId], references: [id])
+  unitNumber String // floor-prefixed: G-02, 1-04, 2-01
+  floor      Int
+  status     UnitStatus @default(VACANT)
+
+  applications Application[]
+  leases       Lease[]
+  tickets      MaintenanceRequest[]
+  cleanings    CleaningRequest[]
+
+  @@unique([propertyId, unitNumber])
+}
+
+// ---------- Renting ----------
+
+enum ApplicationStatus {
+  AWAITING_PAYMENT // booking deposit not yet paid
+  PENDING // paid, waiting for the manager (48h hold)
+  APPROVED
+  REJECTED
+  EXPIRED // 48h passed with no decision; manager decides refund/keep
+}
+
+model Application {
+  id                String            @id @default(cuid())
+  tenantId          String
+  tenant            User              @relation(fields: [tenantId], references: [id])
+  roomTypeId        String // what the tenant asked for
+  roomType          RoomType          @relation(fields: [roomTypeId], references: [id])
+  unitId            String // the unit held for them; the manager can switch it on approval
+  unit              Unit              @relation(fields: [unitId], references: [id])
+  status            ApplicationStatus @default(AWAITING_PAYMENT)
+  moveInDate        DateTime?
+  notes             String?
+  holdExpiresAt     DateTime?
+  decidedAt         DateTime?
+  bookingDecision   BookingDecision? // for EXPIRED: refund or keep
+  bookingKeepReason String?
+  createdAt         DateTime          @default(now())
+
+  invoices Invoice[]
+}
+
+enum BookingDecision {
+  REFUND
+  KEEP
+}
+
+enum RentCycle {
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+enum DepositStatus {
+  UNPAID
+  PAID
+  REFUNDED
+  PARTIAL_REFUND
+}
+
+enum LeaseStatus {
+  PENDING_DEPOSIT
+  ACTIVE
+  ENDED
+  TERMINATED
+}
+
+model Lease {
+  id            String        @id @default(cuid())
+  tenantId      String
+  tenant        User          @relation(fields: [tenantId], references: [id])
+  unitId        String
+  unit          Unit          @relation(fields: [unitId], references: [id])
+  startDate     DateTime
+  endDate       DateTime?
+  rentAmount    Int // copied from the room type when the lease is created
+  rentCycle     RentCycle     @default(MONTHLY)
+  depositAmount Int
+  depositStatus DepositStatus @default(UNPAID)
+  status        LeaseStatus   @default(PENDING_DEPOSIT)
+  createdAt     DateTime      @default(now())
+
+  invoices Invoice[]
+}
+
+// ---------- Money ----------
+
+enum InvoiceType {
+  HOLD_FEE // refundable booking deposit
+  DEPOSIT
+  RENT
+  SANITATION
+  CLEANING
+  DAMAGE_CHARGE
+}
+
+enum InvoiceStatus {
+  UNPAID
+  PAID
+  OVERDUE
+  VOID
+}
+
+model Invoice {
+  id            String        @id @default(cuid())
+  number        Int           @unique @default(autoincrement()) // shown as INV-000123
+  type          InvoiceType
+  leaseId       String?
+  lease         Lease?        @relation(fields: [leaseId], references: [id])
+  applicationId String?
+  application   Application?  @relation(fields: [applicationId], references: [id])
+  amount        Int
+  description   String
+  dueDate       DateTime
+  periodStart   DateTime?
+  periodEnd     DateTime?
+  status        InvoiceStatus @default(UNPAID)
+  createdAt     DateTime      @default(now())
+
+  payments         Payment[]
+  damageTicket     MaintenanceRequest?
+  cleaningRequest  CleaningRequest?
+
+  @@index([status, dueDate])
+}
+
+enum PaymentMethod {
+  PAYSTACK_MOMO
+  PAYSTACK_CARD
+  PAYSTACK_OTHER
+  CASH
+  BANK
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model Payment {
+  id                String        @id @default(cuid())
+  invoiceId         String
+  invoice           Invoice       @relation(fields: [invoiceId], references: [id])
+  tenantId          String
+  tenant            User          @relation(fields: [tenantId], references: [id])
+  amount            Int
+  method            PaymentMethod
+  paystackReference String?       @unique
+  status            PaymentStatus @default(PENDING)
+  paidAt            DateTime?
+  recordedById      String? // manager who logged a cash/bank payment
+  createdAt         DateTime      @default(now())
+
+  refunds Refund[]
+}
+
+enum RefundReason {
+  BOOKING_APPROVED
+  BOOKING_REJECTED
+  BOOKING_EXPIRED
+  DEPOSIT_RETURN
+}
+
+enum RefundStatus {
+  PENDING
+  PROCESSED
+  FAILED
+}
+
+model Refund {
+  id               String       @id @default(cuid())
+  paymentId        String
+  payment          Payment      @relation(fields: [paymentId], references: [id])
+  amount           Int
+  reason           RefundReason
+  paystackRefundId String?
+  status           RefundStatus @default(PENDING)
+  createdAt        DateTime     @default(now())
+}
+
+// ---------- Maintenance ----------
+
+enum TicketScope {
+  APARTMENT
+  SHARED
+}
+
+enum TicketCategory {
+  // in an apartment: the trade needed
+  PLUMBING
+  ELECTRICAL
+  DOORS_LOCKS
+  APPLIANCE
+  AC_FAN
+  PAINT_WALLS
+  PESTS
+  OTHER
+  // shared areas: what's affected
+  WATER
+  POWER
+  LIGHTS
+  GATE_SECURITY
+  WASTE_DRAINS
+  STAIRS
+  PARKING
+  OTHER_SHARED
+}
+
+enum SharedFloor {
+  GROUND
+  FIRST
+  SECOND
+  WHOLE_BUILDING
+  COMPOUND
+}
+
+enum Urgency {
+  EMERGENCY
+  URGENT
+  NORMAL
+}
+
+enum TicketStatus {
+  REPORTED
+  SEEN
+  ASSIGNED
+  IN_PROGRESS
+  FIXED
+  CLOSED
+  REOPENED
+}
+
+enum Payer {
+  ALTHEO
+  TENANT
+}
+
+model MaintenanceRequest {
+  id                String         @id @default(cuid())
+  ticketNo          Int            @unique @default(autoincrement()) // shown as ALT-1044
+  tenantId          String
+  tenant            User           @relation("ReportedTickets", fields: [tenantId], references: [id])
+  propertyId        String
+  property          Property       @relation(fields: [propertyId], references: [id])
+  unitId            String?
+  unit              Unit?          @relation(fields: [unitId], references: [id])
+  scope             TicketScope
+  category          TicketCategory
+  room              String? // Bedroom, Hall, ... (apartment scope)
+  sharedFloor       SharedFloor? // shared scope
+  description       String
+  media             String[]
+  urgency           Urgency        @default(NORMAL)
+  preferredVisitAt  DateTime?
+  preferredSlot     String?
+  permissionToEnter Boolean        @default(false)
+  status            TicketStatus   @default(REPORTED)
+
+  assignedStaffId   String?
+  assignedStaff     User?          @relation("AssignedTickets", fields: [assignedStaffId], references: [id])
+  externalName      String?
+  externalPhone     String?
+  externalTrade     String?
+  visitAt           DateTime?
+
+  repairCost        Int?
+  payer             Payer?
+  damageInvoiceId   String?        @unique
+  damageInvoice     Invoice?       @relation(fields: [damageInvoiceId], references: [id])
+
+  seenAt            DateTime?
+  assignedAt        DateTime?
+  fixedAt           DateTime?
+  closedAt          DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  comments TicketComment[]
+  notices  BuildingNotice[]
+
+  @@index([status, urgency])
+}
+
+model TicketComment {
+  id        String             @id @default(cuid())
+  ticketId  String
+  ticket    MaintenanceRequest @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User               @relation(fields: [authorId], references: [id])
+  body      String
+  media     String[]
+  createdAt DateTime           @default(now())
+}
+
+model BuildingNotice {
+  id            String              @id @default(cuid())
+  propertyId    String
+  property      Property            @relation(fields: [propertyId], references: [id])
+  title         String
+  body          String
+  category      TicketCategory?
+  ticketId      String?
+  ticket        MaintenanceRequest? @relation(fields: [ticketId], references: [id])
+  expectedFixAt DateTime?
+  active        Boolean             @default(true)
+  createdAt     DateTime            @default(now())
+}
+
+// ---------- Cleaning ----------
+
+enum CleaningType {
+  STANDARD
+  DEEP
+  MOVE_OUT
+}
+
+enum CleaningStatus {
+  REQUESTED
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+model CleaningRequest {
+  id            String         @id @default(cuid())
+  tenantId      String
+  tenant        User           @relation(fields: [tenantId], references: [id])
+  unitId        String
+  unit          Unit           @relation(fields: [unitId], references: [id])
+  serviceType   CleaningType
+  preferredDate DateTime
+  timeSlot      String
+  price         Int
+  status        CleaningStatus @default(REQUESTED)
+  invoiceId     String?        @unique
+  invoice       Invoice?       @relation(fields: [invoiceId], references: [id])
+  createdAt     DateTime       @default(now())
+}
+
+// ---------- System ----------
+
+// Admin-set values: bookingDeposit, sanitationFee, cleaning prices, response limits.
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  body      String
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  actor     User?    @relation(fields: [actorId], references: [id])
+  action    String
+  entity    String
+  entityId  String?
+  details   Json?
+  createdAt DateTime @default(now())
+}

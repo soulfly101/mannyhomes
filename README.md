@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Altheo Homes
 
-## Getting Started
+Apartment management system for Altheo Homes: tenants register, see prices, book an apartment, pay the deposit, rent and sanitation fee (Paystack: Mobile Money and card), report problems and book cleaning. The property manager tracks everything from a dashboard.
 
-First, run the development server:
+Built with Next.js (App Router), PostgreSQL and Prisma.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Run it locally
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+You need Node.js 20 or newer. PostgreSQL runs from `node_modules`, so nothing else has to be installed.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Install packages:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   ```bash
+   npm install
+   ```
 
-## Learn More
+2. Copy `.env.example` to `.env` and set `AUTH_SECRET` (the file shows how to generate one).
 
-To learn more about Next.js, take a look at the following resources:
+3. Start the database and leave it running in its own terminal:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+   ```bash
+   npm run db
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4. Create the tables and load sample data (first time only):
 
-## Deploy on Vercel
+   ```bash
+   npm run db:migrate
+   npm run db:seed
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+5. Start the app and open http://localhost:3000:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   ```bash
+   npm run dev
+   ```
+
+Without Paystack keys in `.env`, payments go through a test checkout page where you choose whether the payment succeeds or fails; no money moves. With Paystack test keys set, the real Paystack checkout is used. Point the Paystack webhook at `/api/paystack/webhook`.
+
+The test accounts (manager, technician and tenant) and their password are listed at the top of `prisma/seed.ts`.
+
+## Where things are
+
+| Path | What it is |
+|---|---|
+| `app/page.tsx` | Public front page |
+| `app/units/[id]` | Apartment details; price shown only after login |
+| `app/(auth)` | Login, sign-up and log-out |
+| `app/tenant`, `app/manager`, `app/staff` | Areas for each kind of user |
+| `lib/units.ts` | Apartment queries; prices are only read for logged-in users |
+| `lib/auth.ts`, `lib/session.ts`, `middleware.ts` | Sessions and who can open which area |
+| `lib/settings.ts` | Prices the admin controls (booking deposit, sanitation fee, cleaning) |
+| `prisma/schema.prisma` | Database tables |
+| `prisma/seed.ts` | Sample building: 3 floors, 10 apartments |
