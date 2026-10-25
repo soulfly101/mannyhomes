@@ -1,0 +1,12 @@
+# Node / TypeScript
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+*.log
+.vite/
+
+# Local settings
+.env
+.env.*
+!.env.example
