@@ -1,46 +1,30 @@
-import { useEffect, useState } from "react";
-import { checkHealth, type Status } from "./api";
-import { Ambient, Card, StatusPill, type Tone } from "./components";
+import { Route, Routes } from "react-router";
+import { RequireAuth } from "./auth/RequireAuth";
+import { Ambient, TopBar } from "./components";
+import { HomePage } from "./pages/HomePage";
+import { LoginPage } from "./pages/LoginPage";
+import { OnboardingPage } from "./pages/OnboardingPage";
+import { RegisterPage } from "./pages/RegisterPage";
 
-const SHOWN: Record<Status, { label: string; tone: Tone }> = {
-  checking: { label: "Checking…", tone: "neutral" },
-  ok: { label: "OK", tone: "ok" },
-  error: { label: "Not reachable", tone: "danger" },
-};
-
-function StatusRow({ name, status }: { name: string; status: Status }) {
-  const { label, tone } = SHOWN[status];
-  return (
-    <li className="status-row">
-      <span>{name}</span>
-      <StatusPill status={status} tone={tone} label={label} />
-    </li>
-  );
-}
-
-/** Placeholder home page: shows whether the API and database are up. Real pages are ported from legacy/ card by card. */
 export function App() {
-  const [api, setApi] = useState<Status>("checking");
-  const [db, setDb] = useState<Status>("checking");
-
-  useEffect(() => {
-    checkHealth("/api/health", "status").then(setApi);
-    checkHealth("/api/health/db", "database").then(setDb);
-  }, []);
-
   return (
     <>
       <Ambient />
-      <main className="wrap status-page">
-        <Card as="section" className="rise" aria-labelledby="status-title">
-          <h1 id="status-title">Altheo Homes</h1>
-          <p className="muted">The new app is being set up. System status:</p>
-          <ul aria-label="System status" className="status-list">
-            <StatusRow name="API" status={api} />
-            <StatusRow name="Database" status={db} />
-          </ul>
-        </Card>
-      </main>
+      <TopBar />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route
+          path="/onboarding"
+          element={
+            <RequireAuth>
+              <OnboardingPage />
+            </RequireAuth>
+          }
+        />
+        <Route path="*" element={<HomePage />} />
+      </Routes>
     </>
   );
 }

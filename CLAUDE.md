@@ -27,6 +27,14 @@ make lint      # ruff + TypeScript typecheck
 make down
 ```
 Without Docker: `cd backend && uv run pytest`, `cd frontend && npm test`.
+
+Database changes go through **Alembic** migrations in `backend/migrations/versions/` (they run automatically when the backend starts; `make migrate` runs them by hand). Never change tables any other way. `make create-admin` creates an admin account.
+
+## Accounts and login
+- Roles: `tenant` (public sign-up), `admin` and `staff` (created by an admin, for now with `make create-admin` / `python -m app.cli create-user`).
+- Sessions are server-side (`sessions` table) with an HttpOnly cookie; protect routes with `Depends(current_user)` or `Depends(require_role(Role.ADMIN))` from `app.auth.deps`.
+- Every POST/PATCH/PUT/DELETE to `/api/*` must send the header `X-Requested-With: altheo`; the frontend's `apiFetch()` does this. Use `apiFetch` for all API calls.
+- Phone numbers are stored as `+233XXXXXXXXX`; money as whole cedis.
 Settings live in `.env` files (copied from the `.env.example` next to them). Never commit a `.env`.
 
 ## Rules

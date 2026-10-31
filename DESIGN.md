@@ -99,12 +99,13 @@ The mapping lives in `frontend/src/components/StatusPill.tsx`; add new statuses 
 - Phone numbers: one field, Ghanaian format, `inputmode="tel"`. Money: `inputmode="numeric"`, GH₵ shown before the field.
 
 ### Navigation
-- **Top bar:** glass, sticky, logo left, sections in the middle (desktop), account + "Log out" right.
+- **Top bar (`<TopBar>`):** glass, sticky, logo left, sections in the middle (desktop), account + "Log out" right. Logged-out visitors see "Log in" and "Sign up". Nothing in it wraps; on phones the user's name is hidden to make room.
 - **Phones:** the sections move to a scrollable pill row under the top bar. No hamburger menus for primary sections.
 - Current section is a filled `--accent` pill; others are `--muted` text.
 - Tenant, admin and staff areas share the same shell with different sections.
 
 ### Feedback
+- **Banners (`<Banner>`):** a message above a form or list. `danger` for errors (announced to screen readers), `info` for neutral notes. One banner at a time; field problems go on the field, not in a banner.
 - **Success:** short, past tense, no "successfully": "Payment received", "Room allocated".
 - **Errors:** what happened and what to do, no "Error:" prefix: "MoMo prompt timed out. Try again."
 - **Empty states:** say what will appear and how: "No reports yet. Use Report a problem to tell us about an issue."

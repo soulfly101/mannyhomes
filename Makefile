@@ -2,7 +2,7 @@
 .DEFAULT_GOAL := help
 COMPOSE := docker compose
 
-.PHONY: help setup up down logs build test test-backend test-frontend lint db-shell legacy
+.PHONY: help setup up down logs build test test-backend test-frontend lint db-shell migrate create-admin legacy
 
 help: ## List the commands
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  make %-15s %s\n", $$1, $$2}'
@@ -40,6 +40,13 @@ lint: ## Lint the backend and typecheck the frontend
 
 db-shell: ## Open a MySQL prompt
 	$(COMPOSE) exec db sh -c 'mysql -u"$$MYSQL_USER" -p"$$MYSQL_PASSWORD" "$$MYSQL_DATABASE"'
+
+migrate: ## Apply database migrations
+	$(COMPOSE) exec backend alembic upgrade head
+
+create-admin: ## Create an admin account (asks for details and a password)
+	@read -p "Admin email: " email; read -p "Full name: " name; read -p "Phone (e.g. 0241234567): " phone; \
+	$(COMPOSE) exec backend python -m app.cli create-user --role admin --email "$$email" --name "$$name" --phone "$$phone"
 
 legacy: ## Run the old Next.js app on :3000 (start its database first: npm --prefix legacy run db)
 	npm --prefix legacy run dev
