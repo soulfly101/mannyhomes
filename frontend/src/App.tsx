@@ -1,13 +1,19 @@
 import { useEffect, useState } from "react";
 import { checkHealth, type Status } from "./api";
+import { Ambient, Card, StatusPill, type Tone } from "./components";
 
-const LABEL: Record<Status, string> = { checking: "Checking…", ok: "OK", error: "Not reachable" };
+const SHOWN: Record<Status, { label: string; tone: Tone }> = {
+  checking: { label: "Checking…", tone: "neutral" },
+  ok: { label: "OK", tone: "ok" },
+  error: { label: "Not reachable", tone: "danger" },
+};
 
 function StatusRow({ name, status }: { name: string; status: Status }) {
+  const { label, tone } = SHOWN[status];
   return (
-    <li className={`status status-${status}`}>
+    <li className="status-row">
       <span>{name}</span>
-      <b>{LABEL[status]}</b>
+      <StatusPill status={status} tone={tone} label={label} />
     </li>
   );
 }
@@ -23,13 +29,18 @@ export function App() {
   }, []);
 
   return (
-    <main>
-      <h1>Altheo Homes</h1>
-      <p>The new app is being set up. System status:</p>
-      <ul aria-label="System status">
-        <StatusRow name="API" status={api} />
-        <StatusRow name="Database" status={db} />
-      </ul>
-    </main>
+    <>
+      <Ambient />
+      <main className="wrap status-page">
+        <Card as="section" className="rise" aria-labelledby="status-title">
+          <h1 id="status-title">Altheo Homes</h1>
+          <p className="muted">The new app is being set up. System status:</p>
+          <ul aria-label="System status" className="status-list">
+            <StatusRow name="API" status={api} />
+            <StatusRow name="Database" status={db} />
+          </ul>
+        </Card>
+      </main>
+    </>
   );
 }

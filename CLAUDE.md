@@ -16,6 +16,9 @@ Web app for **Altheo Homes**, a company that rents out apartments in several apa
 | MySQL 8.4 | Runs in docker compose; data in `./.mysql-data/` (git-ignored). |
 | `legacy/` | The first version of the app (Next.js + Prisma + PostgreSQL). **Reference only**: features are ported from it into `backend/` + `frontend/` one Trello card at a time, then it gets deleted. Don't add features to it. |
 
+## Design
+All UI follows **[DESIGN.md](DESIGN.md)** (the "Calm glass" look): colours, type, spacing, components, status pills and accessibility rules. Build screens from the shared components in `frontend/src/components/` and the tokens in `frontend/src/styles/tokens.css`; never hard-code colours or restyle components per page. If something new is needed, add it to DESIGN.md and the shared components first.
+
 ## Running
 ```bash
 make up        # MySQL + backend (:8000) + frontend (:5173) in Docker; creates .env files on first run
