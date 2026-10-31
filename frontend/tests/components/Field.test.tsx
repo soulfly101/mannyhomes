@@ -23,3 +23,10 @@ test("without an error the input is not marked invalid", () => {
   render(<Field label="Name" />);
   expect(screen.getByLabelText("Name")).not.toHaveAttribute("aria-invalid");
 });
+
+test("a prefix is shown before the value but not read out as part of the label", () => {
+  render(<Field label="Rent per month" prefix="GH₵" defaultValue="1200" />);
+  const input = screen.getByLabelText("Rent per month");
+  expect(input).toHaveValue("1200");
+  expect(screen.getByText("GH₵")).toHaveAttribute("aria-hidden", "true");
+});

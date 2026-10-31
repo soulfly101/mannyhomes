@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, NavLink } from "react-router";
 import { useAuth } from "../auth/AuthContext";
 import { Button } from "./Button";
 
@@ -23,6 +23,13 @@ export function TopBar() {
         <Link to="/" className="topbar-logo">
           Altheo Homes
         </Link>
+        {user?.role === "admin" && (
+          <nav className="topbar-nav" aria-label="Admin">
+            <NavLink to="/admin/buildings" className="topbar-link">
+              Buildings
+            </NavLink>
+          </nav>
+        )}
         {user === undefined ? null : user ? (
           <div className="topbar-actions">
             <span className="topbar-user">{user.name}</span>
