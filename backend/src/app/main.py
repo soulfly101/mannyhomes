@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from .auth.router import router as auth_router
 from .config import get_settings
 from .db import get_session
+from .inventory.router import router as inventory_router
 
 CSRF_HEADER = "X-Requested-With"
 CSRF_VALUE = "altheo"
@@ -44,11 +45,16 @@ async def friendly_validation_errors(_: Request, exc: RequestValidationError) ->
     """Turns validation errors into {"detail": first message, "errors": {field: message}} for the forms."""
     errors: dict[str, str] = {}
     for err in exc.errors():
-        field = str(err["loc"][-1]) if err.get("loc") else "body"
+        # ("body", "room_types", 0, "rent") -> "room_types.0.rent"; ("body", "email") -> "email"
+        path = [str(p) for p in err.get("loc", ()) if p != "body"]
+        field = ".".join(path) or "body"
         message = str(err.get("msg", "Check this field.")).removeprefix("Value error, ")
-        if err.get("type") == "missing":
+        kind = err.get("type", "")
+        if kind == "missing":
             message = "This field is required."
-        elif field == "email" and err.get("type") == "value_error":
+        elif kind in ("int_parsing", "int_type", "int_from_float"):
+            message = "Enter a whole number."
+        elif path[-1:] == ["email"] and kind == "value_error":
             message = "Enter a valid email address."
         errors.setdefault(field, message)
     first = next(iter(errors.values()), "Check the form and try again.")
@@ -56,6 +62,7 @@ async def friendly_validation_errors(_: Request, exc: RequestValidationError) ->
 
 
 app.include_router(auth_router, prefix="/api/auth")
+app.include_router(inventory_router, prefix="/api/admin/buildings")
 
 
 @app.get("/api/health")
