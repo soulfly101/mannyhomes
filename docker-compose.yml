@@ -22,15 +22,24 @@ services:
 
   backend:
     build: ./backend
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --app-dir src --reload
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --app-dir src --reload"
     environment:
       DATABASE_URL: mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}
       CORS_ORIGINS: http://localhost:${FRONTEND_PORT:-5173}
+      FRONTEND_URL: http://localhost:${FRONTEND_PORT:-5173}
+      SECRET_KEY: ${SECRET_KEY:-dev-only-insecure-secret-change-me}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URI: http://localhost:${FRONTEND_PORT:-5173}/api/auth/google/callback
+      # Reload on code changes even where file events don't reach containers (e.g. Colima).
+      WATCHFILES_FORCE_POLLING: "true"
     ports:
       - "${BACKEND_PORT:-8000}:8000"
     volumes:
       - ./backend/src:/app/src
       - ./backend/tests:/app/tests
+      - ./backend/migrations:/app/migrations
+      - ./backend/alembic.ini:/app/alembic.ini
     depends_on:
       db:
         condition: service_healthy
@@ -39,11 +48,13 @@ services:
     build: ./frontend
     environment:
       VITE_API_PROXY_TARGET: http://backend:8000
+      VITE_POLL: "true"
     ports:
       - "${FRONTEND_PORT:-5173}:5173"
     volumes:
       - ./frontend/src:/app/src
       - ./frontend/tests:/app/tests
       - ./frontend/index.html:/app/index.html
+      - ./frontend/vite.config.ts:/app/vite.config.ts
     depends_on:
       - backend

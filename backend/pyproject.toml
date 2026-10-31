@@ -10,6 +10,12 @@ dependencies = [
     "pymysql>=1.1",
     "cryptography>=43", # MySQL 8 caching_sha2_password auth
     "pydantic-settings>=2.6",
+    "alembic>=1.14",
+    "argon2-cffi>=23.1",
+    "pyjwt[crypto]>=2.10",
+    "itsdangerous>=2.2",
+    "email-validator>=2.2",
+    "httpx>=0.28",
 ]
 
 [dependency-groups]
