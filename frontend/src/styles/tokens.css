@@ -1,0 +1,83 @@
+/* Altheo Homes design tokens: "Calm glass". See DESIGN.md before changing anything here. */
+:root {
+  --bg: #e8f2fb;
+  --fg: #0a2540;
+  --muted: #3f5b75;
+  --accent: #1677c9;
+  --accent-hover: #0f66b0;
+  --accent-ink: #ffffff;
+  --glass: rgba(255, 255, 255, 0.72);
+  --glass-strong: rgba(255, 255, 255, 0.88);
+  --glass-edge: rgba(255, 255, 255, 0.95);
+  --line: rgba(10, 37, 64, 0.1);
+  --blob-a: #9ed8f7;
+  --blob-b: #c9e7fb;
+  --blob-c: #7fb8ea;
+  --scrim: rgba(6, 24, 44, 0.4);
+  --shadow: 0 10px 40px rgba(10, 37, 64, 0.1);
+  --focus: 0 0 0 3px rgba(22, 119, 201, 0.45);
+
+  --ok: #0f7b5f;
+  --ok-bg: rgba(15, 123, 95, 0.12);
+  --warn: #9a5b00;
+  --warn-bg: rgba(214, 140, 20, 0.16);
+  --danger: #b42f2f;
+  --danger-hover: #9b2626;
+  --danger-bg: rgba(180, 47, 47, 0.12);
+  --info: #0f5c9e;
+  --info-bg: rgba(22, 119, 201, 0.12);
+
+  --font-display: "Bricolage Grotesque Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Figtree Variable", ui-sans-serif, system-ui, sans-serif;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 72px;
+
+  --radius-pill: 999px;
+  --radius-card: 22px;
+  --radius-panel: 28px;
+  --radius-field: 14px;
+  --content-width: 1120px;
+  --tap: 44px;
+
+  --ease: cubic-bezier(0.22, 0.8, 0.24, 1);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #051726;
+    --fg: #e6f2fc;
+    --muted: #a3bdd4;
+    --accent: #4fa9f0;
+    --accent-hover: #6cb8f3;
+    --accent-ink: #04213a;
+    --glass: rgba(14, 44, 72, 0.55);
+    --glass-strong: rgba(12, 38, 64, 0.85);
+    --glass-edge: rgba(160, 210, 255, 0.22);
+    --line: rgba(160, 210, 255, 0.14);
+    --blob-a: #0e4d80;
+    --blob-b: #0a3358;
+    --blob-c: #136aa8;
+    --scrim: rgba(0, 8, 18, 0.55);
+    --shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    --focus: 0 0 0 3px rgba(79, 169, 240, 0.55);
+
+    --ok: #5fd3ae;
+    --ok-bg: rgba(95, 211, 174, 0.14);
+    --warn: #f4c063;
+    --warn-bg: rgba(244, 192, 99, 0.14);
+    --danger: #ff8a8a;
+    --danger-hover: #ffa3a3;
+    --danger-bg: rgba(255, 138, 138, 0.14);
+    --info: #8cc8f6;
+    --info-bg: rgba(79, 169, 240, 0.14);
+    color-scheme: dark;
+  }
+}
