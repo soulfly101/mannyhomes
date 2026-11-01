@@ -12,6 +12,7 @@ from .auth.router import router as auth_router
 from .config import get_settings
 from .db import get_session
 from .inventory.router import router as inventory_router
+from .listings.router import router as listings_router
 
 CSRF_HEADER = "X-Requested-With"
 CSRF_VALUE = "altheo"
@@ -63,6 +64,7 @@ async def friendly_validation_errors(_: Request, exc: RequestValidationError) ->
 
 app.include_router(auth_router, prefix="/api/auth")
 app.include_router(inventory_router, prefix="/api/admin/buildings")
+app.include_router(listings_router, prefix="/api/listings")
 
 
 @app.get("/api/health")

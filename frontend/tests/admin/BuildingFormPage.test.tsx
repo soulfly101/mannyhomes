@@ -1,9 +1,12 @@
 import { screen, waitFor, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import userEventLib from "@testing-library/user-event";
 import { Route } from "react-router";
 import { BuildingFormPage } from "../../src/admin/BuildingFormPage";
 import { mockApi, renderAt } from "../helpers";
 import { MANNY, asAdmin } from "./fixtures";
+
+// Type instantly: these tests fill many fields and must not depend on machine speed.
+const userEvent = userEventLib.setup({ delay: null });
 
 const routes = (
   <>
