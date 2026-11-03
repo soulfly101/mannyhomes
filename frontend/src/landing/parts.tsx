@@ -28,9 +28,16 @@ export function SectionHead({ eyebrow, title, lead, id }: { eyebrow: string; tit
   );
 }
 
-/** Solid navy button/link with small corners, as in the reference design. */
+/** Solid navy button/link with small corners, as in the reference design. Lifts 2px on hover. */
 export const buttonClass =
-  "inline-flex items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-semibold tracking-wide text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
+  "inline-flex items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-semibold tracking-wide text-primary-foreground transition duration-300 ease-out hover:bg-primary/90 motion-safe:hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
+
+/**
+ * Link in the hero menu: rises 2px and a thin underline slides in from the left on hover or keyboard focus.
+ * Movement is only applied when the device allows motion (`motion-safe:`).
+ */
+export const navLinkClass =
+  "relative inline-flex min-h-11 items-center text-white/85 transition duration-300 ease-out after:absolute after:bottom-2 after:left-0 after:h-px after:w-full after:origin-left after:scale-x-0 after:bg-white after:transition-transform after:duration-300 after:ease-out hover:text-white hover:after:scale-x-100 focus-visible:text-white focus-visible:after:scale-x-100 motion-safe:hover:-translate-y-0.5";
 
 export const outlineButtonClass =
   "inline-flex items-center justify-center rounded-md border border-foreground/20 bg-transparent px-5 py-3 text-sm font-semibold tracking-wide text-foreground transition-colors hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";

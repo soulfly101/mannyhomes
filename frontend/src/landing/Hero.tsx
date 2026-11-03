@@ -4,7 +4,7 @@ import { Menu, X } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { cn } from "@/lib/utils";
 import { BRAND, HERO } from "./content";
-import { Eyebrow, buttonClass } from "./parts";
+import { Eyebrow, buttonClass, navLinkClass } from "./parts";
 
 const NAV = [
   { label: "Residences", href: "#residences" },
@@ -22,7 +22,7 @@ function AccountLinks({ onNavigate }: { onNavigate?: () => void }) {
   if (!user) {
     return (
       <>
-        <Link to="/login" onClick={onNavigate} className="inline-flex min-h-11 items-center text-sm font-medium text-white/90 hover:text-white">
+        <Link to="/login" onClick={onNavigate} className={cn(navLinkClass, "text-sm font-medium")}>
           Log in
         </Link>
         <Link to="/register" onClick={onNavigate} className={cn(buttonClass, "bg-white text-ink hover:bg-white/90")}>
@@ -34,7 +34,7 @@ function AccountLinks({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <>
       {user.role === "admin" && (
-        <Link to="/admin/buildings" onClick={onNavigate} className="inline-flex min-h-11 items-center text-sm font-medium text-white/90 hover:text-white">
+        <Link to="/admin/buildings" onClick={onNavigate} className={cn(navLinkClass, "text-sm font-medium")}>
           Buildings
         </Link>
       )}
@@ -74,14 +74,14 @@ export function Hero() {
       <div className="absolute inset-0 -z-10 bg-overlay" aria-hidden="true" />
 
       <nav aria-label="Main" className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-5 sm:px-6">
-        <a href="#top" className="flex min-h-11 items-center gap-3 text-white">
-          <span className="grid h-9 w-9 place-items-center rounded-md bg-white font-serif text-xl font-semibold text-ink">{BRAND.monogram}</span>
+        <a href="#top" className="group flex min-h-11 items-center gap-3 text-white">
+          <span className="grid h-9 w-9 place-items-center rounded-md bg-white font-serif text-xl font-semibold text-ink transition-transform duration-300 ease-out motion-safe:group-hover:-translate-y-0.5 motion-safe:group-hover:-rotate-6">{BRAND.monogram}</span>
           <span className="font-serif text-2xl font-medium">{BRAND.name}</span>
         </a>
         <ul className="hidden items-center gap-8 md:flex">
           {NAV.map((n) => (
             <li key={n.href}>
-              <a href={n.href} className="inline-flex min-h-11 items-center text-sm font-medium uppercase tracking-[0.14em] text-white/85 hover:text-white">
+              <a href={n.href} className={cn(navLinkClass, "text-sm font-medium uppercase tracking-[0.14em]")}>
                 {n.label}
               </a>
             </li>

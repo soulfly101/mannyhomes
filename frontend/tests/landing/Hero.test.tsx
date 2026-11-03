@@ -93,3 +93,19 @@ test("on phones the menu opens and closes", async () => {
   await userEvent.click(screen.getByRole("button", { name: "Close menu" }));
   expect(document.getElementById("mobile-menu")).toBeNull();
 });
+
+test("menu links and buttons move on hover only when the device allows motion", async () => {
+  mockApi({ ...loggedOut, ...googleOff });
+  renderHero();
+  const nav = screen.getByRole("navigation", { name: "Main" });
+  const links = [...nav.querySelectorAll("ul a"), await screen.findByRole("link", { name: "Log in" })];
+  for (const link of links) {
+    expect(link.className).toContain("hover:after:scale-x-100");
+    expect(link.className).toContain("focus-visible:after:scale-x-100");
+  }
+  for (const el of [...links, screen.getByRole("link", { name: "Sign up" }), screen.getByRole("link", { name: "Explore residences" })]) {
+    const moves = el.className.split(/\s+/).filter((c) => /translate|rotate/.test(c));
+    expect(moves.length).toBeGreaterThan(0);
+    for (const c of moves) expect(c).toMatch(/^motion-safe:/);
+  }
+});
