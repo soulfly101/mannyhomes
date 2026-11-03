@@ -1,6 +1,6 @@
 # Altheo Homes design rules
 
-**Direction: professional and flat.** White and light-grey surfaces, deep navy text, one solid brand blue for actions, thin borders and real photos or video of the buildings. **No gradient colouring, glow, blurred colour blobs or frosted glass** (the earlier "Calm glass" look was dropped on 3 Nov 2026).
+**Direction: professional and flat, after the "Solenne" reference the owner chose.** Warm cream surfaces, dark ink text, solid deep-navy buttons with small corners, elegant serif headings, small uppercase eyebrow labels, thin borders, and real photos or video of the buildings. **No gradient colouring, glow, blurred colour blobs or frosted glass** (the earlier "Calm glass" look was dropped on 3 Nov 2026).
 
 New screens are built with **Tailwind CSS** and **shadcn**-style components:
 - Primitives live in `frontend/src/components/ui/` (shadcn installs there; see `frontend/components.json`), app components in `frontend/src/components/`.
@@ -21,14 +21,14 @@ All colours are CSS variables in `frontend/src/styles/tokens.css`, with light an
 
 | Token | Light | Dark | Use |
 |---|---|---|---|
-| `background` / `--bg` | `#FFFFFF` / `#F6F8FB` | `#0B1220` | Page background |
-| `foreground` / `--fg` | `#0B1B2B` | `#E6EDF5` | Main text, headings |
-| `muted-foreground` / `--muted` | `#526274` | `#9FB0C3` | Secondary text, labels |
-| `primary` / `--accent` | `#1361B0` | `#4C9BE8` | Primary buttons, links, focus, selected states (solid) |
-| `primary-foreground` | `#FFFFFF` | `#06182B` | Text on primary |
-| `card` / `--glass` | `#FFFFFF` | `#111A2B` | Card surface (solid; the `--glass` name is kept for older CSS) |
-| `border` / `--line` | `#E2E8F0` | `#24324A` | Card borders, dividers |
-| `input` | `#CBD5E1` | `#33445F` | Field borders |
+| `background` / `--bg` | `#F4EFE7` (cream) | `#12161C` | Page background |
+| `foreground` / `--fg` | `#1C232B` (ink) | `#EEE8DE` | Main text, headings |
+| `muted-foreground` / `--muted` | `#5B636D` | `#A7AFB8` | Secondary text, labels |
+| `primary` / `--accent` | `#1F2E3D` (deep navy) | `#E9DFCF` | Buttons, selected chips, focus (solid) |
+| `primary-foreground` | `#F7F3EC` | `#12161C` | Text on primary |
+| `card` / `--glass` | `#FBF8F3` | `#1A2028` | Cards, form fields, footer (solid) |
+| `border` / `--line` | `#DDD4C6` | `#2E3742` | Borders, dividers |
+| `overlay` | ink at 45% | ink at 55% | **Solid** layer over photos/video so white text is readable |
 | `--ok` / `--ok-bg` | `#0F7B5F` | `#5FD3AE` | Paid, free, resolved, success |
 | `--warn` / `--warn-bg` | `#9A5B00` | `#F4C063` | Partial, pending, awaiting, booked |
 | `--danger` / `--danger-bg` | `#B42F2F` | `#FF8A8A` | Unpaid, overdue, errors, destructive actions |
@@ -39,7 +39,8 @@ All colours are CSS variables in `frontend/src/styles/tokens.css`, with light an
 - Dark mode follows the phone or computer setting automatically. Check every screen in both.
 
 ## Type
-- **Font:** Figtree (variable) for everything, headings in weight 600–700 with slightly tight letter spacing. Bundled with the app (`@fontsource-variable/figtree`), not loaded from Google.
+- **Headings:** Cormorant Garamond (serif, weight 500, `font-serif`), large and airy like the reference. **Body and UI:** Figtree (variable). Both are bundled with the app (`@fontsource/*`), not loaded from Google.
+- **Eyebrows:** 12px uppercase, wide letter spacing, with a small dot (`Eyebrow` in `frontend/src/landing/parts.tsx`).
 
 | Style | Size | Weight | Use |
 |---|---|---|---|
@@ -69,6 +70,9 @@ Use the shared components. Each has tests in `frontend/tests/components/`.
 
 ### Sign in, sign up and onboarding (`@/components/ui/sign-in`, `@/components/ui/sign-up`)
 Two columns: form on the left, apartment photo on the right (photo hidden on phones). Built from `AuthSplitLayout`, `AuthField` (labelled, hint and error linked for screen readers, optional show/hide password), `SubmitButton` (busy state), `GoogleButton` and `FormError`.
+
+### Landing page (`frontend/src/landing/`)
+Hero (video/photo + menu), the Altheo experience, Find your residence (live room types accordion), Facilities, Location (Leaflet map with light OpenStreetMap/CARTO tiles), Gallery, call to action, and footer with the contact form. **All copy, photos, facilities, locations and contact details are in `frontend/src/landing/content.ts`**; buildings, prices and availability come live from the admin inventory.
 
 ### Badges (`@/components/ui/badge`)
 Small solid status label with a `tone` (`success`, `warning`, `danger`, `neutral`), used for availability ("3 available" / "Fully booked") and payment states. The tone mapping in the Status pills table below applies.

@@ -41,7 +41,7 @@ export function OnboardingPage() {
         <div className="animate-element">
           <AuthBrand />
         </div>
-        <h1 className="animate-element animate-delay-100 text-4xl font-semibold leading-tight md:text-5xl">
+        <h1 className="animate-element animate-delay-100 font-serif text-5xl font-medium leading-[1.05] md:text-6xl">
           Welcome, {user?.name.split(" ")[0] ?? "there"}
         </h1>
         <p className="animate-element animate-delay-200 text-muted-foreground">

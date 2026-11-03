@@ -39,6 +39,7 @@ Database changes go through **Alembic** migrations in `backend/migrations/versio
 ## Inventory and prices
 - `buildings` → `room_types` (e.g. "Manny Building" → "2 bedroom": rent, `quantity_available`, optional sanitation fee override). Admin API at `/api/admin/buildings`, admin screens at `/admin/buildings`.
 - `quantity_available` is the count tenants see. Allocation (#18) must subtract 1 and move-out (#26) add 1 back, in the same transaction as the allocation/move-out.
+- The landing page (`/`) is in `frontend/src/landing/`; its copy, photos, facilities, map areas and contact details live in `frontend/src/landing/content.ts`. Contact form messages go to `POST /api/contact` and admins read them at `GET /api/admin/contact`.
 - Prices on a room type are the **current offer only**. Anything that charges money later (bookings, tenancies, bills) must **copy** the amount when it's created, so editing prices never changes what someone already owes.
 Settings live in `.env` files (copied from the `.env.example` next to them). Never commit a `.env`.
 

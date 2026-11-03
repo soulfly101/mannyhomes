@@ -26,7 +26,7 @@ interface SignUpPageProps {
 const EMPTY: SignUpValues = { name: "", phone: "", email: "", password: "" };
 
 export function SignUpPage({
-  title = <span className="font-semibold tracking-tight text-foreground">Create your account</span>,
+  title = <span className="text-foreground">Create your account</span>,
   description = "Sign up to see prices and book an apartment.",
   heroImageSrc,
   brand,
@@ -52,7 +52,7 @@ export function SignUpPage({
     <AuthSplitLayout heroImageSrc={heroImageSrc}>
       <div className="flex flex-col gap-6">
         {brand && <div className="animate-element">{brand}</div>}
-        <h1 className="animate-element animate-delay-100 text-4xl font-semibold leading-tight md:text-5xl">{title}</h1>
+        <h1 className="animate-element animate-delay-100 font-serif text-5xl font-medium leading-[1.05] md:text-6xl">{title}</h1>
         <p className="animate-element animate-delay-200 text-muted-foreground">{description}</p>
 
         {error && <FormError>{error}</FormError>}

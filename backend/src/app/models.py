@@ -111,3 +111,22 @@ class RoomType(Base):
         if self.sanitation_fee_override is not None:
             return self.sanitation_fee_override
         return self.building.sanitation_fee
+
+
+class ContactMessage(Base):
+    """A message sent from the website's contact form (e.g. "I'd like to view a 2 bedroom")."""
+
+    __tablename__ = "contact_messages"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(120))
+    email: Mapped[str] = mapped_column(String(254))
+    # E.164, e.g. +233241234567; optional.
+    phone: Mapped[str | None] = mapped_column(String(16))
+    # The room type the visitor asked about, if any. Kept if the room type is later deleted (set to NULL).
+    room_type_id: Mapped[str | None] = mapped_column(ForeignKey("room_types.id", ondelete="SET NULL"))
+    message: Mapped[str] = mapped_column(Text)
+    handled: Mapped[bool] = mapped_column(default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+
+    room_type: Mapped[RoomType | None] = relationship()

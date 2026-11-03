@@ -51,7 +51,7 @@ interface SignInPageProps {
 export const InputWrapper = ({ children, invalid }: { children: ReactNode; invalid?: boolean }) => (
   <div
     className={cn(
-      "mt-1.5 rounded-xl border bg-background transition-colors focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20",
+      "mt-1.5 rounded-md border bg-card transition-colors focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20",
       invalid ? "border-destructive" : "border-input",
     )}
   >
@@ -89,7 +89,7 @@ export function AuthField({ label, hint, error, revealable, delayClass, id, type
             aria-invalid={error ? true : undefined}
             aria-describedby={[hintId, errorId].filter(Boolean).join(" ") || undefined}
             className={cn(
-              "w-full rounded-xl bg-transparent p-4 text-base text-foreground placeholder:text-muted-foreground/70 focus:outline-none",
+              "w-full rounded-md bg-transparent p-4 text-base text-foreground placeholder:text-muted-foreground/70 focus:outline-none",
               revealable && "pr-12",
             )}
           />
@@ -120,7 +120,7 @@ export function AuthField({ label, hint, error, revealable, delayClass, id, type
 }
 
 export const FormError = ({ children }: { children: ReactNode }) => (
-  <p role="alert" className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+  <p role="alert" className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
     {children}
   </p>
 );
@@ -131,7 +131,7 @@ export const SubmitButton = ({ busy, children, delayClass }: { busy?: boolean; c
     aria-busy={busy || undefined}
     disabled={busy}
     className={cn(
-      "animate-element w-full rounded-xl bg-primary py-4 font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-progress disabled:opacity-80",
+      "animate-element w-full rounded-md bg-primary py-4 font-semibold tracking-wide text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-progress disabled:opacity-80",
       delayClass,
     )}
   >
@@ -149,7 +149,7 @@ export const GoogleButton = ({ onClick, delayClass }: { onClick: () => void; del
       type="button"
       onClick={onClick}
       className={cn(
-        "animate-element flex w-full items-center justify-center gap-3 rounded-xl border border-border py-4 font-medium transition-colors hover:bg-secondary",
+        "animate-element flex w-full items-center justify-center gap-3 rounded-md border border-border bg-card py-4 font-medium transition-colors hover:bg-secondary",
         delayClass,
       )}
     >
@@ -221,7 +221,7 @@ export function AuthSplitLayout({
 // --- MAIN COMPONENT ---
 
 export const SignInPage = ({
-  title = <span className="font-semibold tracking-tight text-foreground">Welcome back</span>,
+  title = <span className="text-foreground">Welcome back</span>,
   description = "Log in to see prices and manage your bookings.",
   heroImageSrc,
   testimonials = [],
@@ -236,7 +236,7 @@ export const SignInPage = ({
   <AuthSplitLayout heroImageSrc={heroImageSrc} testimonials={testimonials}>
     <div className="flex flex-col gap-6">
       {brand && <div className="animate-element">{brand}</div>}
-      <h1 className="animate-element animate-delay-100 text-4xl font-semibold leading-tight md:text-5xl">{title}</h1>
+      <h1 className="animate-element animate-delay-100 font-serif text-5xl font-medium leading-[1.05] md:text-6xl">{title}</h1>
       <p className="animate-element animate-delay-200 text-muted-foreground">{description}</p>
 
       {error && <FormError>{error}</FormError>}

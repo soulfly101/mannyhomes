@@ -1,55 +1,60 @@
-/* Tailwind + shadcn theme. Professional and flat: solid colours, thin borders, no gradients, glow or blur. */
+/* Tailwind + shadcn theme. Professional and flat: solid colours, thin borders, no gradients, glow or blur.
+   Cream background, deep navy actions, serif headings (Cormorant Garamond) with Figtree body text. */
 @import "tailwindcss";
 @import "tw-animate-css";
 
 :root {
-  --radius: 0.75rem;
-  --background: #ffffff;
-  --foreground: #0b1b2b;
-  --card: #ffffff;
-  --card-foreground: #0b1b2b;
-  --popover: #ffffff;
-  --popover-foreground: #0b1b2b;
-  --primary: #1361b0;
-  --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0b1b2b;
-  --muted: #f3f5f8;
-  --muted-foreground: #526274;
-  --accent: #eaf2fb;
-  --accent-foreground: #0b1b2b;
-  --destructive: #b42318;
+  /* Warm cream and deep navy, after the reference design the owner chose (Nov 2026). */
+  --radius: 0.5rem;
+  --background: #f4efe7;
+  --foreground: #1c232b;
+  --card: #fbf8f3;
+  --card-foreground: #1c232b;
+  --popover: #fbf8f3;
+  --popover-foreground: #1c232b;
+  --primary: #1f2e3d;
+  --primary-foreground: #f7f3ec;
+  --secondary: #eae3d8;
+  --secondary-foreground: #1c232b;
+  --muted: #ece6dc;
+  --muted-foreground: #5b636d;
+  --accent: #e7dfd2;
+  --accent-foreground: #1c232b;
+  --destructive: #a63a2b;
   --destructive-foreground: #ffffff;
-  --success: #0f7b5f;
-  --warning: #9a5b00;
-  --border: #e2e8f0;
-  --input: #cbd5e1;
-  --ring: #1361b0;
+  --success: #2f6b4f;
+  --warning: #8a5a12;
+  --border: #ddd4c6;
+  --input: #cfc5b5;
+  --ring: #1f2e3d;
+  /* Solid layer over photos so white text stays readable (never a gradient). */
+  --overlay: rgba(18, 22, 28, 0.45);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0b1220;
-    --foreground: #e6edf5;
-    --card: #111a2b;
-    --card-foreground: #e6edf5;
-    --popover: #111a2b;
-    --popover-foreground: #e6edf5;
-    --primary: #4c9be8;
-    --primary-foreground: #06182b;
-    --secondary: #1a2436;
-    --secondary-foreground: #e6edf5;
-    --muted: #1a2436;
-    --muted-foreground: #9fb0c3;
-    --accent: #16263d;
-    --accent-foreground: #e6edf5;
-    --destructive: #ff8a7a;
+    --background: #12161c;
+    --foreground: #eee8de;
+    --card: #1a2028;
+    --card-foreground: #eee8de;
+    --popover: #1a2028;
+    --popover-foreground: #eee8de;
+    --primary: #e9dfcf;
+    --primary-foreground: #12161c;
+    --secondary: #222a33;
+    --secondary-foreground: #eee8de;
+    --muted: #222a33;
+    --muted-foreground: #a7afb8;
+    --accent: #262f3a;
+    --accent-foreground: #eee8de;
+    --destructive: #f08a7a;
     --destructive-foreground: #1b0605;
-    --success: #5fd3ae;
-    --warning: #f4c063;
-    --border: #24324a;
-    --input: #33445f;
-    --ring: #4c9be8;
+    --success: #7cc9a3;
+    --warning: #e6b866;
+    --border: #2e3742;
+    --input: #3a4450;
+    --ring: #e9dfcf;
+    --overlay: rgba(10, 12, 16, 0.55);
   }
 }
 
@@ -80,6 +85,10 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --font-sans: "Figtree Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Cormorant Garamond", ui-serif, Georgia, serif;
+  --color-overlay: var(--overlay);
+  /* Fixed ink for text on white elements over photos (same in light and dark mode). */
+  --color-ink: #1c232b;
   /* The 21st.dev components ask for Geist; we use the app's own font instead of downloading another. */
   --font-geist: "Figtree Variable", ui-sans-serif, system-ui, sans-serif;
 }

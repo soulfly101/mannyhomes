@@ -10,6 +10,8 @@ from sqlalchemy.orm import Session
 
 from .auth.router import router as auth_router
 from .config import get_settings
+from .contact.router import admin_router as contact_admin_router
+from .contact.router import router as contact_router
 from .db import get_session
 from .inventory.router import router as inventory_router
 from .listings.router import router as listings_router
@@ -65,6 +67,8 @@ async def friendly_validation_errors(_: Request, exc: RequestValidationError) ->
 app.include_router(auth_router, prefix="/api/auth")
 app.include_router(inventory_router, prefix="/api/admin/buildings")
 app.include_router(listings_router, prefix="/api/listings")
+app.include_router(contact_router, prefix="/api/contact")
+app.include_router(contact_admin_router, prefix="/api/admin/contact")
 
 
 @app.get("/api/health")

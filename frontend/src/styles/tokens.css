@@ -1,16 +1,16 @@
 /* Altheo Homes design tokens for the plain-CSS components. Flat: solid surfaces, no gradients or blur.
    The shadcn/Tailwind theme lives in globals.css; keep the two in step (see DESIGN.md). */
 :root {
-  --bg: #f6f8fb;
-  --fg: #0b1b2b;
-  --muted: #526274;
-  --accent: #1361b0;
-  --accent-hover: #0f5196;
-  --accent-ink: #ffffff;
-  --glass: #ffffff;
-  --glass-strong: #ffffff;
-  --glass-edge: #e2e8f0;
-  --line: #e2e8f0;
+  --bg: #f4efe7;
+  --fg: #1c232b;
+  --muted: #5b636d;
+  --accent: #1f2e3d;
+  --accent-hover: #2c3f52;
+  --accent-ink: #f7f3ec;
+  --glass: #fbf8f3;
+  --glass-strong: #fbf8f3;
+  --glass-edge: #ddd4c6;
+  --line: #ddd4c6;
   --blob-a: #9ed8f7;
   --blob-b: #c9e7fb;
   --blob-c: #7fb8ea;
@@ -28,7 +28,7 @@
   --info: #0f5c9e;
   --info-bg: rgba(22, 119, 201, 0.12);
 
-  --font-display: "Figtree Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Cormorant Garamond", ui-serif, Georgia, serif;
   --font-body: "Figtree Variable", ui-sans-serif, system-ui, sans-serif;
 
   --space-1: 4px;
@@ -53,16 +53,16 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0b1220;
-    --fg: #e6edf5;
-    --muted: #9fb0c3;
-    --accent: #4c9be8;
-    --accent-hover: #6cb8f3;
-    --accent-ink: #06182b;
-    --glass: #111a2b;
-    --glass-strong: #111a2b;
-    --glass-edge: #24324a;
-    --line: #24324a;
+    --bg: #12161c;
+    --fg: #eee8de;
+    --muted: #a7afb8;
+    --accent: #e9dfcf;
+    --accent-hover: #f4ecdf;
+    --accent-ink: #12161c;
+    --glass: #1a2028;
+    --glass-strong: #1a2028;
+    --glass-edge: #2e3742;
+    --line: #2e3742;
     --blob-a: #0e4d80;
     --blob-b: #0a3358;
     --blob-c: #136aa8;
