@@ -132,3 +132,15 @@ test("explains when nothing is listed or loading fails", async () => {
   renderResidences();
   expect(await screen.findByRole("alert")).toHaveTextContent("Something broke.");
 });
+
+test("location chips pop out on hover only when the device allows motion", async () => {
+  mockApi({ ...loggedOut, ...googleOff, "GET /api/listings": { body: listings(false) } });
+  renderResidences();
+  const chips = within(await screen.findByRole("group", { name: "Choose a location" })).getAllByRole("button");
+  for (const chip of chips) {
+    expect(chip.className).toContain("hover:shadow-sm");
+    const moves = chip.className.split(/\s+/).filter((c) => /translate|scale/.test(c));
+    expect(moves).toEqual(expect.arrayContaining(["motion-safe:hover:scale-105", "motion-safe:hover:-translate-y-0.5"]));
+    for (const c of moves) expect(c).toMatch(/^motion-safe:/);
+  }
+});

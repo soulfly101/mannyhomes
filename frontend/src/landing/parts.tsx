@@ -39,6 +39,16 @@ export const buttonClass =
 export const navLinkClass =
   "relative inline-flex min-h-11 items-center text-white/85 transition duration-300 ease-out after:absolute after:bottom-2 after:left-0 after:h-px after:w-full after:origin-left after:scale-x-0 after:bg-white after:transition-transform after:duration-300 after:ease-out hover:text-white hover:after:scale-x-100 focus-visible:text-white focus-visible:after:scale-x-100 motion-safe:hover:-translate-y-0.5";
 
+/**
+ * Rounded filter chip (location choices). Pops out on hover: grows slightly, rises and gets a soft shadow;
+ * presses in when clicked. Movement only when the device allows motion.
+ */
+export const chipClass = (selected: boolean) =>
+  cn(
+    "min-h-11 rounded-full border px-4 py-2 text-sm font-medium transition duration-200 ease-out hover:shadow-sm motion-safe:hover:-translate-y-0.5 motion-safe:hover:scale-105 motion-safe:active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+    selected ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:border-foreground/30 hover:bg-secondary",
+  );
+
 export const outlineButtonClass =
   "inline-flex items-center justify-center rounded-md border border-foreground/20 bg-transparent px-5 py-3 text-sm font-semibold tracking-wide text-foreground transition-colors hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 

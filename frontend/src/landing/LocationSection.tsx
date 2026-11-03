@@ -3,9 +3,8 @@ import L from "leaflet";
 import { MapPin } from "lucide-react";
 import { apiFetch } from "../api";
 import type { ListingsResponse } from "../listings/types";
-import { cn } from "@/lib/utils";
 import { LOCATION } from "./content";
-import { SectionHead, sectionClass } from "./parts";
+import { SectionHead, chipClass, sectionClass } from "./parts";
 
 type Area = { name: string; buildings: { name: string; available: number }[] };
 
@@ -92,10 +91,7 @@ export function LocationSection() {
                   type="button"
                   aria-pressed={selected === a.name}
                   onClick={() => setSelected(a.name)}
-                  className={cn(
-                    "min-h-11 rounded-full border px-4 py-2 text-sm font-medium transition-colors",
-                    selected === a.name ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:bg-secondary",
-                  )}
+                  className={chipClass(selected === a.name)}
                 >
                   {a.name}
                 </button>

@@ -4,11 +4,10 @@ import { Minus, Plus } from "lucide-react";
 import { ApiError, apiFetch } from "../api";
 import { useAuth } from "../auth/AuthContext";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import { formatCedis } from "../format";
 import type { ListingsResponse } from "../listings/types";
 import { RESIDENCES } from "./content";
-import { SectionHead, buttonClass, outlineButtonClass, sectionClass } from "./parts";
+import { SectionHead, buttonClass, chipClass, outlineButtonClass, sectionClass } from "./parts";
 
 export type Residence = {
   id: string;
@@ -76,10 +75,7 @@ export function Residences({ onEnquire }: { onEnquire: (residence: Residence) =>
                 setLocation(l);
                 setOpenId(null);
               }}
-              className={cn(
-                "min-h-11 rounded-full border px-4 py-2 text-sm font-medium transition-colors",
-                location === l ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:bg-secondary",
-              )}
+              className={chipClass(location === l)}
             >
               {l || "All locations"}
             </button>
