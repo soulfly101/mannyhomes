@@ -19,8 +19,8 @@ function StatusRow({ name, status }: { name: string; status: Status }) {
   );
 }
 
-/** Placeholder home page until listings are ported: greeting plus API and database status. */
-export function HomePage() {
+/** System status: whether the API and database are reachable. */
+export function StatusPage() {
   const { user } = useAuth();
   const [api, setApi] = useState<Status>("checking");
   const [db, setDb] = useState<Status>("checking");
@@ -33,8 +33,8 @@ export function HomePage() {
   return (
     <main className="wrap status-page">
       <Card as="section" className="rise" aria-labelledby="status-title">
-        <h1 id="status-title">{user ? `Hi, ${user.name.split(" ")[0]}` : "Altheo Homes"}</h1>
-        <p className="muted">The new app is being set up. System status:</p>
+        <h1 id="status-title">System status</h1>
+        <p className="muted">{user ? `Logged in as ${user.name}.` : "Not logged in."}</p>
         <ul aria-label="System status" className="status-list">
           <StatusRow name="API" status={api} />
           <StatusRow name="Database" status={db} />

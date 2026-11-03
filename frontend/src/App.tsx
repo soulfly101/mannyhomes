@@ -3,10 +3,11 @@ import { BuildingFormPage } from "./admin/BuildingFormPage";
 import { BuildingsPage } from "./admin/BuildingsPage";
 import { RequireAuth } from "./auth/RequireAuth";
 import { Ambient, TopBar } from "./components";
-import { HomePage } from "./pages/HomePage";
+import { ListingsPage } from "./listings/ListingsPage";
 import { LoginPage } from "./pages/LoginPage";
 import { OnboardingPage } from "./pages/OnboardingPage";
 import { RegisterPage } from "./pages/RegisterPage";
+import { StatusPage } from "./pages/StatusPage";
 
 export function App() {
   return (
@@ -14,7 +15,8 @@ export function App() {
       <Ambient />
       <TopBar />
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<ListingsPage />} />
+        <Route path="/status" element={<StatusPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route
@@ -28,7 +30,7 @@ export function App() {
         <Route path="/admin/buildings" element={<RequireAuth roles={["admin"]}><BuildingsPage /></RequireAuth>} />
         <Route path="/admin/buildings/new" element={<RequireAuth roles={["admin"]}><BuildingFormPage /></RequireAuth>} />
         <Route path="/admin/buildings/:id" element={<RequireAuth roles={["admin"]}><BuildingFormPage /></RequireAuth>} />
-        <Route path="*" element={<HomePage />} />
+        <Route path="*" element={<ListingsPage />} />
       </Routes>
     </>
   );
