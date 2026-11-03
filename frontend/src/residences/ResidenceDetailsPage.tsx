@@ -20,6 +20,12 @@ export function RoomFacts({ r }: { r: Residence }) {
           <dd>{formatCedis(r.sanitation)} / month</dd>
         </>
       )}
+      {r.bookingDeposit ? (
+        <>
+          <dt className="text-muted-foreground">Booking deposit</dt>
+          <dd>{formatCedis(r.bookingDeposit)}, refundable</dd>
+        </>
+      ) : null}
       <dt className="text-muted-foreground">Availability</dt>
       <dd>
         <Badge tone={r.quantity ? "success" : "danger"}>{availability(r.quantity)}</Badge>

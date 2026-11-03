@@ -6,7 +6,7 @@ import { ContactForm } from "../../src/landing/ContactForm";
 import type { Residence } from "../../src/residences/data";
 import { AMA, googleOff, loggedOut, mockApi } from "../helpers";
 
-const TWO_BED: Residence = { id: "r2", name: "2 bedroom", description: null, quantity: 2, rent: null, sanitation: null, building: "Manny Building", location: "Oyarifa" };
+const TWO_BED: Residence = { id: "r2", name: "2 bedroom", description: null, quantity: 2, rent: null, sanitation: null, bookingDeposit: null, building: "Manny Building", location: "Oyarifa" };
 
 const renderForm = (enquiry: Residence | null = null) =>
   render(

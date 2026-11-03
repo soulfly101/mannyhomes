@@ -1,8 +1,8 @@
-from datetime import datetime
+from datetime import date, datetime
 from enum import StrEnum
 from uuid import uuid4
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import Date, DateTime, Enum, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import Base, utcnow
@@ -98,6 +98,10 @@ class RoomType(Base):
     quantity_available: Mapped[int] = mapped_column(Integer, default=0)
     # Monthly sanitation fee for this room type in whole cedis; None means use the building's.
     sanitation_fee_override: Mapped[int | None] = mapped_column(Integer)
+    # Refundable deposit paid when booking (#14), and the security deposit charged at allocation (#18).
+    # Whole cedis; 0 means the admin hasn't set it yet. Copied into bills when they're created.
+    booking_deposit: Mapped[int] = mapped_column(Integer, default=0)
+    renting_deposit: Mapped[int] = mapped_column(Integer, default=0)
     description: Mapped[str | None] = mapped_column(Text)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
@@ -130,3 +134,87 @@ class ContactMessage(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
 
     room_type: Mapped[RoomType | None] = relationship()
+
+
+def _str_enum(cls: type[StrEnum], name: str) -> Enum:
+    """Stored as its plain value (e.g. "booking_deposit") in a VARCHAR, like Role."""
+    return Enum(cls, name=name, native_enum=False, length=24, values_callable=lambda e: [m.value for m in e])
+
+
+class BillKind(StrEnum):
+    BOOKING_DEPOSIT = "booking_deposit"
+    RENTING_DEPOSIT = "renting_deposit"
+    SANITATION = "sanitation"
+
+
+class PaymentMethod(StrEnum):
+    PAYSTACK_MOMO = "paystack_momo"
+    PAYSTACK_CARD = "paystack_card"
+    CASH = "cash"
+    BANK = "bank"
+
+
+class PaymentStatus(StrEnum):
+    PENDING = "pending"
+    SUCCESS = "success"
+    FAILED = "failed"
+
+
+class Bill(Base):
+    """Something a tenant owes (#19): a deposit or a month's sanitation fee.
+
+    The amount is copied when the bill is created, so later price changes never alter it.
+    Whether it's Paid, Partial or Unpaid is worked out from its successful payments (see app.billing).
+    """
+
+    __tablename__ = "bills"
+    # One sanitation bill per tenant per month. Deposits have no period (NULLs never clash).
+    __table_args__ = (UniqueConstraint("tenant_id", "kind", "period", name="uq_bills_tenant_kind_period"),)
+
+    # Also the bill number shown to people, e.g. BILL-000042.
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    kind: Mapped[BillKind] = mapped_column(_str_enum(BillKind, "bill_kind"))
+    amount: Mapped[int] = mapped_column(Integer)
+    description: Mapped[str] = mapped_column(String(200))
+    # "2026-11" for a month's sanitation bill; None for deposits.
+    period: Mapped[str | None] = mapped_column(String(7))
+    due_date: Mapped[date] = mapped_column(Date)
+    # The room type it's for, if any. Kept as NULL if the room type is later deleted.
+    room_type_id: Mapped[str | None] = mapped_column(ForeignKey("room_types.id", ondelete="SET NULL"))
+    # Cancelled bills are kept for the record but ignored everywhere.
+    voided_at: Mapped[datetime | None] = mapped_column(DateTime)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+
+    tenant: Mapped[User] = relationship()
+    room_type: Mapped[RoomType | None] = relationship()
+    payments: Mapped[list[Payment]] = relationship(back_populates="bill", order_by="Payment.id")
+
+    @property
+    def number(self) -> str:
+        return f"BILL-{self.id:06d}"
+
+
+class Payment(Base):
+    """Money paid towards a bill: by Paystack (MoMo or card) or recorded by an admin (cash or bank)."""
+
+    __tablename__ = "payments"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    bill_id: Mapped[int] = mapped_column(ForeignKey("bills.id"), index=True)
+    amount: Mapped[int] = mapped_column(Integer)
+    method: Mapped[PaymentMethod] = mapped_column(_str_enum(PaymentMethod, "payment_method"))
+    status: Mapped[PaymentStatus] = mapped_column(
+        _str_enum(PaymentStatus, "payment_status"), default=PaymentStatus.PENDING
+    )
+    # The Paystack reference, or one we make up for cash/bank.
+    # Unique, so the same payment is never counted twice.
+    reference: Mapped[str] = mapped_column(String(100), unique=True)
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime)
+    # The admin who recorded a cash or bank payment.
+    recorded_by_id: Mapped[str | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    note: Mapped[str | None] = mapped_column(String(200))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+    bill: Mapped[Bill] = relationship(back_populates="payments")
+    recorded_by: Mapped[User | None] = relationship()

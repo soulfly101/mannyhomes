@@ -143,6 +143,7 @@ def test_room_details_for_visitors_hide_prices(client, inventory):
         "quantity_available": 2,
         "rent": None,
         "sanitation_fee": None,
+        "booking_deposit": None,
     }
     assert body["building"]["name"] == "Manny Building"
     assert body["building"]["location"] == "Oyarifa"
@@ -165,3 +166,12 @@ def test_room_in_unlisted_building_is_not_found(client, inventory):
 
 def test_unknown_room_is_not_found(client, inventory):
     assert client.get(ROOM_URL.format("no-such-room")).status_code == 404
+
+
+def test_booking_deposit_shown_only_after_login(client, db, inventory):
+    rt = inventory["manny"].room_types[0]
+    rt.booking_deposit = 250
+    db.commit()
+    assert client.get(ROOM_URL.format(rt.id)).json()["room"]["booking_deposit"] is None
+    log_in(client, db)
+    assert client.get(ROOM_URL.format(rt.id)).json()["room"]["booking_deposit"] == 250

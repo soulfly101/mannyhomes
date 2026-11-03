@@ -40,7 +40,15 @@ Database changes go through **Alembic** migrations in `backend/migrations/versio
 - `buildings` → `room_types` (e.g. "Manny Building" → "2 bedroom": rent, `quantity_available`, optional sanitation fee override). Admin API at `/api/admin/buildings`, admin screens at `/admin/buildings`.
 - `quantity_available` is the count tenants see. Allocation (#18) must subtract 1 and move-out (#26) add 1 back, in the same transaction as the allocation/move-out.
 - Public pages: home `/` (`frontend/src/landing/`, with a 3-residence preview), `/residences` (list), `/residences/:id` (one room type) and `/book/:id` (booking, tenants only) in `frontend/src/residences/`. Keep each flow on its own page rather than adding to the home page. Copy, photos, facilities, map areas and contact details live in `frontend/src/landing/content.ts`. A single room type comes from `GET /api/listings/rooms/{id}`. Contact form messages go to `POST /api/contact` and admins read them at `GET /api/admin/contact`.
+- Room types also carry a `booking_deposit` (paid when booking, #14) and a `renting_deposit` (charged at allocation, #18); 0 means "not set yet".
 - Prices on a room type are the **current offer only**. Anything that charges money later (bookings, tenancies, bills) must **copy** the amount when it's created, so editing prices never changes what someone already owes.
+## Money (bills and payments)
+- `bills` (booking deposit, renting deposit, monthly sanitation) and `payments` live in `backend/src/app/billing/`. Always create and pay bills through `billing/service.py` (`create_bill`, `record_payment`, `mark_payment`, `void_bill`), never by writing the tables directly.
+- A bill's status (Paid / Partial / Unpaid) is **derived** from its successful payments, never stored. Cancelled (voided) bills are ignored.
+- Every payment has a **unique reference** (Paystack's, or `manual-…` for cash/bank), so a repeated webhook or double click can't count money twice. Overpaying a bill is refused.
+- A tenant is **fully compliant** for a month only when the booking deposit, renting deposit and that month's sanitation bill are all Paid; a missing bill counts as not cleared (`tenant_compliance`).
+- APIs: `GET /api/me/bills`, `GET /api/admin/bills`, `POST /api/admin/bills/{id}/payments` (cash/bank), `GET /api/admin/tenants/{id}/compliance?period=YYYY-MM`.
+
 Settings live in `.env` files (copied from the `.env.example` next to them). Never commit a `.env`.
 
 ## Rules
