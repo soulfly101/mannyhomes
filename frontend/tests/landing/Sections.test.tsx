@@ -6,6 +6,7 @@ import { CallToAction } from "../../src/landing/CallToAction";
 import { EXPERIENCE, FACILITIES, GALLERY } from "../../src/landing/content";
 import { Experience } from "../../src/landing/Experience";
 import { Facilities } from "../../src/landing/Facilities";
+import { Footer } from "../../src/landing/Footer";
 import { Gallery } from "../../src/landing/Gallery";
 import { LandingPage } from "../../src/landing/LandingPage";
 import { LocationSection } from "../../src/landing/LocationSection";
@@ -82,4 +83,18 @@ test("the whole landing page renders, and Enquire fills in the contact form", as
   await waitFor(() => expect(screen.getByLabelText("Residence of interest")).toHaveValue("r2"));
   expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
   expect(within(screen.getByRole("navigation", { name: "Footer" })).getByRole("link", { name: "Residences" })).toHaveAttribute("href", "#residences");
+});
+
+test("the footer ends with the copyright line, with no decorative drawing", () => {
+  mockApi({ ...loggedOut, ...googleOff });
+  const { container } = render(
+    <MemoryRouter>
+      <AuthProvider>
+        <Footer residences={[]} enquiry={null} />
+      </AuthProvider>
+    </MemoryRouter>,
+  );
+  const footer = container.querySelector("footer")!;
+  expect(footer.querySelector('svg[viewBox="0 0 1200 120"]')).toBeNull();
+  expect(footer.lastElementChild).toHaveTextContent(/© \d{4} Altheo Homes\. All rights reserved\./);
 });
