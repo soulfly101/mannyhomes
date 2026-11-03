@@ -17,12 +17,12 @@ Web app for **Altheo Homes**, a company that rents out apartments in several apa
 | `legacy/` | The first version of the app (Next.js + Prisma + PostgreSQL). **Reference only**: features are ported from it into `backend/` + `frontend/` one Trello card at a time, then it gets deleted. Don't add features to it. |
 
 ## Design
-All UI follows **[DESIGN.md](DESIGN.md)** (the "Calm glass" look): colours, type, spacing, components, status pills and accessibility rules. Build screens from the shared components in `frontend/src/components/` and the tokens in `frontend/src/styles/tokens.css`; never hard-code colours or restyle components per page. If something new is needed, add it to DESIGN.md and the shared components first.
+All UI follows **[DESIGN.md](DESIGN.md)**: **professional and flat — no gradients, glow, blur or glass.** New UI uses **Tailwind CSS + shadcn**: primitives in `frontend/src/components/ui/` (shadcn installs there, per `frontend/components.json`), import via the `@/` alias, merge classes with `cn()` from `@/lib/utils`, and use the theme colours from `frontend/src/styles/globals.css` (never hard-coded colours). Components from 21st.dev/shadcn must be adapted to this style before use, and the site never shows made-up people or testimonials. If something new is needed, add it to DESIGN.md and the shared components first.
 
 ## Running
 ```bash
 make up        # MySQL + backend (:8000) + frontend (:5173) in Docker; creates .env files on first run
-make test      # backend + frontend tests inside the containers
+make test      # backend + frontend tests inside the containers (backend tests use a separate `altheo_test` database)
 make lint      # ruff + TypeScript typecheck
 make down
 ```
@@ -39,6 +39,7 @@ Database changes go through **Alembic** migrations in `backend/migrations/versio
 ## Inventory and prices
 - `buildings` → `room_types` (e.g. "Manny Building" → "2 bedroom": rent, `quantity_available`, optional sanitation fee override). Admin API at `/api/admin/buildings`, admin screens at `/admin/buildings`.
 - `quantity_available` is the count tenants see. Allocation (#18) must subtract 1 and move-out (#26) add 1 back, in the same transaction as the allocation/move-out.
+- The landing page (`/`) is in `frontend/src/landing/`; its copy, photos, facilities, map areas and contact details live in `frontend/src/landing/content.ts`. Contact form messages go to `POST /api/contact` and admins read them at `GET /api/admin/contact`.
 - Prices on a room type are the **current offer only**. Anything that charges money later (bookings, tenancies, bills) must **copy** the amount when it's created, so editing prices never changes what someone already owes.
 Settings live in `.env` files (copied from the `.env.example` next to them). Never commit a `.env`.
 

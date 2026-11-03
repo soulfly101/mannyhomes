@@ -1,5 +1,7 @@
-import { defineConfig } from "vite";
+import path from "node:path";
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
 
 // In docker compose the API is the `backend` service; outside Docker it's on localhost.
 const apiTarget = process.env.VITE_API_PROXY_TARGET ?? "http://localhost:8000";
@@ -7,7 +9,8 @@ const apiTarget = process.env.VITE_API_PROXY_TARGET ?? "http://localhost:8000";
 const poll = process.env.VITE_POLL === "true";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
+  resolve: { alias: { "@": path.resolve(import.meta.dirname, "src") } },
   server: {
     host: true,
     port: 5173,

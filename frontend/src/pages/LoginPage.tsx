@@ -1,10 +1,10 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { ApiError } from "../api";
 import { useAuth } from "../auth/AuthContext";
 import { safeNext } from "../auth/safeNext";
-import { Banner, Button, Field, GoogleButton } from "../components";
-import { AuthLayout } from "./AuthLayout";
+import { SignInPage } from "@/components/ui/sign-in";
+import { AUTH_PHOTO, AuthBrand, startGoogleSignIn } from "./AuthBrand";
 
 const GOOGLE_ERRORS: Record<string, string> = {
   google: "Google sign-in didn't work. Try again, or log in with your email.",
@@ -16,14 +16,15 @@ export function LoginPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const next = safeNext(params.get("next"));
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState(GOOGLE_ERRORS[params.get("error") ?? ""] ?? "");
   const [busy, setBusy] = useState(false);
 
-  const onSubmit = async (e: FormEvent) => {
+  const onSignIn = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!email.trim() || !password) {
+    const form = new FormData(e.currentTarget);
+    const email = String(form.get("email") ?? "").trim();
+    const password = String(form.get("password") ?? "");
+    if (!email || !password) {
       setError("Enter your email and password.");
       return;
     }
@@ -39,37 +40,14 @@ export function LoginPage() {
   };
 
   return (
-    <AuthLayout title="Log in" intro="Welcome back. Log in to see prices and manage your bookings.">
-      {error && <Banner>{error}</Banner>}
-      {googleEnabled && (
-        <>
-          <GoogleButton next={next} />
-          <p className="auth-divider">or</p>
-        </>
-      )}
-      <form className="form-stack" onSubmit={onSubmit} noValidate>
-        <Field
-          label="Email"
-          type="email"
-          autoComplete="email"
-          placeholder="ama@example.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <Field
-          label="Password"
-          type="password"
-          autoComplete="current-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <Button type="submit" variant="primary" busy={busy} className="btn-block">
-          Log in
-        </Button>
-      </form>
-      <p className="auth-switch">
-        New here? <Link to={`/register?next=${encodeURIComponent(next)}`}>Create an account</Link>
-      </p>
-    </AuthLayout>
+    <SignInPage
+      brand={<AuthBrand />}
+      heroImageSrc={AUTH_PHOTO}
+      error={error}
+      busy={busy}
+      onSignIn={onSignIn}
+      onGoogleSignIn={googleEnabled ? () => startGoogleSignIn(next) : undefined}
+      onCreateAccount={() => navigate(`/register?next=${encodeURIComponent(next)}`)}
+    />
   );
 }

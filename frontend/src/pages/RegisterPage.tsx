@@ -1,18 +1,14 @@
-import { useState, type FormEvent } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router";
+import { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router";
 import { ApiError } from "../api";
-import { useAuth, type RegisterInput } from "../auth/AuthContext";
+import { useAuth } from "../auth/AuthContext";
 import { safeNext } from "../auth/safeNext";
-import { Banner, Button, Field, GoogleButton } from "../components";
-import { AuthLayout } from "./AuthLayout";
-
-type FieldErrors = Partial<Record<keyof RegisterInput, string>>;
-
-const EMPTY: RegisterInput = { name: "", phone: "", email: "", password: "" };
+import { SignUpPage, type SignUpErrors, type SignUpValues } from "@/components/ui/sign-up";
+import { AUTH_PHOTO, AuthBrand, startGoogleSignIn } from "./AuthBrand";
 
 /** Quick checks before sending; the server checks everything again. */
-function validate(v: RegisterInput): FieldErrors {
-  const errors: FieldErrors = {};
+function validate(v: SignUpValues): SignUpErrors {
+  const errors: SignUpErrors = {};
   if (v.name.trim().length < 2) errors.name = "Enter your full name.";
   if (!/^(0|\+233)\d{9}$/.test(v.phone.replace(/[\s\-()]/g, ""))) {
     errors.phone = "Enter a Ghana phone number, like 024 123 4567.";
@@ -27,18 +23,11 @@ export function RegisterPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const next = safeNext(params.get("next"));
-  const [values, setValues] = useState<RegisterInput>(EMPTY);
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [fieldErrors, setFieldErrors] = useState<SignUpErrors>({});
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const set = (key: keyof RegisterInput) => (e: { target: { value: string } }) => {
-    setValues((v) => ({ ...v, [key]: e.target.value }));
-    setFieldErrors((f) => ({ ...f, [key]: undefined }));
-  };
-
-  const onSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const onSignUp = async (values: SignUpValues) => {
     const errors = validate(values);
     setFieldErrors(errors);
     setError("");
@@ -49,7 +38,7 @@ export function RegisterPage() {
       navigate(next, { replace: true });
     } catch (err) {
       if (err instanceof ApiError) {
-        setFieldErrors(err.errors as FieldErrors);
+        setFieldErrors(err.errors as SignUpErrors);
         setError(Object.keys(err.errors).length ? "" : err.message);
       } else {
         setError("Something went wrong. Try again.");
@@ -59,44 +48,16 @@ export function RegisterPage() {
   };
 
   return (
-    <AuthLayout title="Create your account" intro="Sign up to see prices and book an apartment.">
-      {error && <Banner>{error}</Banner>}
-      {googleEnabled && (
-        <>
-          <GoogleButton next={next} />
-          <p className="auth-divider">or</p>
-        </>
-      )}
-      <form className="form-stack" onSubmit={onSubmit} noValidate>
-        <Field label="Full name" autoComplete="name" placeholder="Ama Mensah" value={values.name} onChange={set("name")} error={fieldErrors.name} />
-        <Field
-          label="Phone number"
-          type="tel"
-          inputMode="tel"
-          autoComplete="tel"
-          placeholder="024 123 4567"
-          hint="We use it for Mobile Money payments and updates about your home."
-          value={values.phone}
-          onChange={set("phone")}
-          error={fieldErrors.phone}
-        />
-        <Field label="Email" type="email" autoComplete="email" placeholder="ama@example.com" value={values.email} onChange={set("email")} error={fieldErrors.email} />
-        <Field
-          label="Password"
-          type="password"
-          autoComplete="new-password"
-          hint="At least 8 characters."
-          value={values.password}
-          onChange={set("password")}
-          error={fieldErrors.password}
-        />
-        <Button type="submit" variant="primary" busy={busy} className="btn-block">
-          Create account
-        </Button>
-      </form>
-      <p className="auth-switch">
-        Already have an account? <Link to={`/login?next=${encodeURIComponent(next)}`}>Log in</Link>
-      </p>
-    </AuthLayout>
+    <SignUpPage
+      brand={<AuthBrand />}
+      heroImageSrc={AUTH_PHOTO}
+      error={error}
+      fieldErrors={fieldErrors}
+      busy={busy}
+      onSignUp={onSignUp}
+      onFieldChange={(field) => setFieldErrors((f) => ({ ...f, [field]: undefined }))}
+      onGoogleSignIn={googleEnabled ? () => startGoogleSignIn(next) : undefined}
+      onSignInInstead={() => navigate(`/login?next=${encodeURIComponent(next)}`)}
+    />
   );
 }

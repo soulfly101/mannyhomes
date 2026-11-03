@@ -1,0 +1,187 @@
+/* Tailwind + shadcn theme. Professional and flat: solid colours, thin borders, no gradients, glow or blur.
+   Cream background, deep navy actions, serif headings (Cormorant Garamond) with Figtree body text. */
+@import "tailwindcss";
+@import "tw-animate-css";
+
+:root {
+  /* Warm cream and deep navy, after the reference design the owner chose (Nov 2026). */
+  --radius: 0.5rem;
+  --background: #f4efe7;
+  --foreground: #1c232b;
+  --card: #fbf8f3;
+  --card-foreground: #1c232b;
+  --popover: #fbf8f3;
+  --popover-foreground: #1c232b;
+  --primary: #1f2e3d;
+  --primary-foreground: #f7f3ec;
+  --secondary: #eae3d8;
+  --secondary-foreground: #1c232b;
+  --muted: #ece6dc;
+  --muted-foreground: #5b636d;
+  --accent: #e7dfd2;
+  --accent-foreground: #1c232b;
+  --destructive: #a63a2b;
+  --destructive-foreground: #ffffff;
+  --success: #2f6b4f;
+  --warning: #8a5a12;
+  --border: #ddd4c6;
+  --input: #cfc5b5;
+  --ring: #1f2e3d;
+  /* Solid layer over photos so white text stays readable (never a gradient). */
+  --overlay: rgba(18, 22, 28, 0.45);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #12161c;
+    --foreground: #eee8de;
+    --card: #1a2028;
+    --card-foreground: #eee8de;
+    --popover: #1a2028;
+    --popover-foreground: #eee8de;
+    --primary: #e9dfcf;
+    --primary-foreground: #12161c;
+    --secondary: #222a33;
+    --secondary-foreground: #eee8de;
+    --muted: #222a33;
+    --muted-foreground: #a7afb8;
+    --accent: #262f3a;
+    --accent-foreground: #eee8de;
+    --destructive: #f08a7a;
+    --destructive-foreground: #1b0605;
+    --success: #7cc9a3;
+    --warning: #e6b866;
+    --border: #2e3742;
+    --input: #3a4450;
+    --ring: #e9dfcf;
+    --overlay: rgba(10, 12, 16, 0.55);
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: "Figtree Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Cormorant Garamond", ui-serif, Georgia, serif;
+  --color-overlay: var(--overlay);
+  /* Fixed ink for text on white elements over photos (same in light and dark mode). */
+  --color-ink: #1c232b;
+  /* The 21st.dev components ask for Geist; we use the app's own font instead of downloading another. */
+  --font-geist: "Figtree Variable", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+  }
+}
+
+/*
+ * Everything clickable moves a little: it lifts 2px on hover and presses in when clicked.
+ * Uses the separate `translate`/`scale` properties so it adds to any transform an element already has.
+ * Zero specificity (`:where`) in the base layer, so a component's own motion (chips, menu links) wins.
+ * Nothing moves for reduced-motion users.
+ */
+@layer base {
+  :where(a[href], button, [role="button"], [role="tab"], summary, input[type="submit"], input[type="button"]) {
+    transition-property: color, background-color, border-color, text-decoration-color, box-shadow, opacity, translate, scale, rotate;
+    transition-duration: 200ms;
+    transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    :where(a[href], button, [role="button"], [role="tab"], summary, input[type="submit"], input[type="button"]):where(:not(:disabled, [aria-disabled="true"], [aria-busy="true"])):hover {
+      translate: 0 -2px;
+    }
+    :where(a[href], button, [role="button"], [role="tab"], summary, input[type="submit"], input[type="button"]):where(:not(:disabled, [aria-disabled="true"], [aria-busy="true"])):active {
+      translate: 0 0;
+      scale: 0.97;
+    }
+  }
+}
+
+/* Entrance animations used by the sign-in/sign-up pages. Fade and slide only: no blur. */
+@keyframes fadeSlideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0px);
+  }
+}
+@keyframes slideRightIn {
+  to {
+    opacity: 1;
+    transform: translateX(0px);
+  }
+}
+@keyframes testimonialIn {
+  to {
+    opacity: 1;
+    transform: translateY(0px) scale(1);
+  }
+}
+
+@layer utilities {
+  .animate-element {
+    opacity: 0;
+    transform: translateY(12px);
+    animation: fadeSlideIn 0.6s ease-out forwards;
+  }
+  .animate-slide-right {
+    opacity: 0;
+    transform: translateX(24px);
+    animation: slideRightIn 0.8s ease-out forwards;
+  }
+  .animate-testimonial {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+    animation: testimonialIn 0.6s ease-out forwards;
+  }
+  .animate-delay-100 { animation-delay: 0.1s; }
+  .animate-delay-200 { animation-delay: 0.2s; }
+  .animate-delay-300 { animation-delay: 0.3s; }
+  .animate-delay-400 { animation-delay: 0.4s; }
+  .animate-delay-500 { animation-delay: 0.5s; }
+  .animate-delay-600 { animation-delay: 0.6s; }
+  .animate-delay-700 { animation-delay: 0.7s; }
+  .animate-delay-800 { animation-delay: 0.8s; }
+  .animate-delay-900 { animation-delay: 0.9s; }
+  .animate-delay-1000 { animation-delay: 1s; }
+  .animate-delay-1200 { animation-delay: 1.2s; }
+  .animate-delay-1400 { animation-delay: 1.4s; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-element,
+  .animate-slide-right,
+  .animate-testimonial {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
