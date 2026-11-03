@@ -115,3 +115,38 @@ def get_listing(building_id: str, db: DB, viewer: Viewer) -> Listing:
     if building is None:
         raise HTTPException(status_code=404, detail="That building isn't listed.")
     return _listing(building, viewer is not None)
+
+
+class ListingBuilding(BaseModel):
+    id: str
+    name: str
+    location: str
+    description: str | None
+
+
+class RoomListing(BaseModel):
+    """One room type with its building, for the residence details page."""
+
+    room: ListingRoomType
+    building: ListingBuilding
+    prices_visible: bool
+
+
+@router.get("/rooms/{room_type_id}")
+def get_room_listing(room_type_id: str, db: DB, viewer: Viewer) -> RoomListing:
+    """A single room type in a listed building. Rent only for logged-in users."""
+    rt = db.scalar(
+        select(RoomType)
+        .join(RoomType.building)
+        .where(RoomType.id == room_type_id, Building.listed.is_(True))
+        .options(selectinload(RoomType.building))
+    )
+    if rt is None:
+        raise HTTPException(status_code=404, detail="That residence isn't available.")
+    b = rt.building
+    show_prices = viewer is not None
+    return RoomListing(
+        room=_room(rt, show_prices),
+        building=ListingBuilding(id=b.id, name=b.name, location=b.location, description=b.description),
+        prices_visible=show_prices,
+    )

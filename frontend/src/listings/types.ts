@@ -23,3 +23,10 @@ export type ListingsResponse = {
   filters: { locations: string[]; room_types: string[] };
   prices_visible: boolean;
 };
+
+/** One room type with its building (GET /api/listings/rooms/:id), for the details and booking pages. */
+export type RoomListing = {
+  room: ListingRoomType;
+  building: { id: string; name: string; location: string; description: string | null };
+  prices_visible: boolean;
+};

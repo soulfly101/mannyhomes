@@ -1,7 +1,8 @@
+import { Link } from "react-router";
 import { BRAND, CONTACT, FOOTER_LINKS } from "./content";
 import { ContactForm } from "./ContactForm";
 import { sectionClass } from "./parts";
-import type { Residence } from "./Residences";
+import type { Residence } from "../residences/data";
 
 /** Simple line drawing of a row of buildings (drawn for Altheo, no external asset). */
 function Skyline() {
@@ -31,9 +32,9 @@ export function Footer({ residences, enquiry }: { residences: Residence[]; enqui
           <ul className="flex flex-col">
             {FOOTER_LINKS.map((l) => (
               <li key={l.href}>
-                <a href={l.href} className="inline-flex min-h-11 items-center text-sm font-semibold uppercase tracking-[0.14em] hover:text-muted-foreground">
+                <Link to={l.href} className="inline-flex min-h-11 items-center text-sm font-semibold uppercase tracking-[0.14em] hover:text-muted-foreground">
                   {l.label}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>

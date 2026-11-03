@@ -7,18 +7,35 @@ import { LandingPage } from "./landing/LandingPage";
 import { LoginPage } from "./pages/LoginPage";
 import { OnboardingPage } from "./pages/OnboardingPage";
 import { RegisterPage } from "./pages/RegisterPage";
+import { BookingPage } from "./residences/BookingPage";
+import { ResidenceDetailsPage } from "./residences/ResidenceDetailsPage";
+import { ResidencesPage } from "./residences/ResidencesPage";
+import { ScrollManager } from "./ScrollManager";
 import { StatusPage } from "./pages/StatusPage";
 
-// These pages have their own header (the landing hero and the two-column auth pages).
+// These pages have their own header: the home page hero, the public site pages (SiteHeader) and the two-column auth pages.
 const NO_TOP_BAR = ["/", "/login", "/register", "/onboarding"];
+const SITE_PAGES = ["/residences", "/book/"];
+const usesTopBar = (path: string) => !NO_TOP_BAR.includes(path) && !SITE_PAGES.some((p) => path.startsWith(p));
 
 export function App() {
   const { pathname } = useLocation();
   return (
     <>
-      {!NO_TOP_BAR.includes(pathname) && <TopBar />}
+      <ScrollManager />
+      {usesTopBar(pathname) && <TopBar />}
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/residences" element={<ResidencesPage />} />
+        <Route path="/residences/:roomTypeId" element={<ResidenceDetailsPage />} />
+        <Route
+          path="/book/:roomTypeId"
+          element={
+            <RequireAuth roles={["tenant"]}>
+              <BookingPage />
+            </RequireAuth>
+          }
+        />
         <Route path="/status" element={<StatusPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />

@@ -11,16 +11,16 @@ export function Eyebrow({ children, light }: { children: ReactNode; light?: bool
   );
 }
 
-/** Section heading: eyebrow, serif title and an optional line on the right. */
-export function SectionHead({ eyebrow, title, lead, id }: { eyebrow: string; title?: string; lead?: string; id: string }) {
+/** Section heading: eyebrow, serif title and an optional line on the right. `as="h1"` when it's the page's main heading. */
+export function SectionHead({ eyebrow, title, lead, id, as: Heading = "h2" }: { eyebrow: string; title?: string; lead?: string; id: string; as?: "h1" | "h2" }) {
   return (
     <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between md:gap-12">
       <div className="flex flex-col gap-3">
         <Eyebrow>{eyebrow}</Eyebrow>
         {title && (
-          <h2 id={id} className="font-serif text-4xl font-medium leading-tight md:text-5xl">
+          <Heading id={id} className="font-serif text-4xl font-medium leading-tight md:text-5xl">
             {title}
-          </h2>
+          </Heading>
         )}
       </div>
       {lead && <p className="max-w-md text-muted-foreground md:text-right">{lead}</p>}
