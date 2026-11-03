@@ -1,60 +1,52 @@
-import { Card, StatusPill } from "../components";
+import { Lock, MapPin } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { formatCedis } from "../format";
 import type { Listing } from "./types";
 
-const Lock = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <rect x="5" y="11" width="14" height="10" rx="2" />
-    <path d="M8 11V8a4 4 0 0 1 8 0v3" />
-  </svg>
-);
+const availability = (n: number) => (n === 0 ? "Fully booked" : `${n} available`);
 
-/** A building and the room types it offers, with what's available now (DESIGN.md → Cards). */
-export function ListingCard({ listing, index }: { listing: Listing; index: number }) {
+/** A building and the room types it offers, with what's available now. Flat card: border, no blur. */
+export function ListingCard({ listing }: { listing: Listing }) {
   return (
-    <Card
-      as="article"
-      className={`rise listing-card${listing.fully_booked ? " is-full" : ""}`}
-      style={{ animationDelay: `${index * 60}ms` }}
+    <article
       aria-labelledby={`l-${listing.id}`}
+      data-full={listing.fully_booked || undefined}
+      className={cn(
+        "flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-sm transition-shadow hover:shadow-md",
+        listing.fully_booked && "opacity-75",
+      )}
     >
-      <div className="listing-head">
+      <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 id={`l-${listing.id}`}>{listing.name}</h2>
-          <p className="muted listing-location">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden="true">
-              <path d="M12 21s-7-6.2-7-11a7 7 0 1 1 14 0c0 4.8-7 11-7 11z" />
-              <circle cx="12" cy="10" r="2.5" />
-            </svg>
+          <h3 id={`l-${listing.id}`} className="text-xl font-semibold tracking-tight">
+            {listing.name}
+          </h3>
+          <p className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
+            <MapPin className="h-4 w-4" aria-hidden="true" />
             {listing.location}
           </p>
         </div>
-        <StatusPill
-          status={listing.fully_booked ? "fully booked" : "available"}
-          label={listing.fully_booked ? "Fully booked" : `${listing.total_available} available`}
-        />
+        <Badge tone={listing.fully_booked ? "danger" : "success"}>{availability(listing.total_available)}</Badge>
       </div>
-      {listing.description && <p className="muted listing-description">{listing.description}</p>}
-      <ul className="room-list" aria-label={`Rooms at ${listing.name}`}>
+      {listing.description && <p className="text-sm text-muted-foreground">{listing.description}</p>}
+      <ul className="divide-y divide-border border-t border-border" aria-label={`Rooms at ${listing.name}`}>
         {listing.room_types.map((rt) => (
-          <li key={rt.id} className={`room-row${rt.quantity_available === 0 ? " is-full" : ""}`}>
-            <span className="room-name">{rt.name}</span>
+          <li key={rt.id} className="grid grid-cols-[1fr_auto_auto] items-center gap-3 py-3">
+            <span className={cn("font-medium", rt.quantity_available === 0 && "text-muted-foreground")}>{rt.name}</span>
             {rt.rent === null ? (
-              <span className="room-rent locked">
-                <Lock /> Log in for price
+              <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
+                <Lock className="h-3.5 w-3.5" aria-hidden="true" /> Log in for price
               </span>
             ) : (
-              <span className="room-rent">
-                <b>{formatCedis(rt.rent)}</b>/mo
+              <span className="text-sm tabular-nums text-muted-foreground">
+                <b className="font-semibold text-foreground">{formatCedis(rt.rent)}</b>/mo
               </span>
             )}
-            <StatusPill
-              status={rt.quantity_available ? "available" : "fully booked"}
-              label={rt.quantity_available ? `${rt.quantity_available} available` : "Fully booked"}
-            />
+            <Badge tone={rt.quantity_available ? "success" : "danger"}>{availability(rt.quantity_available)}</Badge>
           </li>
         ))}
       </ul>
-    </Card>
+    </article>
   );
 }

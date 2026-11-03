@@ -3,8 +3,8 @@ import { useNavigate, useSearchParams } from "react-router";
 import { ApiError } from "../api";
 import { useAuth } from "../auth/AuthContext";
 import { safeNext } from "../auth/safeNext";
-import { Banner, Button, Field } from "../components";
-import { AuthLayout } from "./AuthLayout";
+import { AuthField, AuthSplitLayout, FormError, SubmitButton } from "@/components/ui/sign-in";
+import { AUTH_PHOTO, AuthBrand } from "./AuthBrand";
 
 /** Asks people who signed up with Google for the phone number we need for MoMo and SMS. */
 export function OnboardingPage() {
@@ -36,29 +36,39 @@ export function OnboardingPage() {
   };
 
   return (
-    <AuthLayout
-      title={`Welcome, ${user?.name.split(" ")[0] ?? "there"}`}
-      intro="One last thing: add your phone number so you can pay with Mobile Money and get updates about your home."
-    >
-      {error && <Banner>{error}</Banner>}
-      <form className="form-stack" onSubmit={onSubmit} noValidate>
-        <Field
-          label="Phone number"
-          type="tel"
-          inputMode="tel"
-          autoComplete="tel"
-          placeholder="024 123 4567"
-          value={phone}
-          onChange={(e) => {
-            setPhone(e.target.value);
-            setPhoneError("");
-          }}
-          error={phoneError}
-        />
-        <Button type="submit" variant="primary" busy={busy} className="btn-block">
-          Continue
-        </Button>
-      </form>
-    </AuthLayout>
+    <AuthSplitLayout heroImageSrc={AUTH_PHOTO}>
+      <div className="flex flex-col gap-6">
+        <div className="animate-element">
+          <AuthBrand />
+        </div>
+        <h1 className="animate-element animate-delay-100 text-4xl font-semibold leading-tight md:text-5xl">
+          Welcome, {user?.name.split(" ")[0] ?? "there"}
+        </h1>
+        <p className="animate-element animate-delay-200 text-muted-foreground">
+          One last thing: add your phone number so you can pay with Mobile Money and get updates about your home.
+        </p>
+        {error && <FormError>{error}</FormError>}
+        <form className="space-y-5" onSubmit={onSubmit} noValidate>
+          <AuthField
+            delayClass="animate-delay-300"
+            label="Phone number"
+            name="phone"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            placeholder="024 123 4567"
+            value={phone}
+            onChange={(e) => {
+              setPhone(e.target.value);
+              setPhoneError("");
+            }}
+            error={phoneError}
+          />
+          <SubmitButton busy={busy} delayClass="animate-delay-400">
+            Continue
+          </SubmitButton>
+        </form>
+      </div>
+    </AuthSplitLayout>
   );
 }

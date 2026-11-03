@@ -12,7 +12,7 @@ const routes = (
 );
 
 async function fill(values: Partial<Record<"name" | "phone" | "email" | "password", string>>) {
-  const labels = { name: "Full name", phone: "Phone number", email: "Email", password: "Password" } as const;
+  const labels = { name: "Full name", phone: "Phone number", email: "Email address", password: "Password" } as const;
   for (const [key, value] of Object.entries(values)) {
     await userEvent.type(screen.getByLabelText(labels[key as keyof typeof labels]), value);
   }
@@ -43,7 +43,7 @@ test("checks the fields before calling the server", async () => {
   expect(screen.getByLabelText("Phone number")).toHaveAccessibleDescription(
     expect.stringContaining("Enter a Ghana phone number, like 024 123 4567."),
   );
-  expect(screen.getByLabelText("Email")).toHaveAccessibleDescription("Enter a valid email address.");
+  expect(screen.getByLabelText("Email address")).toHaveAccessibleDescription("Enter a valid email address.");
   expect(screen.getByLabelText("Password")).toHaveAccessibleDescription(
     expect.stringContaining("Use at least 8 characters for your password."),
   );
@@ -78,7 +78,7 @@ test("puts the server's field errors on the right fields", async () => {
   await fill({ name: "Ama Mensah", phone: "0241234567", email: "ama@localhost.lan", password: "correct horse" });
   await userEvent.click(screen.getByRole("button", { name: "Create account" }));
   await waitFor(() =>
-    expect(screen.getByLabelText("Email")).toHaveAccessibleDescription("Enter a valid email address."),
+    expect(screen.getByLabelText("Email address")).toHaveAccessibleDescription("Enter a valid email address."),
   );
 });
 
@@ -89,4 +89,18 @@ test("clears a field's error once it's edited", async () => {
   expect(screen.getByLabelText("Full name")).toHaveAttribute("aria-invalid", "true");
   await userEvent.type(screen.getByLabelText("Full name"), "Ama");
   expect(screen.getByLabelText("Full name")).not.toHaveAttribute("aria-invalid");
+});
+
+test("links to log in, keeping next", async () => {
+  mockApi({ ...loggedOut, ...googleOff });
+  renderAt("/register?next=/bookings", routes);
+  await userEvent.click(screen.getByRole("button", { name: "Log in" }));
+  await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent("/login?next=%2Fbookings"));
+});
+
+test("hints explain the phone and password rules", async () => {
+  mockApi({ ...loggedOut, ...googleOff });
+  renderAt("/register", routes);
+  expect(screen.getByLabelText("Phone number")).toHaveAccessibleDescription("For Mobile Money payments and updates about your home.");
+  expect(screen.getByLabelText("Password")).toHaveAccessibleDescription("At least 8 characters.");
 });

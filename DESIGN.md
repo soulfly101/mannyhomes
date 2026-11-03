@@ -1,12 +1,18 @@
 # Altheo Homes design rules
 
-**Direction: Calm glass.** Ocean blue and white, frosted-glass cards over soft blue backgrounds and apartment photos, pill-shaped controls. It's the look of the first version of the app, cleaned up: less blur, stronger text contrast, and one set of components used everywhere.
+**Direction: professional and flat.** White and light-grey surfaces, deep navy text, one solid brand blue for actions, thin borders and real photos or video of the buildings. **No gradient colouring, glow, blurred colour blobs or frosted glass** (the earlier "Calm glass" look was dropped on 3 Nov 2026).
 
-Everything below is implemented in `frontend/src/styles/` (tokens and component CSS) and `frontend/src/components/` (React components). Use those; don't restyle things page by page. If a page needs something these rules don't cover, add it here and to the shared components first.
+New screens are built with **Tailwind CSS** and **shadcn**-style components:
+- Primitives live in `frontend/src/components/ui/` (shadcn installs there; see `frontend/components.json`), app components in `frontend/src/components/`.
+- Import with the `@/` alias (`@/components/ui/badge`, `@/lib/utils`), and combine classes with `cn()`.
+- Colours come from the theme variables in `frontend/src/styles/globals.css` (`bg-background`, `text-foreground`, `bg-primary`, `text-muted-foreground`, `border-border`, `text-destructive`, `text-success`, …). Never hard-code colours.
+- Components taken from 21st.dev or shadcn are adapted before use: strip gradients, blur, glow and off-brand accents (e.g. violet), and never show made-up people or testimonials.
+
+Older screens (admin buildings, status) still use the plain-CSS classes in `frontend/src/styles/components.css`, now flat (solid cards, no blur). Move them to Tailwind when they're next changed.
 
 ## Principles
-1. **Calm.** Soft blues, lots of space, one strong action per screen. Nothing flashes or shouts.
-2. **Readable first.** Glass is decoration; text always sits on a surface opaque enough to pass WCAG AA contrast.
+1. **Professional.** Calm, solid colours, generous space, one strong action per screen.
+2. **Readable first.** Text sits on solid surfaces or a solid dark overlay over photos, never a gradient. WCAG AA contrast in light and dark mode.
 3. **Money is unmistakable.** Amounts, due dates and payment states are the clearest things on any screen that shows them.
 4. **Phone first.** Most tenants pay and report problems from a phone on mobile data. Design at 360px wide, then scale up.
 
@@ -15,15 +21,14 @@ All colours are CSS variables in `frontend/src/styles/tokens.css`, with light an
 
 | Token | Light | Dark | Use |
 |---|---|---|---|
-| `--bg` | `#E8F2FB` | `#051726` | Page background |
-| `--fg` | `#0A2540` | `#E6F2FC` | Main text, headings |
-| `--muted` | `#3F5B75` | `#A3BDD4` | Secondary text, labels |
-| `--accent` | `#1677C9` | `#4FA9F0` | Primary buttons, links, focus, selected states |
-| `--accent-ink` | `#FFFFFF` | `#04213A` | Text on `--accent` |
-| `--glass` | white 72% | navy 55% | Card surface |
-| `--glass-strong` | white 88% | navy 85% | Top bar, menus, dialogs, form fields |
-| `--glass-edge` | white 95% | light blue 22% | Card border (the "glass edge") |
-| `--line` | navy 10% | light blue 14% | Dividers, field borders |
+| `background` / `--bg` | `#FFFFFF` / `#F6F8FB` | `#0B1220` | Page background |
+| `foreground` / `--fg` | `#0B1B2B` | `#E6EDF5` | Main text, headings |
+| `muted-foreground` / `--muted` | `#526274` | `#9FB0C3` | Secondary text, labels |
+| `primary` / `--accent` | `#1361B0` | `#4C9BE8` | Primary buttons, links, focus, selected states (solid) |
+| `primary-foreground` | `#FFFFFF` | `#06182B` | Text on primary |
+| `card` / `--glass` | `#FFFFFF` | `#111A2B` | Card surface (solid; the `--glass` name is kept for older CSS) |
+| `border` / `--line` | `#E2E8F0` | `#24324A` | Card borders, dividers |
+| `input` | `#CBD5E1` | `#33445F` | Field borders |
 | `--ok` / `--ok-bg` | `#0F7B5F` | `#5FD3AE` | Paid, free, resolved, success |
 | `--warn` / `--warn-bg` | `#9A5B00` | `#F4C063` | Partial, pending, awaiting, booked |
 | `--danger` / `--danger-bg` | `#B42F2F` | `#FF8A8A` | Unpaid, overdue, errors, destructive actions |
@@ -34,7 +39,7 @@ All colours are CSS variables in `frontend/src/styles/tokens.css`, with light an
 - Dark mode follows the phone or computer setting automatically. Check every screen in both.
 
 ## Type
-- **Headings:** Bricolage Grotesque (variable), weight 600. **Body and UI:** Figtree (variable), weights 400, 500 and 600. Both are bundled with the app (`@fontsource-variable/*`), not loaded from Google, so pages work without third-party requests.
+- **Font:** Figtree (variable) for everything, headings in weight 600–700 with slightly tight letter spacing. Bundled with the app (`@fontsource-variable/figtree`), not loaded from Google.
 
 | Style | Size | Weight | Use |
 |---|---|---|---|
@@ -55,12 +60,18 @@ All colours are CSS variables in `frontend/src/styles/tokens.css`, with light an
 - **Spacing scale:** 4, 8, 12, 16, 24, 32, 48, 72 px (`--space-1` … `--space-8`). Page side padding is 16px on phones, 24px from 768px.
 - **Max content width:** 1120px, centred.
 - **Corner radius:** pills and buttons `999px`; cards `22px`; large panels and hero sections `28px`; fields `14px`.
-- **Glass:** `background: var(--glass)`, `border: 1px solid var(--glass-edge)`, `backdrop-filter: blur(12px) saturate(140%)`, `box-shadow: var(--shadow)`. If the browser can't blur, the solid `--glass-strong` fallback is used automatically (see `components.css`).
-- **Background:** the page is `--bg` with two or three large, soft, blurred blue shapes (`.ambient`). On public pages, apartment photos can sit behind glass panels with a dark scrim so white text stays readable.
-- **Shadows:** one soft shadow (`--shadow`) for cards; nothing else casts shadows.
+- **Surfaces:** solid `card` background, 1px `border`, small shadow at most. No `backdrop-filter`, no translucent glass.
+- **Background:** plain `background` colour. Photos and video (landing hero, sign-in/sign-up) sit under a **solid** dark overlay when text is on top, never a gradient scrim.
+- **Shadows:** `shadow-sm` on cards at most; nothing glows.
 
 ## Components
 Use the shared components. Each has tests in `frontend/tests/components/`.
+
+### Sign in, sign up and onboarding (`@/components/ui/sign-in`, `@/components/ui/sign-up`)
+Two columns: form on the left, apartment photo on the right (photo hidden on phones). Built from `AuthSplitLayout`, `AuthField` (labelled, hint and error linked for screen readers, optional show/hide password), `SubmitButton` (busy state), `GoogleButton` and `FormError`.
+
+### Badges (`@/components/ui/badge`)
+Small solid status label with a `tone` (`success`, `warning`, `danger`, `neutral`), used for availability ("3 available" / "Fully booked") and payment states. The tone mapping in the Status pills table below applies.
 
 ### Buttons (`<Button>`)
 | Variant | Look | Use |

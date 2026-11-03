@@ -17,12 +17,12 @@ Web app for **Altheo Homes**, a company that rents out apartments in several apa
 | `legacy/` | The first version of the app (Next.js + Prisma + PostgreSQL). **Reference only**: features are ported from it into `backend/` + `frontend/` one Trello card at a time, then it gets deleted. Don't add features to it. |
 
 ## Design
-All UI follows **[DESIGN.md](DESIGN.md)** (the "Calm glass" look): colours, type, spacing, components, status pills and accessibility rules. Build screens from the shared components in `frontend/src/components/` and the tokens in `frontend/src/styles/tokens.css`; never hard-code colours or restyle components per page. If something new is needed, add it to DESIGN.md and the shared components first.
+All UI follows **[DESIGN.md](DESIGN.md)**: **professional and flat — no gradients, glow, blur or glass.** New UI uses **Tailwind CSS + shadcn**: primitives in `frontend/src/components/ui/` (shadcn installs there, per `frontend/components.json`), import via the `@/` alias, merge classes with `cn()` from `@/lib/utils`, and use the theme colours from `frontend/src/styles/globals.css` (never hard-coded colours). Components from 21st.dev/shadcn must be adapted to this style before use, and the site never shows made-up people or testimonials. If something new is needed, add it to DESIGN.md and the shared components first.
 
 ## Running
 ```bash
 make up        # MySQL + backend (:8000) + frontend (:5173) in Docker; creates .env files on first run
-make test      # backend + frontend tests inside the containers
+make test      # backend + frontend tests inside the containers (backend tests use a separate `altheo_test` database)
 make lint      # ruff + TypeScript typecheck
 make down
 ```

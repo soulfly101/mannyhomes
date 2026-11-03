@@ -25,6 +25,8 @@ services:
     command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --app-dir src --reload"
     environment:
       DATABASE_URL: mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE}
+      # Tests use their own database so they never see or change your local data.
+      TEST_DATABASE_URL: mysql+pymysql://root:${MYSQL_ROOT_PASSWORD}@db:3306/${MYSQL_DATABASE}_test
       CORS_ORIGINS: http://localhost:${FRONTEND_PORT:-5173}
       FRONTEND_URL: http://localhost:${FRONTEND_PORT:-5173}
       SECRET_KEY: ${SECRET_KEY:-dev-only-insecure-secret-change-me}

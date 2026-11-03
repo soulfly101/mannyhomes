@@ -54,8 +54,8 @@ test("visitors see buildings, locations and availability but not prices", async 
   const rows = within(manny).getAllByRole("listitem");
   expect(rows[0]).toHaveTextContent("1 bedroom");
   expect(within(rows[0]).getByText("Log in for price")).toBeInTheDocument();
-  expect(within(rows[1]).getByText("2 available")).toHaveClass("pill-ok");
-  expect(within(manny).getByText("3 available")).toHaveClass("pill-ok");
+  expect(within(rows[1]).getByText("2 available")).toHaveAttribute("data-tone", "success");
+  expect(within(manny).getByText("3 available")).toHaveAttribute("data-tone", "success");
   expect(screen.getByRole("link", { name: "Sign up" })).toHaveAttribute("href", "/register");
   expect(screen.getByText("2 buildings · 3 apartments available")).toBeInTheDocument();
 });
@@ -73,8 +73,8 @@ test("fully booked buildings are flagged, not hidden", async () => {
   mockApi({ ...loggedOut, ...googleOff, "GET /api/listings": { body: response(false) } });
   renderAt("/", routes);
   const aburi = await screen.findByRole("article", { name: "Apartment B" });
-  expect(aburi).toHaveClass("is-full");
-  expect(within(aburi).getAllByText("Fully booked")[0]).toHaveClass("pill-danger");
+  expect(aburi).toHaveAttribute("data-full", "true");
+  expect(within(aburi).getAllByText("Fully booked")[0]).toHaveAttribute("data-tone", "danger");
 });
 
 test("filters ask the server and are kept in the address", async () => {
