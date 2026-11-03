@@ -3,7 +3,7 @@ import { ApiError, apiFetch } from "../api";
 import { useAuth } from "../auth/AuthContext";
 import { cn } from "@/lib/utils";
 import { buttonClass } from "./parts";
-import type { Residence } from "./Residences";
+import type { Residence } from "../residences/data";
 
 type Values = { name: string; email: string; phone: string; room_type_id: string; message: string };
 type Errors = Partial<Record<keyof Values, string>>;

@@ -113,10 +113,12 @@ export const CONTACT = {
   formTitle: "Have a question or want to arrange a viewing?",
 };
 
-export const FOOTER_LINKS = [
-  { label: "Home", href: "#top" },
-  { label: "Residences", href: "#residences" },
-  { label: "Facilities", href: "#facilities" },
-  { label: "Location", href: "#location" },
+/** Site menu, shown on every page. Sections of the home page use "/#…" so they work from other pages too. */
+export const NAV_LINKS = [
+  { label: "Residences", href: "/residences" },
+  { label: "Facilities", href: "/#facilities" },
+  { label: "Location", href: "/#location" },
   { label: "Contact", href: "#contact" },
 ];
+
+export const FOOTER_LINKS = [{ label: "Home", href: "/" }, ...NAV_LINKS];

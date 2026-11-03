@@ -71,8 +71,16 @@ Use the shared components. Each has tests in `frontend/tests/components/`.
 ### Sign in, sign up and onboarding (`@/components/ui/sign-in`, `@/components/ui/sign-up`)
 Two columns: form on the left, apartment photo on the right (photo hidden on phones). Built from `AuthSplitLayout`, `AuthField` (labelled, hint and error linked for screen readers, optional show/hide password), `SubmitButton` (busy state), `GoogleButton` and `FormError`.
 
-### Landing page (`frontend/src/landing/`)
-Hero (video/photo + menu), the Altheo experience, Find your residence (live room types accordion), Facilities, Location (Leaflet map with light OpenStreetMap/CARTO tiles), Gallery, call to action, and footer with the contact form. **All copy, photos, facilities, locations and contact details are in `frontend/src/landing/content.ts`**; buildings, prices and availability come live from the admin inventory.
+### Public site pages
+**One job per page; don't pile everything onto the home page.** Every public page shares the same menu (`SiteNav` in `frontend/src/landing/SiteHeader.tsx`) and footer with the contact form (`SitePage`).
+| Page | What's on it |
+|---|---|
+| `/` home (`frontend/src/landing/`) | Hero (video/photo + menu), the Altheo experience, a **preview of 3 residences** with "View all residences", facilities, location map, gallery, call to action, footer |
+| `/residences` | Every listed room type with location chips (the filter is kept in the address, e.g. `?location=Aburi`); each row links to its page |
+| `/residences/:id` | One room type: photo, rent and fees (logged in only), availability, **Book now** and **Enquire** (fills in the footer contact form) |
+| `/book/:id` | Booking a room type (tenants only). The Mobile Money payment of the booking deposit comes with #14 |
+
+Menu links to home page sections use `/#section` so they work from any page. **All copy, photos, facilities, locations and contact details are in `frontend/src/landing/content.ts`**; buildings, prices and availability come live from the admin inventory.
 
 ### Badges (`@/components/ui/badge`)
 Small solid status label with a `tone` (`success`, `warning`, `danger`, `neutral`), used for availability ("3 available" / "Fully booked") and payment states. The tone mapping in the Status pills table below applies.

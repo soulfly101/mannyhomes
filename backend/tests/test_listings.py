@@ -127,3 +127,41 @@ def test_no_buildings_yet(client):
     body = client.get(URL).json()
     assert body["buildings"] == []
     assert body["filters"] == {"locations": [], "room_types": []}
+
+
+ROOM_URL = "/api/listings/rooms/{}"
+
+
+def test_room_details_for_visitors_hide_prices(client, inventory):
+    rt = inventory["manny"].room_types[1]
+    body = client.get(ROOM_URL.format(rt.id)).json()
+    assert body["prices_visible"] is False
+    assert body["room"] == {
+        "id": rt.id,
+        "name": "2 bedroom",
+        "description": None,
+        "quantity_available": 2,
+        "rent": None,
+        "sanitation_fee": None,
+    }
+    assert body["building"]["name"] == "Manny Building"
+    assert body["building"]["location"] == "Oyarifa"
+
+
+def test_room_details_show_prices_after_login(client, db, inventory):
+    log_in(client, db)
+    rt = inventory["manny"].room_types[0]
+    body = client.get(ROOM_URL.format(rt.id)).json()
+    assert body["prices_visible"] is True
+    assert (body["room"]["rent"], body["room"]["sanitation_fee"]) == (1200, 50)
+
+
+def test_room_in_unlisted_building_is_not_found(client, inventory):
+    rt = inventory["hidden"].room_types[0]
+    res = client.get(ROOM_URL.format(rt.id))
+    assert res.status_code == 404
+    assert res.json()["detail"] == "That residence isn't available."
+
+
+def test_unknown_room_is_not_found(client, inventory):
+    assert client.get(ROOM_URL.format("no-such-room")).status_code == 404

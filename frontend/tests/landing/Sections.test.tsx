@@ -66,7 +66,7 @@ test("clicking a map pin selects that area", async () => {
   await waitFor(() => expect(screen.getByRole("button", { name: "Aburi" })).toHaveAttribute("aria-pressed", "true"));
 });
 
-test("the whole landing page renders, and Enquire fills in the contact form", async () => {
+test("the whole landing page renders, with a preview of the residences linking to their own pages", async () => {
   mockApi({ ...loggedOut, ...googleOff, "GET /api/listings": { body: listings(false) } });
   render(
     <MemoryRouter>
@@ -76,10 +76,33 @@ test("the whole landing page renders, and Enquire fills in the contact form", as
     </MemoryRouter>,
   );
   for (const id of ["residences", "facilities", "location", "contact"]) expect(document.getElementById(id)).not.toBeNull();
-  const twoBed = (await screen.findByRole("heading", { name: "2 bedroom" })).closest("li")!;
-  await userEvent.click(within(twoBed).getByRole("button", { name: /View details/ }));
-  await userEvent.click(within(twoBed).getByRole("button", { name: "Enquire" }));
-  await waitFor(() => expect(screen.getByLabelText("Residence of interest")).toHaveValue("r2"));
-  expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
-  expect(within(screen.getByRole("navigation", { name: "Footer" })).getByRole("link", { name: "Residences" })).toHaveAttribute("href", "#residences");
+  const preview = within(await screen.findByRole("list", { name: "Featured residences" }));
+  const cards = preview.getAllByRole("link");
+  // Rooms that are free come first; the fully booked 3 bedroom is last.
+  expect(cards.map((c) => c.getAttribute("href"))).toEqual(["/residences/r1", "/residences/r2", "/residences/r3"]);
+  expect(preview.getByText("2 available")).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "View all residences" })).toHaveAttribute("href", "/residences");
+  expect(screen.queryByRole("button", { name: /View details/ })).not.toBeInTheDocument();
+  const footer = within(screen.getByRole("navigation", { name: "Footer" }));
+  expect(footer.getByRole("link", { name: "Residences" })).toHaveAttribute("href", "/residences");
+  expect(footer.getByRole("link", { name: "Facilities" })).toHaveAttribute("href", "/#facilities");
+});
+
+test("the preview shows rooms that are free before fully booked ones, three at most", async () => {
+  const many = listings(false);
+  many.buildings[1].room_types.push(
+    { id: "r4", name: "Studio", description: null, quantity_available: 3, rent: null, sanitation_fee: null },
+    { id: "r5", name: "Penthouse", description: null, quantity_available: 1, rent: null, sanitation_fee: null },
+  );
+  mockApi({ ...loggedOut, ...googleOff, "GET /api/listings": { body: many } });
+  render(
+    <MemoryRouter>
+      <AuthProvider>
+        <LandingPage />
+      </AuthProvider>
+    </MemoryRouter>,
+  );
+  const cards = within(await screen.findByRole("list", { name: "Featured residences" })).getAllByRole("link");
+  expect(cards).toHaveLength(3);
+  expect(cards.map((c) => c.getAttribute("href"))).not.toContain("/residences/r3");
 });

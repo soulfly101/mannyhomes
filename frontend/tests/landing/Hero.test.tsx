@@ -26,9 +26,9 @@ test("shows the headline, subtitle and a button to the residences", async () => 
   renderHero();
   expect(screen.getByRole("heading", { level: 1, name: "Your next chapter starts here." })).toBeInTheDocument();
   expect(screen.getByText(HERO.subtitle)).toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "Explore residences" })).toHaveAttribute("href", "#residences");
+  expect(screen.getByRole("link", { name: "Explore residences" })).toHaveAttribute("href", "/residences");
   const nav = screen.getByRole("navigation", { name: "Main" });
-  for (const [name, href] of [["Residences", "#residences"], ["Facilities", "#facilities"], ["Location", "#location"], ["Contact", "#contact"]]) {
+  for (const [name, href] of [["Residences", "/residences"], ["Facilities", "/#facilities"], ["Location", "/#location"], ["Contact", "/#contact"]]) {
     expect(nav.querySelector(`a[href="${href}"]`)).toHaveTextContent(name);
   }
 });
