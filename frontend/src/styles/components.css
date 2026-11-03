@@ -85,9 +85,9 @@
     white-space: nowrap;
     text-decoration: none;
     cursor: pointer;
-    transition: background-color 0.2s var(--ease), transform 0.2s var(--ease);
+    transition: background-color 0.2s var(--ease), border-color 0.2s var(--ease), translate 0.2s var(--ease), scale 0.2s var(--ease);
   }
-  .btn:active { transform: scale(0.97); }
+  /* Hover lift and press come from the site-wide rule in globals.css. */
   .btn[aria-busy="true"] { cursor: progress; opacity: 0.8; }
   .btn-primary { background: var(--accent); color: var(--accent-ink); }
   .btn-primary:hover { background: var(--accent-hover); }

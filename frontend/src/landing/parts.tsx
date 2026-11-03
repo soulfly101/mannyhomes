@@ -50,6 +50,6 @@ export const chipClass = (selected: boolean) =>
   );
 
 export const outlineButtonClass =
-  "inline-flex items-center justify-center rounded-md border border-foreground/20 bg-transparent px-5 py-3 text-sm font-semibold tracking-wide text-foreground transition-colors hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  "inline-flex items-center justify-center rounded-md border border-foreground/20 bg-transparent px-5 py-3 text-sm font-semibold tracking-wide text-foreground transition hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 export const sectionClass = "mx-auto w-full max-w-6xl px-4 sm:px-6";

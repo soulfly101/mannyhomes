@@ -103,6 +103,29 @@
   }
 }
 
+/*
+ * Everything clickable moves a little: it lifts 2px on hover and presses in when clicked.
+ * Uses the separate `translate`/`scale` properties so it adds to any transform an element already has.
+ * Zero specificity (`:where`) in the base layer, so a component's own motion (chips, menu links) wins.
+ * Nothing moves for reduced-motion users.
+ */
+@layer base {
+  :where(a[href], button, [role="button"], [role="tab"], summary, input[type="submit"], input[type="button"]) {
+    transition-property: color, background-color, border-color, text-decoration-color, box-shadow, opacity, translate, scale, rotate;
+    transition-duration: 200ms;
+    transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    :where(a[href], button, [role="button"], [role="tab"], summary, input[type="submit"], input[type="button"]):where(:not(:disabled, [aria-disabled="true"], [aria-busy="true"])):hover {
+      translate: 0 -2px;
+    }
+    :where(a[href], button, [role="button"], [role="tab"], summary, input[type="submit"], input[type="button"]):where(:not(:disabled, [aria-disabled="true"], [aria-busy="true"])):active {
+      translate: 0 0;
+      scale: 0.97;
+    }
+  }
+}
+
 /* Entrance animations used by the sign-in/sign-up pages. Fade and slide only: no blur. */
 @keyframes fadeSlideIn {
   to {

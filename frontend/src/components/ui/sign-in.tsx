@@ -131,7 +131,7 @@ export const SubmitButton = ({ busy, children, delayClass }: { busy?: boolean; c
     aria-busy={busy || undefined}
     disabled={busy}
     className={cn(
-      "animate-element w-full rounded-md bg-primary py-4 font-semibold tracking-wide text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-progress disabled:opacity-80",
+      "animate-element w-full rounded-md bg-primary py-4 font-semibold tracking-wide text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-progress disabled:opacity-80",
       delayClass,
     )}
   >
@@ -149,7 +149,7 @@ export const GoogleButton = ({ onClick, delayClass }: { onClick: () => void; del
       type="button"
       onClick={onClick}
       className={cn(
-        "animate-element flex w-full items-center justify-center gap-3 rounded-md border border-border bg-card py-4 font-medium transition-colors hover:bg-secondary",
+        "animate-element flex w-full items-center justify-center gap-3 rounded-md border border-border bg-card py-4 font-medium transition hover:bg-secondary",
         delayClass,
       )}
     >

@@ -128,6 +128,7 @@ The mapping lives in `frontend/src/components/StatusPill.tsx`; add new statuses 
 
 ## Motion
 - Entrance: cards rise 8px and fade in over 600ms with `--ease`, staggered 60ms.
+- **Everything clickable moves** (links, buttons, tabs, admin `.btn`s, in every area of the app): it lifts 2px on hover and presses in (scale 0.97) when clicked. This is a site-wide default in `frontend/src/styles/globals.css`, so new buttons and links get it automatically. Disabled and busy buttons stay still. Use `transition` rather than `transition-colors` on clickable elements, so the movement glides instead of jumping.
 - Hover: cards lift 4px; buttons lift 2px and darken slightly. Hero menu links rise 2px while a thin underline slides in from the left (also on keyboard focus), and the logo tile tilts slightly (`navLinkClass` in `frontend/src/landing/parts.tsx`).
 - Location chips pop out on hover (grow 5%, rise 2px, soft shadow) and press in slightly when clicked (`chipClass` in the same file).
 - Movement uses Tailwind's `motion-safe:` variant so it never runs for reduced-motion users.

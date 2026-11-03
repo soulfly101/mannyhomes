@@ -23,7 +23,7 @@ export function Gallery() {
               aria-controls="gallery-panel"
               onClick={() => setTab(i)}
               className={cn(
-                "min-h-11 whitespace-nowrap border-l-2 pl-3 text-left text-sm font-semibold uppercase tracking-[0.14em] transition-colors",
+                "min-h-11 whitespace-nowrap border-l-2 pl-3 text-left text-sm font-semibold uppercase tracking-[0.14em] transition",
                 tab === i ? "border-foreground text-foreground" : "border-transparent text-muted-foreground hover:text-foreground",
               )}
             >
