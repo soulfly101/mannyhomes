@@ -130,7 +130,7 @@ test("the log in button shows it's working and can't be pressed twice", async ()
   await waitFor(() => expect(screen.getByTestId("location").textContent).toBe("/dashboard"));
 });
 
-test("tenants with no next go to their dashboard; others go home", async () => {
+test("people with no next go to their dashboard", async () => {
   mockApi({ "GET /api/auth/me": { status: 401 }, ...googleOff, "POST /api/auth/login": { body: AMA } });
   const { unmount } = renderAt("/login", routes);
   await userEvent.type(await screen.findByLabelText("Email address"), "ama@example.com");
@@ -143,5 +143,5 @@ test("tenants with no next go to their dashboard; others go home", async () => {
   await userEvent.type(await screen.findByLabelText("Email address"), "admin@example.com");
   await userEvent.type(screen.getByLabelText("Password"), "correct-horse");
   await userEvent.click(screen.getByRole("button", { name: "Log in" }));
-  await waitFor(() => expect(screen.getByTestId("location").textContent).toBe("/"));
+  await waitFor(() => expect(screen.getByTestId("location").textContent).toBe("/admin"));
 });

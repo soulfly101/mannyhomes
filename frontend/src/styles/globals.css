@@ -29,10 +29,16 @@
   --ring: #b84e28;
   /* Solid layer over photos so white text stays readable (never a gradient). */
   --overlay: rgba(32, 22, 16, 0.5);
+  /* Chart series, checked with the dataviz palette validator against the card colour. */
+  --chart-1: #b84e28;
+  --chart-2: #008a7a;
+  --chart-3: #7c5cc4;
+  --chart-4: #a8840f;
 }
 
+/* Dark colours: when the device asks for them, unless the admin toggle chose light... */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --background: #1a1512;
     --foreground: #f5ede4;
     --card: #241d18;
@@ -55,7 +61,40 @@
     --input: #4a3d33;
     --ring: #f0915f;
     --overlay: rgba(12, 8, 6, 0.55);
+    --chart-1: #d4703a;
+    --chart-2: #1f9c8c;
+    --chart-3: #9a7eea;
+    --chart-4: #ab8810;
   }
+}
+/* ...and whenever the admin toggle chooses dark. Keep this block the same as the one above. */
+:root[data-theme="dark"] {
+  --background: #1a1512;
+  --foreground: #f5ede4;
+  --card: #241d18;
+  --card-foreground: #f5ede4;
+  --popover: #241d18;
+  --popover-foreground: #f5ede4;
+  --primary: #f0915f;
+  --primary-foreground: #1a1512;
+  --secondary: #2e2620;
+  --secondary-foreground: #f5ede4;
+  --muted: #2e2620;
+  --muted-foreground: #b8a99b;
+  --accent: #3a2c23;
+  --accent-foreground: #f5ede4;
+  --destructive: #f08a7a;
+  --destructive-foreground: #1b0605;
+  --success: #7cc9a3;
+  --warning: #e6b866;
+  --border: #3a2f27;
+  --input: #4a3d33;
+  --ring: #f0915f;
+  --overlay: rgba(12, 8, 6, 0.55);
+  --chart-1: #d4703a;
+  --chart-2: #1f9c8c;
+  --chart-3: #9a7eea;
+  --chart-4: #ab8810;
 }
 
 @theme inline {

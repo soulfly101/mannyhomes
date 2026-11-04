@@ -13,3 +13,18 @@ export function initials(name: string): string {
   const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
   return (first + last).toUpperCase();
 }
+
+/** "3 hours ago", from a UTC time as the API sends it. */
+export function timeAgo(iso: string, now: Date = new Date()): string {
+  const seconds = Math.max(0, Math.round((now.getTime() - new Date(`${iso}Z`).getTime()) / 1000));
+  if (seconds < 60) return "Just now";
+  const unit = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"} ago`;
+  if (seconds < 3600) return unit(Math.floor(seconds / 60), "minute");
+  if (seconds < 86400) return unit(Math.floor(seconds / 3600), "hour");
+  if (seconds < 86400 * 30) return unit(Math.floor(seconds / 86400), "day");
+  return formatDate(iso);
+}
+
+/** "Nov" or "Nov 2026" from "2026-11". */
+export const formatMonth = (month: string, withYear = false) =>
+  new Date(`${month}-15T12:00:00Z`).toLocaleDateString("en-GB", { month: "short", ...(withYear ? { year: "numeric" } : {}), timeZone: "UTC" });

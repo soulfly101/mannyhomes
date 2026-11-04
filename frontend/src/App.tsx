@@ -1,4 +1,5 @@
 import { Route, Routes, useLocation } from "react-router";
+import { AdminDashboardPage } from "./admin/AdminDashboardPage";
 import { AdminLayout } from "./admin/AdminLayout";
 import { AdminAgreementPage, AgreementsPage } from "./admin/AgreementsPage";
 import { AgreementPage } from "./agreements/AgreementPage";
@@ -69,6 +70,7 @@ export function App() {
             </RequireAuth>
           }
         >
+          <Route path="/admin" element={<AdminDashboardPage />} />
           <Route path="/admin/buildings" element={<BuildingsPage />} />
           <Route path="/admin/buildings/new" element={<BuildingFormPage />} />
           <Route path="/admin/buildings/:id" element={<BuildingFormPage />} />
