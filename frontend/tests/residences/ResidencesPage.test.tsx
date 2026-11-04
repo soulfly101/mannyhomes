@@ -53,6 +53,31 @@ test("location chips filter through the server and are kept in the address", asy
   expect(screen.getByTestId("location")).toHaveTextContent(/^\/residences$/);
 });
 
+test("the room type filter works with the location, and both stay in the address", async () => {
+  mockApi({ ...loggedOut, ...googleOff, "GET /api/listings": { body: listings(false) } });
+  renderPage("/residences?location=Aburi");
+  await userEvent.click(await screen.findByRole("button", { name: "2 bedroom" }));
+  expect(screen.getByRole("button", { name: "2 bedroom" })).toHaveAttribute("aria-pressed", "true");
+  expect(screen.getByTestId("location")).toHaveTextContent("/residences?location=Aburi&room_type=2+bedroom");
+  await waitFor(() => expect(listingCalls()).toContain("/api/listings?location=Aburi&room_type=2+bedroom"));
+  await userEvent.click(screen.getByRole("button", { name: "All room types" }));
+  expect(screen.getByTestId("location")).toHaveTextContent(/^\/residences\?location=Aburi$/);
+});
+
+test("filters that match nothing say so", async () => {
+  const empty = { ...listings(false), buildings: [] };
+  mockApi({ ...loggedOut, ...googleOff, "GET /api/listings": { body: empty } });
+  renderPage("/residences?room_type=Penthouse");
+  expect(await screen.findByText(/Nothing matches those filters/)).toBeInTheDocument();
+});
+
+test("visitors are told how to see prices on each card", async () => {
+  mockApi({ ...loggedOut, ...googleOff, "GET /api/listings": { body: listings(false) } });
+  renderPage();
+  await screen.findByRole("heading", { level: 2, name: "2 bedroom" });
+  expect(within(roomLink("2 bedroom")).getByText("Log in for the price")).toBeInTheDocument();
+});
+
 test("opening a shared link keeps its location filter", async () => {
   mockApi({ ...loggedOut, ...googleOff, "GET /api/listings": { body: listings(false) } });
   renderPage("/residences?location=Oyarifa");

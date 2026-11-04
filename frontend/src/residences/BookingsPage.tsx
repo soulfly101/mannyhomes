@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { ApiError, apiFetch } from "../api";
+import { Reveal } from "../components/Reveal";
 import { Badge } from "@/components/ui/badge";
 import { FormError } from "@/components/ui/sign-in";
 import { formatCedis } from "../format";
@@ -35,19 +36,22 @@ export function BookingsPage() {
           </div>
         )}
         {bookings && bookings.length > 0 && (
-          <ul className="mt-8 border-t border-border" aria-label="Bookings">
-            {bookings.map((b) => (
-              <li key={b.id} className="border-b border-border">
-                <Link to={`/bookings/${b.id}`} className="flex flex-wrap items-center justify-between gap-3 py-5">
+          <ul className="mt-8 grid gap-4" aria-label="Bookings">
+            {bookings.map((b, i) => (
+              <Reveal as="li" key={b.id} delay={i * 60}>
+                <Link
+                  to={`/bookings/${b.id}`}
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-5 text-foreground shadow-sm transition duration-200 hover:shadow-md motion-safe:hover:-translate-y-0.5"
+                >
                   <span>
-                    <span className="block text-2xl font-bold tracking-tight">{b.room}</span>
+                    <span className="block text-xl font-bold tracking-tight">{b.room}</span>
                     <span className="block text-sm text-muted-foreground">
                       {b.building} · {b.location} · {formatCedis(b.deposit)} deposit
                     </span>
                   </span>
                   <Badge tone={BOOKING_LABEL[b.status].tone}>{BOOKING_LABEL[b.status].text}</Badge>
                 </Link>
-              </li>
+              </Reveal>
             ))}
           </ul>
         )}

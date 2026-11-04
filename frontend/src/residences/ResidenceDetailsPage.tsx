@@ -1,9 +1,10 @@
 import { Link, useParams } from "react-router";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, BedDouble, MapPin } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
+import { Reveal } from "../components/Reveal";
 import { Badge } from "@/components/ui/badge";
 import { formatCedis } from "../format";
-import { Eyebrow, buttonClass, outlineButtonClass, sectionClass } from "../landing/parts";
+import { Eyebrow, buttonClass, outlineButtonClass, photoPop, photoZoom, sectionClass } from "../landing/parts";
 import { SitePage, useEnquiry } from "../landing/SitePage";
 import { availability, photoFor, useRoom, type Residence } from "./data";
 import { RoomStatus } from "./RoomStatus";
@@ -11,9 +12,9 @@ import { RoomStatus } from "./RoomStatus";
 /** Rent, fees and availability, shown to logged-in users only (prices are hidden from visitors). */
 export function RoomFacts({ r }: { r: Residence }) {
   return (
-    <dl className="grid grid-cols-[auto_1fr] gap-x-10 gap-y-3 text-sm">
+    <dl className="grid grid-cols-[auto_1fr] items-center gap-x-8 gap-y-3 text-sm">
       <dt className="text-muted-foreground">Rent</dt>
-      <dd className="font-semibold">{r.rent === null ? "Log in to see the price" : `${formatCedis(r.rent)} / month`}</dd>
+      <dd className={r.rent === null ? "font-semibold" : "text-lg font-bold text-primary"}>{r.rent === null ? "Log in to see the price" : `${formatCedis(r.rent)} / month`}</dd>
       {r.sanitation !== null && (
         <>
           <dt className="text-muted-foreground">Sanitation</dt>
@@ -54,19 +55,37 @@ export function ResidenceDetailsPage() {
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             All residences
           </Link>
-          <div className="mt-6 grid gap-10 lg:grid-cols-[1.2fr_1fr] lg:gap-14">
-            <img src={photoFor(state.residence.name)} alt="" className="aspect-[4/3] w-full rounded-md object-cover" />
+          <div className="mt-6 grid items-start gap-10 lg:grid-cols-[1.5fr_1fr]">
             <div className="flex flex-col gap-6">
-              <Eyebrow>
-                {state.residence.building} · {state.residence.location}
-              </Eyebrow>
-              <h1 id="residence-title" className="text-5xl font-bold tracking-tight leading-tight">
-                {state.residence.name}
-              </h1>
-              {state.residence.description && <p className="text-muted-foreground">{state.residence.description}</p>}
+              <Reveal from="left">
+                <div className={`${photoPop} aspect-[4/3]`}>
+                  <img src={photoFor(state.residence.name)} alt="" className={photoZoom} />
+                </div>
+              </Reveal>
+              <div>
+                <Eyebrow>
+                  {state.residence.building} · {state.residence.location}
+                </Eyebrow>
+                <h1 id="residence-title" className="mt-2 text-5xl font-bold tracking-tight leading-tight">
+                  {state.residence.name}
+                </h1>
+                <ul className="mt-4 flex flex-wrap gap-2 text-sm font-medium" aria-label="Key facts">
+                  <li className="flex items-center gap-2 rounded-full bg-accent px-3 py-1.5">
+                    <BedDouble className="h-4 w-4 text-primary" aria-hidden="true" />
+                    {state.residence.name}
+                  </li>
+                  <li className="flex items-center gap-2 rounded-full bg-accent px-3 py-1.5">
+                    <MapPin className="h-4 w-4 text-primary" aria-hidden="true" />
+                    {state.residence.location}
+                  </li>
+                </ul>
+                {state.residence.description && <p className="mt-4 text-muted-foreground">{state.residence.description}</p>}
+              </div>
+            </div>
+            <aside aria-label="Price and booking" className="flex flex-col gap-6 rounded-xl border border-border bg-card p-6 shadow-sm lg:sticky lg:top-28">
               <RoomFacts r={state.residence} />
               <BookActions r={state.residence} canBook={!user || user.role === "tenant"} loggedIn={Boolean(user)} onEnquire={() => enquire(state.residence)} />
-            </div>
+            </aside>
           </div>
         </section>
       )}
