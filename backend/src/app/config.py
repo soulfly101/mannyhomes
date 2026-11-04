@@ -18,6 +18,12 @@ class Settings(BaseSettings):
     # Signs short-lived values like the Google sign-in state. Use a long random value in production.
     secret_key: str = "dev-only-insecure-secret-change-me"
 
+    # "development" allows the pretend payment mode when no Paystack key is set.
+    # docker compose sets it for local work.
+    app_env: Literal["development", "production"] = "production"
+    # Paystack secret key (sk_test_… locally). Empty means Paystack is off.
+    paystack_secret_key: str | None = None
+
     session_cookie_name: str = "altheo_session"
     session_cookie_secure: bool = False
     session_cookie_samesite: Literal["lax", "strict", "none"] = "lax"

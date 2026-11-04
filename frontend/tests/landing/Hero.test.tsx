@@ -109,3 +109,10 @@ test("menu links and buttons move on hover only when the device allows motion", 
     for (const c of moves) expect(c).toMatch(/^motion-safe:/);
   }
 });
+
+
+test("tenants get a link to their bookings", async () => {
+  mockApi({ "GET /api/auth/me": { body: AMA }, ...googleOff });
+  renderHero();
+  expect((await screen.findAllByRole("link", { name: "My bookings" }))[0]).toHaveAttribute("href", "/bookings");
+});
