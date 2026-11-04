@@ -1,5 +1,5 @@
 // Based on the 21st.dev SignInPage component, adapted for Altheo Homes:
-// brand blue instead of violet, no blur or glass, labelled inputs, error/busy states,
+// the site accent instead of violet, no blur or glass, labelled inputs, error/busy states,
 // optional Google and reset links, and a shared two-column layout used by sign-up too.
 import { useId, useState, type FormEvent, type InputHTMLAttributes, type ReactNode } from "react";
 import { Eye, EyeOff } from "lucide-react";
@@ -47,7 +47,7 @@ interface SignInPageProps {
 
 // --- SUB-COMPONENTS ---
 
-/** Solid input frame with a clear border; the border turns blue while typing. */
+/** Solid input frame with a clear border; the border takes the accent colour while typing. */
 export const InputWrapper = ({ children, invalid }: { children: ReactNode; invalid?: boolean }) => (
   <div
     className={cn(
@@ -131,7 +131,7 @@ export const SubmitButton = ({ busy, children, delayClass }: { busy?: boolean; c
     aria-busy={busy || undefined}
     disabled={busy}
     className={cn(
-      "animate-element w-full rounded-md bg-primary py-4 font-semibold tracking-wide text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-progress disabled:opacity-80",
+      "animate-element w-full rounded-full bg-primary py-4 font-semibold tracking-wide text-primary-foreground transition hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-progress disabled:opacity-80",
       delayClass,
     )}
   >
@@ -149,7 +149,7 @@ export const GoogleButton = ({ onClick, delayClass }: { onClick: () => void; del
       type="button"
       onClick={onClick}
       className={cn(
-        "animate-element flex w-full items-center justify-center gap-3 rounded-md border border-border bg-card py-4 font-medium transition hover:bg-secondary",
+        "animate-element flex w-full items-center justify-center gap-3 rounded-full border border-border bg-card py-4 font-medium transition hover:bg-secondary",
         delayClass,
       )}
     >
@@ -236,7 +236,7 @@ export const SignInPage = ({
   <AuthSplitLayout heroImageSrc={heroImageSrc} testimonials={testimonials}>
     <div className="flex flex-col gap-6">
       {brand && <div className="animate-element">{brand}</div>}
-      <h1 className="animate-element animate-delay-100 font-serif text-5xl font-medium leading-[1.05] md:text-6xl">{title}</h1>
+      <h1 className="animate-element animate-delay-100 text-5xl font-bold tracking-tight leading-[1.05] md:text-6xl">{title}</h1>
       <p className="animate-element animate-delay-200 text-muted-foreground">{description}</p>
 
       {error && <FormError>{error}</FormError>}

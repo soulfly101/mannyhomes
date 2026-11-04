@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { Menu, X } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
@@ -48,21 +48,21 @@ function AccountLinks({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 /** The site menu (logo, sections, account links, phone menu). White on dark: over the hero video or on an ink bar. */
-export function SiteNav() {
+export function SiteNav({ label = "Main", menuId = "mobile-menu" }: { label?: string; menuId?: string }) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <nav aria-label="Main" className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-5 sm:px-6">
+      <nav aria-label={label} className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-5 sm:px-6">
         <Link to="/" className="group flex min-h-11 items-center gap-3 text-white">
-          <span className="grid h-9 w-9 place-items-center rounded-md bg-white font-serif text-xl font-semibold text-ink transition-transform duration-300 ease-out motion-safe:group-hover:-translate-y-0.5 motion-safe:group-hover:-rotate-6">
+          <span className="grid h-9 w-9 place-items-center rounded-md bg-white text-xl font-bold tracking-tight text-ink transition-transform duration-300 ease-out motion-safe:group-hover:-translate-y-0.5 motion-safe:group-hover:-rotate-6">
             {BRAND.monogram}
           </span>
-          <span className="font-serif text-2xl font-medium">{BRAND.name}</span>
+          <span className="text-2xl font-bold tracking-tight">{BRAND.name}</span>
         </Link>
         <ul className="hidden items-center gap-8 md:flex">
           {NAV_LINKS.map((n) => (
             <li key={n.href}>
-              <Link to={n.href} className={cn(navLinkClass, "text-sm font-medium uppercase tracking-[0.14em]")}>
+              <Link to={n.href} className={cn(navLinkClass, "text-sm font-semibold")}>
                 {n.label}
               </Link>
             </li>
@@ -76,14 +76,14 @@ export function SiteNav() {
           className="grid h-11 w-11 place-items-center rounded-md border border-white/30 md:hidden"
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
-          aria-controls="mobile-menu"
+          aria-controls={menuId}
           onClick={() => setOpen((o) => !o)}
         >
           {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
       </nav>
       {open && (
-        <div id="mobile-menu" className="mx-4 mb-4 flex flex-col gap-4 rounded-md bg-ink p-5 md:hidden">
+        <div id={menuId} className="mx-4 mb-4 flex max-h-[75dvh] flex-col gap-4 overflow-y-auto rounded-xl bg-ink p-5 md:hidden">
           {NAV_LINKS.map((n) => (
             <Link key={n.href} to={n.href} onClick={() => setOpen(false)} className="flex min-h-11 items-center text-base font-medium text-white">
               {n.label}
@@ -98,11 +98,29 @@ export function SiteNav() {
   );
 }
 
-/** Header for every page except the home page (whose hero has the menu over the video): the menu on a solid ink bar. */
+/** Header for every page except the home page (whose hero has the menu over the video): stays at the top while scrolling. */
 export function SiteHeader() {
   return (
-    <header id="top" className="bg-ink text-white">
+    <header id="top" className="sticky top-0 z-50 bg-ink text-white shadow-sm">
       <SiteNav />
     </header>
+  );
+}
+
+/** Home page: once the hero has scrolled away, the menu slides down and stays at the top. */
+export function StickyHomeHeader() {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    const hero = document.getElementById("top");
+    if (!hero || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(([entry]) => setShow(!entry?.isIntersecting));
+    observer.observe(hero);
+    return () => observer.disconnect();
+  }, []);
+  if (!show) return null;
+  return (
+    <div className="fixed inset-x-0 top-0 z-50 bg-ink text-white shadow-sm motion-safe:animate-in motion-safe:slide-in-from-top">
+      <SiteNav label="Main, while scrolling" menuId="mobile-menu-sticky" />
+    </div>
   );
 }

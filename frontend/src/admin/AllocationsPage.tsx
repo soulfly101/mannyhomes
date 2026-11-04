@@ -22,7 +22,7 @@ export function AllocationsPage() {
 
   return (
     <main className={`${sectionClass} py-10 font-sans text-foreground`}>
-      <h1 className="font-serif text-5xl font-medium leading-tight">Pending allocations</h1>
+      <h1 className="text-5xl font-bold tracking-tight leading-tight">Pending allocations</h1>
       <p className="mt-2 text-muted-foreground">Tenants who have paid their booking deposit and are waiting for a room.</p>
       {(state as { done?: string } | null)?.done && (
         <p role="status" className="mt-6 rounded-md border border-success/30 bg-success/10 px-4 py-3 text-sm text-success">
@@ -46,7 +46,7 @@ export function AllocationsPage() {
             <li key={q.booking_id} className="border-b border-border">
               <Link to={`/admin/allocations/${q.booking_id}`} className="group flex flex-wrap items-center justify-between gap-4 py-5">
                 <span className="min-w-0">
-                  <span className="block font-serif text-2xl font-medium">{q.tenant.name}</span>
+                  <span className="block text-2xl font-bold tracking-tight">{q.tenant.name}</span>
                   <span className="block text-sm text-muted-foreground">
                     {q.room} · {q.building}, {q.location}
                   </span>

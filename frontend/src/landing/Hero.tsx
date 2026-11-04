@@ -38,9 +38,9 @@ export function Hero() {
 
       <div className="mx-auto mt-auto flex w-full max-w-6xl flex-col gap-6 px-4 pb-16 pt-24 sm:px-6 md:pb-24">
         <Eyebrow light>{HERO.eyebrow}</Eyebrow>
-        <h1 className="max-w-3xl font-serif text-5xl font-medium leading-[1.02] sm:text-6xl md:text-7xl">{HERO.title}</h1>
-        <p className="max-w-xl text-lg text-white/85">{HERO.subtitle}</p>
-        <div>
+        <h1 className="animate-element animate-delay-100 max-w-3xl text-5xl font-bold tracking-tight leading-[1.02] sm:text-6xl md:text-7xl">{HERO.title}</h1>
+        <p className="animate-element animate-delay-200 max-w-xl text-lg text-white/90">{HERO.subtitle}</p>
+        <div className="animate-element animate-delay-300">
           <Link to="/residences" className={cn(buttonClass, "bg-white text-ink hover:bg-white/90")}>
             {HERO.cta}
           </Link>

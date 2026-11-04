@@ -30,7 +30,7 @@
   h2 { font-size: 1.4rem; }
   h3 { font-size: 1.15rem; }
 
-  a { color: var(--accent); }
+  a { color: var(--action); }
 
   :focus-visible {
     outline: none;
@@ -47,7 +47,7 @@
     .wrap { padding: 0 var(--space-5); }
   }
 
-  .muted { color: var(--muted); }
+  .muted { color: var(--text-muted); }
   .amount {
     font-family: var(--font-display);
     font-size: 1.4rem;
@@ -89,11 +89,11 @@
   }
   /* Hover lift and press come from the site-wide rule in globals.css. */
   .btn[aria-busy="true"] { cursor: progress; opacity: 0.8; }
-  .btn-primary { background: var(--accent); color: var(--accent-ink); }
-  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary { background: var(--action); color: var(--action-ink); }
+  .btn-primary:hover { background: var(--action-hover); }
   .btn-secondary { background: var(--glass-strong); border-color: var(--line); color: var(--fg); }
-  .btn-secondary:hover { border-color: var(--accent); }
-  .btn-ghost { background: transparent; color: var(--accent); }
+  .btn-secondary:hover { border-color: var(--action); }
+  .btn-ghost { background: transparent; color: var(--action); }
   .btn-ghost:hover { background: var(--glass); }
   .btn-danger { background: var(--danger); color: #fff; }
   .btn-danger:hover { background: var(--danger-hover); }
@@ -123,7 +123,7 @@
 
   /* Form fields */
   .field { display: flex; flex-direction: column; gap: 6px; }
-  .field-label { font-size: 0.875rem; font-weight: 600; color: var(--muted); }
+  .field-label { font-size: 0.875rem; font-weight: 600; color: var(--text-muted); }
   .field-input {
     min-height: 48px;
     padding: 0 var(--space-4);
@@ -133,9 +133,9 @@
     color: var(--fg);
     font: 400 1rem var(--font-body);
   }
-  .field-input:focus { border-color: var(--accent); }
+  .field-input:focus { border-color: var(--action); }
   .field-input[aria-invalid="true"] { border-color: var(--danger); }
-  .field-hint { font-size: 0.875rem; color: var(--muted); }
+  .field-hint { font-size: 0.875rem; color: var(--text-muted); }
   .field-error { font-size: 0.875rem; font-weight: 500; color: var(--danger); }
 
   /* Entrance motion */
@@ -213,12 +213,12 @@
     align-items: center;
     gap: var(--space-3);
     margin: var(--space-4) 0;
-    color: var(--muted);
+    color: var(--text-muted);
     font-size: 0.875rem;
   }
   .auth-divider::before,
   .auth-divider::after { content: ""; flex: 1; border-top: 1px solid var(--line); }
-  .auth-switch { margin: var(--space-5) 0 0; text-align: center; color: var(--muted); }
+  .auth-switch { margin: var(--space-5) 0 0; text-align: center; color: var(--text-muted); }
 
   /* Money and other prefixed inputs */
   .field-affix { position: relative; display: flex; }
@@ -228,13 +228,13 @@
     left: var(--space-4);
     top: 50%;
     transform: translateY(-50%);
-    color: var(--muted);
+    color: var(--text-muted);
     font-weight: 600;
     pointer-events: none;
   }
 
   .check { display: flex; align-items: center; gap: var(--space-2); min-height: var(--tap); margin-top: var(--space-3); }
-  .check input { width: 20px; height: 20px; accent-color: var(--accent); }
+  .check input { width: 20px; height: 20px; accent-color: var(--action); }
 
   /* Top bar section links */
   .topbar-nav { display: flex; gap: var(--space-1); margin-right: auto; margin-left: var(--space-4); }
@@ -244,12 +244,12 @@
     min-height: 36px;
     padding: 0 var(--space-4);
     border-radius: var(--radius-pill);
-    color: var(--muted);
+    color: var(--text-muted);
     font-weight: 600;
     text-decoration: none;
     white-space: nowrap;
   }
-  .topbar-link[aria-current="page"] { background: var(--accent); color: var(--accent-ink); }
+  .topbar-link[aria-current="page"] { background: var(--action); color: var(--action-ink); }
   /* Phones: the sections get their own scrollable row under the logo and account (DESIGN.md → Navigation). */
   @media (max-width: 640px) {
     .topbar { flex-wrap: wrap; row-gap: var(--space-2); padding: var(--space-2) var(--space-3); border-radius: var(--radius-card); }
@@ -280,7 +280,7 @@
     border-top: 1px solid var(--line);
   }
   .room-name { font-weight: 500; }
-  .room-rent { font-variant-numeric: tabular-nums; color: var(--muted); }
+  .room-rent { font-variant-numeric: tabular-nums; color: var(--text-muted); }
   .confirm-row { display: flex; flex-direction: column; gap: var(--space-2); padding: var(--space-3); border-radius: var(--radius-field); background: var(--danger-bg); }
 
   .form-grid { display: grid; gap: var(--space-4); margin-top: var(--space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); }

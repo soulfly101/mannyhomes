@@ -98,7 +98,7 @@ export function BookingPage() {
             Back to {state.residence.name}
           </Link>
           <div className="mt-6 max-w-2xl">
-            <h1 id="booking-title" className="font-serif text-5xl font-medium leading-tight">
+            <h1 id="booking-title" className="text-5xl font-bold tracking-tight leading-tight">
               Book a {state.residence.name}
             </h1>
             <p className="mt-2 text-muted-foreground">
@@ -114,7 +114,7 @@ export function BookingPage() {
                 <Notice title="Online booking isn't open for this residence yet" text="Send us an enquiry and our team will reserve it for you." onEnquire={() => enquire(state.residence)} />
               ) : (
                 <>
-                  <h2 className="font-serif text-2xl font-medium">Pay the booking deposit</h2>
+                  <h2 className="text-2xl font-bold tracking-tight">Pay the booking deposit</h2>
                   <p className="mb-5 mt-2 text-sm text-muted-foreground">
                     {formatCedis(state.residence.bookingDeposit)}, refundable. It reserves a {state.residence.name} for you while we allocate your exact room.
                   </p>
@@ -132,7 +132,7 @@ export function BookingPage() {
 function Notice({ title, text, onEnquire }: { title: string; text: string; onEnquire: () => void }) {
   return (
     <div role="status">
-      <h2 className="font-serif text-2xl font-medium">{title}</h2>
+      <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
       <p className="mt-2 text-sm text-muted-foreground">{text}</p>
       <button type="button" onClick={onEnquire} className={`${buttonClass} mt-5`}>
         Enquire

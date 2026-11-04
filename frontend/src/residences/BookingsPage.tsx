@@ -21,7 +21,7 @@ export function BookingsPage() {
   return (
     <SitePage>
       <section aria-labelledby="bookings-title" className={`${sectionClass} py-12 md:py-16`}>
-        <h1 id="bookings-title" className="font-serif text-5xl font-medium leading-tight">
+        <h1 id="bookings-title" className="text-5xl font-bold tracking-tight leading-tight">
           My bookings
         </h1>
         {error && <div className="mt-6"><FormError>{error}</FormError></div>}
@@ -40,7 +40,7 @@ export function BookingsPage() {
               <li key={b.id} className="border-b border-border">
                 <Link to={`/bookings/${b.id}`} className="flex flex-wrap items-center justify-between gap-3 py-5">
                   <span>
-                    <span className="block font-serif text-2xl font-medium">{b.room}</span>
+                    <span className="block text-2xl font-bold tracking-tight">{b.room}</span>
                     <span className="block text-sm text-muted-foreground">
                       {b.building} · {b.location} · {formatCedis(b.deposit)} deposit
                     </span>

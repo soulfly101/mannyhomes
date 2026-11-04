@@ -1,24 +1,28 @@
+import { Reveal } from "../components/Reveal";
 import { CALL_TO_ACTION } from "./content";
-import { Eyebrow, buttonClass, sectionClass } from "./parts";
+import { photoPop, photoZoom, sectionClass } from "./parts";
 
+/** A warm solid banner: the invitation to get in touch, with a photo sliding in from the side. */
 export function CallToAction() {
   return (
-    <section aria-labelledby="cta-title" className={`${sectionClass} py-20 md:py-28`}>
-      <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-        <div className="flex flex-col gap-3">
-          <Eyebrow>{CALL_TO_ACTION.eyebrow}</Eyebrow>
-          <h2 id="cta-title" className="font-serif text-4xl font-medium md:text-5xl">
+    <section aria-labelledby="cta-title" className={`${sectionClass} py-12 md:py-20`}>
+      <div className="grid items-center gap-8 overflow-hidden rounded-[2rem] bg-primary p-8 text-primary-foreground md:grid-cols-2 md:p-12">
+        <Reveal from="left" className="flex flex-col items-start gap-4">
+          <p className="text-sm font-semibold opacity-90">{CALL_TO_ACTION.eyebrow}</p>
+          <h2 id="cta-title" className="text-4xl font-bold tracking-tight md:text-5xl">
             {CALL_TO_ACTION.title}
           </h2>
-        </div>
-        <div className="flex flex-col items-start gap-4 md:items-end">
-          <p className="max-w-md text-muted-foreground md:text-right">{CALL_TO_ACTION.lead}</p>
-          <a href="#contact" className={buttonClass}>
+          <p className="max-w-md opacity-90">{CALL_TO_ACTION.lead}</p>
+          <a href="#contact" className="inline-flex min-h-11 items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-ink transition duration-300 hover:bg-white/90 motion-safe:hover:-translate-y-0.5">
             {CALL_TO_ACTION.button}
           </a>
-        </div>
+        </Reveal>
+        <Reveal from="right" className="aspect-[4/3]">
+          <div className={`${photoPop} h-full`}>
+            <img src={CALL_TO_ACTION.photo} alt="An Altheo Homes lounge" className={photoZoom} />
+          </div>
+        </Reveal>
       </div>
-      <img src={CALL_TO_ACTION.photo} alt="An Altheo Homes lounge" className="mt-10 aspect-[21/9] w-full rounded-md object-cover" />
     </section>
   );
 }

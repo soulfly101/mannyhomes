@@ -117,6 +117,6 @@ test("location chips pop out on hover only when the device allows motion", async
 test("the page title is the page's main heading", async () => {
   mockApi({ ...loggedOut, ...googleOff, "GET /api/listings": { body: listings(false) } });
   renderPage();
-  expect(screen.getByRole("heading", { level: 1, name: "Homes for every stage" })).toBeInTheDocument();
+  expect(screen.getByRole("heading", { level: 1, name: "Find a place you'll love" })).toBeInTheDocument();
   await screen.findByRole("heading", { level: 2, name: "1 bedroom" });
 });

@@ -1,22 +1,19 @@
 /* Altheo Homes design tokens for the plain-CSS components. Flat: solid surfaces, no gradients or blur.
    The shadcn/Tailwind theme lives in globals.css; keep the two in step (see DESIGN.md). */
 :root {
-  --bg: #f4efe7;
-  --fg: #1c232b;
-  --muted: #5b636d;
-  --accent: #1f2e3d;
-  --accent-hover: #2c3f52;
-  --accent-ink: #f7f3ec;
-  --glass: #fbf8f3;
-  --glass-strong: #fbf8f3;
-  --glass-edge: #ddd4c6;
-  --line: #ddd4c6;
-  --blob-a: #9ed8f7;
-  --blob-b: #c9e7fb;
-  --blob-c: #7fb8ea;
+  --bg: #fbf7f1;
+  --fg: #2a211b;
+  --text-muted: #6b5e53;
+  --action: #b84e28;
+  --action-hover: #a24321;
+  --action-ink: #ffffff;
+  --glass: #ffffff;
+  --glass-strong: #ffffff;
+  --glass-edge: #eadfd2;
+  --line: #eadfd2;
   --scrim: rgba(6, 24, 44, 0.4);
   --shadow: 0 1px 2px rgba(11, 27, 43, 0.06);
-  --focus: 0 0 0 3px rgba(22, 119, 201, 0.45);
+  --focus: 0 0 0 3px rgba(184, 78, 40, 0.45);
 
   --ok: #0f7b5f;
   --ok-bg: rgba(15, 123, 95, 0.12);
@@ -28,7 +25,7 @@
   --info: #0f5c9e;
   --info-bg: rgba(22, 119, 201, 0.12);
 
-  --font-display: "Cormorant Garamond", ui-serif, Georgia, serif;
+  --font-display: "Figtree Variable", ui-sans-serif, system-ui, sans-serif;
   --font-body: "Figtree Variable", ui-sans-serif, system-ui, sans-serif;
 
   --space-1: 4px;
@@ -53,22 +50,19 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #12161c;
-    --fg: #eee8de;
-    --muted: #a7afb8;
-    --accent: #e9dfcf;
-    --accent-hover: #f4ecdf;
-    --accent-ink: #12161c;
-    --glass: #1a2028;
-    --glass-strong: #1a2028;
-    --glass-edge: #2e3742;
-    --line: #2e3742;
-    --blob-a: #0e4d80;
-    --blob-b: #0a3358;
-    --blob-c: #136aa8;
+    --bg: #1a1512;
+    --fg: #f5ede4;
+    --text-muted: #b8a99b;
+    --action: #f0915f;
+    --action-hover: #f4a578;
+    --action-ink: #1a1512;
+    --glass: #241d18;
+    --glass-strong: #241d18;
+    --glass-edge: #3a2f27;
+    --line: #3a2f27;
     --scrim: rgba(0, 8, 18, 0.55);
     --shadow: none;
-    --focus: 0 0 0 3px rgba(79, 169, 240, 0.55);
+    --focus: 0 0 0 3px rgba(240, 145, 95, 0.55);
 
     --ok: #5fd3ae;
     --ok-bg: rgba(95, 211, 174, 0.14);

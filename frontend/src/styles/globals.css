@@ -1,60 +1,60 @@
-/* Tailwind + shadcn theme. Professional and flat: solid colours, thin borders, no gradients, glow or blur.
-   Cream background, deep navy actions, serif headings (Cormorant Garamond) with Figtree body text. */
+/* Tailwind + shadcn theme. Warm and friendly: warm off-white, white cards, one terracotta accent, Figtree only,
+   soft rounded shapes. Solid colours only: no gradients, glow, blur or glass. */
 @import "tailwindcss";
 @import "tw-animate-css";
 
 :root {
-  /* Warm cream and deep navy, after the reference design the owner chose (Nov 2026). */
-  --radius: 0.5rem;
-  --background: #f4efe7;
-  --foreground: #1c232b;
-  --card: #fbf8f3;
-  --card-foreground: #1c232b;
-  --popover: #fbf8f3;
-  --popover-foreground: #1c232b;
-  --primary: #1f2e3d;
-  --primary-foreground: #f7f3ec;
-  --secondary: #eae3d8;
-  --secondary-foreground: #1c232b;
-  --muted: #ece6dc;
-  --muted-foreground: #5b636d;
-  --accent: #e7dfd2;
-  --accent-foreground: #1c232b;
+  --radius: 1rem;
+  --background: #fbf7f1;
+  --foreground: #2a211b;
+  --card: #ffffff;
+  --card-foreground: #2a211b;
+  --popover: #ffffff;
+  --popover-foreground: #2a211b;
+  /* The one accent colour. Change it here (and in tokens.css) to re-colour the whole site. */
+  --primary: #b84e28;
+  --primary-foreground: #ffffff;
+  --secondary: #f3ebe1;
+  --secondary-foreground: #2a211b;
+  --muted: #f3ebe1;
+  --muted-foreground: #6b5e53;
+  --accent: #f6e4d9;
+  --accent-foreground: #2a211b;
   --destructive: #a63a2b;
   --destructive-foreground: #ffffff;
   --success: #2f6b4f;
   --warning: #8a5a12;
-  --border: #ddd4c6;
-  --input: #cfc5b5;
-  --ring: #1f2e3d;
+  --border: #eadfd2;
+  --input: #dccfbf;
+  --ring: #b84e28;
   /* Solid layer over photos so white text stays readable (never a gradient). */
-  --overlay: rgba(18, 22, 28, 0.45);
+  --overlay: rgba(32, 22, 16, 0.5);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #12161c;
-    --foreground: #eee8de;
-    --card: #1a2028;
-    --card-foreground: #eee8de;
-    --popover: #1a2028;
-    --popover-foreground: #eee8de;
-    --primary: #e9dfcf;
-    --primary-foreground: #12161c;
-    --secondary: #222a33;
-    --secondary-foreground: #eee8de;
-    --muted: #222a33;
-    --muted-foreground: #a7afb8;
-    --accent: #262f3a;
-    --accent-foreground: #eee8de;
+    --background: #1a1512;
+    --foreground: #f5ede4;
+    --card: #241d18;
+    --card-foreground: #f5ede4;
+    --popover: #241d18;
+    --popover-foreground: #f5ede4;
+    --primary: #f0915f;
+    --primary-foreground: #1a1512;
+    --secondary: #2e2620;
+    --secondary-foreground: #f5ede4;
+    --muted: #2e2620;
+    --muted-foreground: #b8a99b;
+    --accent: #3a2c23;
+    --accent-foreground: #f5ede4;
     --destructive: #f08a7a;
     --destructive-foreground: #1b0605;
     --success: #7cc9a3;
     --warning: #e6b866;
-    --border: #2e3742;
-    --input: #3a4450;
-    --ring: #e9dfcf;
-    --overlay: rgba(10, 12, 16, 0.55);
+    --border: #3a2f27;
+    --input: #4a3d33;
+    --ring: #f0915f;
+    --overlay: rgba(12, 8, 6, 0.55);
   }
 }
 
@@ -85,10 +85,9 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --font-sans: "Figtree Variable", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Cormorant Garamond", ui-serif, Georgia, serif;
   --color-overlay: var(--overlay);
   /* Fixed ink for text on white elements over photos (same in light and dark mode). */
-  --color-ink: #1c232b;
+  --color-ink: #2a211b;
   /* The 21st.dev components ask for Geist; we use the app's own font instead of downloading another. */
   --font-geist: "Figtree Variable", ui-sans-serif, system-ui, sans-serif;
 }
@@ -123,6 +122,28 @@
       translate: 0 0;
       scale: 0.97;
     }
+  }
+}
+
+/*
+ * Scroll reveal (see components/Reveal.tsx): photos come in from the sides, text and cards rise.
+ * Uses `translate`, so layout and section positions don't change. Nothing moves for reduced-motion users.
+ */
+@layer utilities {
+  .reveal {
+    transition: opacity 700ms cubic-bezier(0.2, 0.8, 0.2, 1), translate 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  .reveal[data-visible="false"] { opacity: 0; }
+  .reveal-left[data-visible="false"] { translate: -72px 0; }
+  .reveal-right[data-visible="false"] { translate: 72px 0; }
+  .reveal-up[data-visible="false"] { translate: 0 32px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .reveal[data-visible="false"] {
+    opacity: 1;
+    translate: none;
+    transition: none;
   }
 }
 
