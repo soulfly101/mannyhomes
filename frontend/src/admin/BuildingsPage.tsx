@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { ApiError, apiFetch } from "../api";
-import { Banner, Button, Card, StatusPill } from "../components";
+import { Banner, Button, Card, Reveal, StatusPill } from "../components";
 import { formatCedis } from "../format";
 import { availabilityLabel, type Building } from "./types";
 
@@ -23,7 +23,7 @@ function BuildingCard({ building, onDeleted }: { building: Building; onDeleted: 
   };
 
   return (
-    <Card as="article" className="rise building-card" aria-labelledby={`b-${building.id}`}>
+    <Card as="article" className="building-card" aria-labelledby={`b-${building.id}`}>
       <div className="building-head">
         <div>
           <h2 id={`b-${building.id}`}>{building.name}</h2>
@@ -109,8 +109,10 @@ export function BuildingsPage() {
         </Card>
       )}
       <div className="building-grid">
-        {buildings?.map((b) => (
-          <BuildingCard key={b.id} building={b} onDeleted={(id) => setBuildings((all) => all!.filter((x) => x.id !== id))} />
+        {buildings?.map((b, i) => (
+          <Reveal key={b.id} delay={(i % 3) * 80}>
+            <BuildingCard building={b} onDeleted={(id) => setBuildings((all) => all!.filter((x) => x.id !== id))} />
+          </Reveal>
         ))}
       </div>
     </main>

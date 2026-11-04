@@ -8,7 +8,7 @@ New screens are built with **Tailwind CSS** and **shadcn**-style components:
 - Colours come from the theme variables in `frontend/src/styles/globals.css` (`bg-background`, `text-foreground`, `bg-primary`, `text-muted-foreground`, `border-border`, `text-destructive`, `text-success`, …). Never hard-code colours.
 - Components taken from 21st.dev or shadcn are adapted before use: strip gradients, blur, glow and off-brand accents (e.g. violet), and never show made-up people or testimonials.
 
-Older screens (admin buildings, status) still use the plain-CSS classes in `frontend/src/styles/components.css`, now flat (solid cards, no blur). Move them to Tailwind when they're next changed.
+The shared `Button`, `Field`, `Card`, `Banner` and `StatusPill` components (`frontend/src/components/`, styled in `components.css`) are used by the admin forms and share the same theme.
 
 ## Principles
 1. **Warm and approachable, still professional.** Solid colours, generous space, one strong action per screen.
@@ -86,8 +86,8 @@ Two columns: form on the left, apartment photo on the right (photo hidden on pho
 
 Menu links to home page sections use `/#section` so they work from any page. **All copy, photos, facilities, locations and contact details are in `frontend/src/landing/content.ts`**; buildings, prices and availability come live from the admin inventory.
 
-### Admin allocation pages
-New admin screens use Tailwind under the existing top bar: `/admin/allocations` (queue) links to one page per booking, `/admin/allocations/:id`, which says what saving will do before it's saved. Anything blocking an allocation is shown instead of the form, with what to do about it.
+### Admin area
+Every admin page sits in `AdminLayout` (`frontend/src/admin/AdminLayout.tsx`): a sidebar with icons on wide screens, a bar with a row of sections on phones. Add new admin sections to its `SECTIONS` list. `/admin/allocations` (queue) links to one page per booking, `/admin/allocations/:id`, which says what saving will do before it's saved. Anything blocking an allocation is shown instead of the form, with what to do about it.
 
 ### Badges (`@/components/ui/badge`)
 Small solid status label with a `tone` (`success`, `warning`, `danger`, `neutral`), used for availability ("3 available" / "Fully booked") and payment states. The tone mapping in the Status pills table below applies.
@@ -96,8 +96,8 @@ Small solid status label with a `tone` (`success`, `warning`, `danger`, `neutral
 | Variant | Look | Use |
 |---|---|---|
 | `primary` | Solid `--action`, white text | The one main action on a screen: "Book now", "Pay GH₵ 200", "Allocate room" |
-| `secondary` | Glass with `--line` border | Other actions: "View rooms", "Cancel" |
-| `ghost` | Text only, glass on hover | Low-priority actions inside cards and lists |
+| `secondary` | Solid card colour with `--line` border | Other actions: "View rooms", "Cancel" |
+| `ghost` | Text only, soft fill on hover | Low-priority actions inside cards and lists |
 | `danger` | Solid `--danger`, white text | Destructive actions: "Remove tenant", "Delete building" |
 
 - Pill shaped, at least **44px tall** (touch target), label in sentence case starting with a verb.
@@ -106,7 +106,7 @@ Small solid status label with a `tone` (`success`, `warning`, `danger`, `neutral
 - Payment buttons always include the amount: "Pay GH₵ 200".
 
 ### Cards (`<Card>`)
-- Glass surface, 22px radius, 20px padding (16px on phones).
+- Solid surface, 20px radius, 20px padding (16px on phones), soft shadow.
 - A listing card is: photo (4:3) with an area chip in the top-left corner → title → room types → divider → price on the left, status pill on the right. The whole card is the link.
 - Lists of many items (tickets, payments, tenants) use **rows inside one card** with dividers, not a card per item.
 
@@ -124,12 +124,13 @@ The mapping lives in `frontend/src/components/StatusPill.tsx`; add new statuses 
 
 ### Form fields (`<Field>`)
 - Label above the input, always visible (no placeholder-only labels). Placeholder shows a real example ("024 123 4567").
-- Inputs on `--glass-strong`, 14px radius, 48px tall, 16px text (prevents zoom on iPhone).
+- Inputs on the card colour, 14px radius, 48px tall, 16px text (prevents zoom on iPhone).
 - Errors appear under the field in `--danger`, saying what to do: "Enter a 10-digit MoMo number."
 - Phone numbers: one field, Ghanaian format, `inputmode="tel"`. Money: `inputmode="numeric"`, GH₵ shown before the field.
 
 ### Navigation
-- **Top bar (`<TopBar>`):** glass, sticky, logo left, sections in the middle (desktop), account + "Log out" right. Logged-out visitors see "Log in" and "Sign up". Nothing in it wraps. The logged-in person shows as their **initials** in a small round badge (`<UserInitials>`), never their full name, which stays available on hover and to screen readers.
+- **Public pages:** `SiteNav` stays at the top while scrolling. **Admin pages:** the `AdminLayout` sidebar. **`<TopBar>`** is only left on the status page.
+- Logged-out visitors see "Log in" and "Sign up". Nothing in it wraps. The logged-in person shows as their **initials** in a small round badge (`<UserInitials>`), never their full name, which stays available on hover and to screen readers.
 - **Phones:** the sections move to a scrollable pill row under the top bar. No hamburger menus for primary sections.
 - Current section is a filled `--action` pill; others are `--text-muted` text.
 - Tenant, admin and staff areas share the same shell with different sections.
@@ -139,7 +140,7 @@ The mapping lives in `frontend/src/components/StatusPill.tsx`; add new statuses 
 - **Success:** short, past tense, no "successfully": "Payment received", "Room allocated".
 - **Errors:** what happened and what to do, no "Error:" prefix: "MoMo prompt timed out. Try again."
 - **Empty states:** say what will appear and how: "No reports yet. Use Report a problem to tell us about an issue."
-- **Loading:** skeleton shapes in `--glass`, not spinners, for lists and cards.
+- **Loading:** a short "Loading…" line for now; skeleton shapes when lists grow.
 
 ## Motion
 - **Scrolling:** wrap things in `<Reveal>` (`frontend/src/components/Reveal.tsx`). Photos come in **from the sides**, alternating (`from={sideFor(i)}`); text and cards rise (`from="up"`). Each animates once, with `delay` to stagger a row. Content is never left hidden. Page wrappers use `overflow-x-clip` so slide-ins can't cause sideways scroll. Don't use it on forms.

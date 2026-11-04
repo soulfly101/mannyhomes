@@ -50,7 +50,7 @@ export function AllocatePage() {
   };
 
   return (
-    <main className={`${sectionClass} py-10 font-sans text-foreground`}>
+    <main className={`${sectionClass} py-8 md:py-10`}>
       <Link to="/admin/allocations" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
         <ArrowLeft className="h-4 w-4" aria-hidden="true" />
         Pending allocations
@@ -70,12 +70,12 @@ export function AllocatePage() {
         {!item && !notFound && !banner && <p className="text-muted-foreground">Loading…</p>}
         {item && (
           <>
-            <h1 className="text-5xl font-bold tracking-tight leading-tight">Allocate a room to {item.tenant.name}</h1>
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight leading-tight">Allocate a room to {item.tenant.name}</h1>
             <p className="mt-2 text-muted-foreground">
               {item.tenant.email}
               {item.tenant.phone ? ` · ${item.tenant.phone}` : ""}
             </p>
-            <dl className="mt-8 grid grid-cols-[auto_1fr] gap-x-10 gap-y-3 rounded-md border border-border bg-card p-6 text-sm">
+            <dl className="mt-8 grid grid-cols-[auto_1fr] gap-x-10 gap-y-3 rounded-xl border border-border bg-card p-6 shadow-sm text-sm">
               <dt className="text-muted-foreground">Booked</dt>
               <dd>
                 {item.room}, {item.building}, {item.location}
@@ -97,7 +97,7 @@ export function AllocatePage() {
                 </>
               )}
             </dl>
-            <div className="mt-8 rounded-md border border-border bg-card p-6">
+            <div className="mt-8 rounded-xl border border-border bg-card p-6 shadow-sm">
               {item.blocked_reason ? (
                 <div role="alert">
                   <h2 className="text-2xl font-bold tracking-tight">This can't be allocated yet</h2>
