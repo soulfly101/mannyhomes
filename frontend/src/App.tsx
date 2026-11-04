@@ -15,12 +15,13 @@ import { BookingsPage } from "./residences/BookingsPage";
 import { BookingStatusPage } from "./residences/BookingStatusPage";
 import { ResidenceDetailsPage } from "./residences/ResidenceDetailsPage";
 import { ResidencesPage } from "./residences/ResidencesPage";
+import { TenantDashboardPage } from "./residences/TenantDashboardPage";
 import { ScrollManager } from "./ScrollManager";
 import { StatusPage } from "./pages/StatusPage";
 
 // These pages have their own header: the home page hero, the public site pages (SiteHeader), the admin sidebar and the two-column auth pages.
 const NO_TOP_BAR = ["/", "/login", "/register", "/onboarding"];
-const SITE_PAGES = ["/residences", "/book/", "/bookings", "/admin"];
+const SITE_PAGES = ["/residences", "/book/", "/bookings", "/dashboard", "/admin"];
 const usesTopBar = (path: string) => !NO_TOP_BAR.includes(path) && !SITE_PAGES.some((p) => path.startsWith(p));
 
 export function App() {
@@ -41,6 +42,7 @@ export function App() {
             </RequireAuth>
           }
         />
+        <Route path="/dashboard" element={<RequireAuth roles={["tenant"]}><TenantDashboardPage /></RequireAuth>} />
         <Route path="/bookings" element={<RequireAuth roles={["tenant"]}><BookingsPage /></RequireAuth>} />
         <Route path="/bookings/:bookingId" element={<RequireAuth roles={["tenant"]}><BookingStatusPage /></RequireAuth>} />
         <Route path="/status" element={<StatusPage />} />

@@ -29,6 +29,7 @@ test("while waiting it tells the tenant to approve, and notices when the money a
     });
     expect(await screen.findByRole("heading", { name: "Booking confirmed" })).toBeInTheDocument();
     expect(screen.getByText("Awaiting room allocation")).toHaveAttribute("data-tone", "success");
+    expect(screen.getByRole("link", { name: "Go to my dashboard" })).toHaveAttribute("href", "/dashboard");
     expect(screen.getByText("BILL-000007")).toBeInTheDocument();
     const asked = calls.filter((c) => c.key === "GET /api/bookings/bk1").length;
     await act(async () => {

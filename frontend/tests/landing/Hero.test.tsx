@@ -117,4 +117,5 @@ test("tenants get a link to their bookings", async () => {
   mockApi({ "GET /api/auth/me": { body: AMA }, ...googleOff });
   renderHero();
   expect((await screen.findAllByRole("link", { name: "My bookings" }))[0]).toHaveAttribute("href", "/bookings");
+  expect(screen.getAllByRole("link", { name: "Dashboard" })[0]).toHaveAttribute("href", "/dashboard");
 });

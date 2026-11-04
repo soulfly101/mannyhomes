@@ -35,9 +35,14 @@ function AccountLinks({ onNavigate }: { onNavigate?: () => void }) {
         </>
       )}
       {user.role === "tenant" && (
-        <Link to="/bookings" onClick={onNavigate} className={cn(navLinkClass, "text-sm font-medium")}>
-          My bookings
-        </Link>
+        <>
+          <Link to="/dashboard" onClick={onNavigate} className={cn(navLinkClass, "text-sm font-medium")}>
+            Dashboard
+          </Link>
+          <Link to="/bookings" onClick={onNavigate} className={cn(navLinkClass, "text-sm font-medium")}>
+            My bookings
+          </Link>
+        </>
       )}
       <UserInitials name={user.name} className="bg-white text-ink" />
       <button type="button" onClick={() => void logout()} className="min-h-11 text-sm font-medium text-white/90 underline-offset-4 hover:text-white hover:underline">
@@ -53,13 +58,13 @@ export function SiteNav({ label = "Main", menuId = "mobile-menu" }: { label?: st
   return (
     <>
       <nav aria-label={label} className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-5 sm:px-6">
-        <Link to="/" className="group flex min-h-11 items-center gap-3 text-white">
+        <Link to="/" className="group flex min-h-11 shrink-0 items-center gap-3 whitespace-nowrap text-white">
           <span className="grid h-9 w-9 place-items-center rounded-md bg-white text-xl font-bold tracking-tight text-ink transition-transform duration-300 ease-out motion-safe:group-hover:-translate-y-0.5 motion-safe:group-hover:-rotate-6">
             {BRAND.monogram}
           </span>
           <span className="text-2xl font-bold tracking-tight">{BRAND.name}</span>
         </Link>
-        <ul className="hidden items-center gap-8 md:flex">
+        <ul className="hidden items-center gap-8 lg:flex">
           {NAV_LINKS.map((n) => (
             <li key={n.href}>
               <Link to={n.href} className={cn(navLinkClass, "text-sm font-semibold")}>
@@ -68,12 +73,12 @@ export function SiteNav({ label = "Main", menuId = "mobile-menu" }: { label?: st
             </li>
           ))}
         </ul>
-        <div className="hidden items-center gap-5 md:flex">
+        <div className="hidden items-center gap-5 whitespace-nowrap lg:flex">
           <AccountLinks />
         </div>
         <button
           type="button"
-          className="grid h-11 w-11 place-items-center rounded-md border border-white/30 md:hidden"
+          className="grid h-11 w-11 place-items-center rounded-md border border-white/30 lg:hidden"
           aria-label={open ? "Close menu" : "Open menu"}
           aria-expanded={open}
           aria-controls={menuId}
@@ -83,7 +88,7 @@ export function SiteNav({ label = "Main", menuId = "mobile-menu" }: { label?: st
         </button>
       </nav>
       {open && (
-        <div id={menuId} className="mx-4 mb-4 flex max-h-[75dvh] flex-col gap-4 overflow-y-auto rounded-xl bg-ink p-5 md:hidden">
+        <div id={menuId} className="mx-4 mb-4 flex max-h-[75dvh] flex-col gap-4 overflow-y-auto rounded-xl bg-ink p-5 lg:hidden">
           {NAV_LINKS.map((n) => (
             <Link key={n.href} to={n.href} onClick={() => setOpen(false)} className="flex min-h-11 items-center text-base font-medium text-white">
               {n.label}

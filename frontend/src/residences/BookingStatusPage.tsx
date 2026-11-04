@@ -132,6 +132,13 @@ export function BookingStatusPage() {
                   </button>
                 </div>
               )}
+              {(booking.status === "awaiting_allocation" || booking.status === "allocated") && (
+                <div>
+                  <Link to="/dashboard" className={buttonClass}>
+                    Go to my dashboard
+                  </Link>
+                </div>
+              )}
               {booking.status === "cancelled" && (
                 <div>
                   <Link to="/residences" className={buttonClass}>

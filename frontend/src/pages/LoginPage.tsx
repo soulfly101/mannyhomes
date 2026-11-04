@@ -32,7 +32,9 @@ export function LoginPage() {
     setError("");
     try {
       const user = await login(email, password);
-      navigate(user.needs_onboarding ? `/onboarding?next=${encodeURIComponent(next)}` : next, { replace: true });
+      // Tenants with nowhere particular to go land on their dashboard.
+      const target = !params.get("next") && user.role === "tenant" ? "/dashboard" : next;
+      navigate(user.needs_onboarding ? `/onboarding?next=${encodeURIComponent(target)}` : target, { replace: true });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong. Try again.");
       setBusy(false);
