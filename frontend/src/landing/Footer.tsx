@@ -26,13 +26,13 @@ function Skyline() {
 
 export function Footer({ residences, enquiry }: { residences: Residence[]; enquiry: Residence | null }) {
   return (
-    <footer id="contact" aria-labelledby="contact-title" className="scroll-mt-6 border-t border-border bg-card">
+    <footer id="contact" aria-labelledby="contact-title" className="scroll-mt-24 border-t border-border bg-card">
       <div className={`${sectionClass} grid gap-12 py-16 lg:grid-cols-[1fr_1fr_1.6fr]`}>
         <nav aria-label="Footer">
           <ul className="flex flex-col">
             {FOOTER_LINKS.map((l) => (
               <li key={l.href}>
-                <Link to={l.href} className="inline-flex min-h-11 items-center text-sm font-semibold uppercase tracking-[0.14em] hover:text-muted-foreground">
+                <Link to={l.href} className="inline-flex min-h-11 items-center text-sm font-semibold hover:text-primary">
                   {l.label}
                 </Link>
               </li>
@@ -48,7 +48,7 @@ export function Footer({ residences, enquiry }: { residences: Residence[]; enqui
           </a>
         </div>
         <div>
-          <h2 id="contact-title" className="font-serif text-2xl font-medium">
+          <h2 id="contact-title" className="text-2xl font-bold tracking-tight">
             {CONTACT.formTitle}
           </h2>
           <div className="mt-6">

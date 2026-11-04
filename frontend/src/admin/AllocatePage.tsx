@@ -58,7 +58,7 @@ export function AllocatePage() {
       <div className="mt-4 max-w-2xl">
         {notFound && (
           <>
-            <h1 className="font-serif text-4xl font-medium">This booking isn't waiting for a room</h1>
+            <h1 className="text-4xl font-bold tracking-tight">This booking isn't waiting for a room</h1>
             <p className="mt-3 text-muted-foreground">It may already have been allocated.</p>
           </>
         )}
@@ -70,7 +70,7 @@ export function AllocatePage() {
         {!item && !notFound && !banner && <p className="text-muted-foreground">Loading…</p>}
         {item && (
           <>
-            <h1 className="font-serif text-5xl font-medium leading-tight">Allocate a room to {item.tenant.name}</h1>
+            <h1 className="text-5xl font-bold tracking-tight leading-tight">Allocate a room to {item.tenant.name}</h1>
             <p className="mt-2 text-muted-foreground">
               {item.tenant.email}
               {item.tenant.phone ? ` · ${item.tenant.phone}` : ""}
@@ -100,7 +100,7 @@ export function AllocatePage() {
             <div className="mt-8 rounded-md border border-border bg-card p-6">
               {item.blocked_reason ? (
                 <div role="alert">
-                  <h2 className="font-serif text-2xl font-medium">This can't be allocated yet</h2>
+                  <h2 className="text-2xl font-bold tracking-tight">This can't be allocated yet</h2>
                   <p className="mt-2 text-sm text-muted-foreground">{item.blocked_reason}</p>
                   <Link to="/admin/buildings" className={`${buttonClass} mt-5`}>
                     Go to buildings

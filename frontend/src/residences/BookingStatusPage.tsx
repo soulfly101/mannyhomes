@@ -63,7 +63,7 @@ export function BookingStatusPage() {
           My bookings
         </Link>
         <div className="mt-6 max-w-2xl">
-          {notFound && <h1 className="font-serif text-4xl font-medium">We can't find that booking</h1>}
+          {notFound && <h1 className="text-4xl font-bold tracking-tight">We can't find that booking</h1>}
           {!booking && !notFound && !error && <p className="text-muted-foreground">Loading your booking…</p>}
           {error && <FormError>{error}</FormError>}
           {booking && (
@@ -147,7 +147,7 @@ export function BookingStatusPage() {
 
 function Headline({ booking, waiting }: { booking: Booking; waiting: boolean }) {
   const title = (text: string) => (
-    <h1 id="booking-title" className="font-serif text-5xl font-medium leading-tight">
+    <h1 id="booking-title" className="text-5xl font-bold tracking-tight leading-tight">
       {text}
     </h1>
   );

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import L from "leaflet";
 import { MapPin } from "lucide-react";
 import { apiFetch } from "../api";
+import { Reveal } from "../components/Reveal";
 import type { ListingsResponse } from "../listings/types";
 import { LOCATION } from "./content";
 import { SectionHead, chipClass, sectionClass } from "./parts";
@@ -47,9 +48,10 @@ export function LocationSection() {
       [LOCATION.centre.lat, LOCATION.centre.lng],
       10,
     );
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
-      maxZoom: 18,
+    // Free with attribution; fine for this traffic (https://operations.osmfoundation.org/policies/tiles/).
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19,
     }).addTo(map.current);
     return () => {
       map.current?.remove();
@@ -79,10 +81,10 @@ export function LocationSection() {
   const nearby = LOCATION.areas[selected]?.nearby ?? [];
 
   return (
-    <section id="location" aria-labelledby="location-title" className={`${sectionClass} scroll-mt-6 py-20 md:py-28`}>
+    <section id="location" aria-labelledby="location-title" className={`${sectionClass} scroll-mt-24 py-20 md:py-28`}>
       <SectionHead id="location-title" eyebrow={LOCATION.eyebrow} title={LOCATION.title} lead={LOCATION.lead} />
       <div className="mt-10 grid gap-6 lg:grid-cols-[1fr_1.4fr]">
-        <div className="flex flex-col gap-5">
+        <Reveal from="left" className="flex flex-col gap-5">
           {areas.length > 0 && (
             <div role="group" aria-label="Choose a location" className="flex flex-wrap gap-2">
               {areas.map((a) => (
@@ -99,8 +101,8 @@ export function LocationSection() {
             </div>
           )}
           {current ? (
-            <div className="rounded-md border border-border bg-card p-6">
-              <h3 className="flex items-center gap-2 font-serif text-2xl font-medium">
+            <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+              <h3 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
                 <MapPin className="h-5 w-5" aria-hidden="true" />
                 {current.name}
               </h3>
@@ -114,7 +116,7 @@ export function LocationSection() {
               </ul>
               {nearby.length > 0 && (
                 <>
-                  <h4 className="mt-6 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Nearby</h4>
+                  <h4 className="mt-6 text-sm font-semibold text-muted-foreground">Nearby</h4>
                   <ul className="mt-2 divide-y divide-border text-sm" aria-label={`Places near ${current.name}`}>
                     {nearby.map((p) => (
                       <li key={p.name} className="flex justify-between py-2">
@@ -129,8 +131,10 @@ export function LocationSection() {
           ) : (
             <p className="text-muted-foreground">Our locations will appear here once buildings are listed.</p>
           )}
-        </div>
-        <div ref={mapEl} role="region" aria-label="Map of Altheo Homes locations" className="z-0 h-[420px] overflow-hidden rounded-md border border-border" />
+        </Reveal>
+        <Reveal from="right">
+          <div ref={mapEl} role="region" aria-label="Map of Altheo Homes locations" className="z-0 h-[420px] overflow-hidden rounded-xl border border-border shadow-sm" />
+        </Reveal>
       </div>
     </section>
   );

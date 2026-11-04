@@ -17,7 +17,7 @@ Web app for **Altheo Homes**, a company that rents out apartments in several apa
 | `legacy/` | The first version of the app (Next.js + Prisma + PostgreSQL). **Reference only**: features are ported from it into `backend/` + `frontend/` one Trello card at a time, then it gets deleted. Don't add features to it. |
 
 ## Design
-All UI follows **[DESIGN.md](DESIGN.md)**: **professional and flat — no gradients, glow, blur or glass.** New UI uses **Tailwind CSS + shadcn**: primitives in `frontend/src/components/ui/` (shadcn installs there, per `frontend/components.json`), import via the `@/` alias, merge classes with `cn()` from `@/lib/utils`, and use the theme colours from `frontend/src/styles/globals.css` (never hard-coded colours). Components from 21st.dev/shadcn must be adapted to this style before use, and the site never shows made-up people or testimonials. If something new is needed, add it to DESIGN.md and the shared components first.
+All UI follows **[DESIGN.md](DESIGN.md)**: **warm and friendly with real motion (photos come in from the sides on scroll via `<Reveal>` and pop out on hover via `photoPop`), and no gradients, glow, blur or glass.** New UI uses **Tailwind CSS + shadcn**: primitives in `frontend/src/components/ui/` (shadcn installs there, per `frontend/components.json`), import via the `@/` alias, merge classes with `cn()` from `@/lib/utils`, and use the theme colours from `frontend/src/styles/globals.css` (never hard-coded colours). Components from 21st.dev/shadcn must be adapted to this style before use, and the site never shows made-up people or testimonials. If something new is needed, add it to DESIGN.md and the shared components first.
 
 ## Running
 ```bash

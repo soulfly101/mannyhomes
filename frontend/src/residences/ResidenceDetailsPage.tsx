@@ -60,7 +60,7 @@ export function ResidenceDetailsPage() {
               <Eyebrow>
                 {state.residence.building} · {state.residence.location}
               </Eyebrow>
-              <h1 id="residence-title" className="font-serif text-5xl font-medium leading-tight">
+              <h1 id="residence-title" className="text-5xl font-bold tracking-tight leading-tight">
                 {state.residence.name}
               </h1>
               {state.residence.description && <p className="text-muted-foreground">{state.residence.description}</p>}

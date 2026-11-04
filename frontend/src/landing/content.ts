@@ -43,7 +43,7 @@ export const EXPERIENCE = {
 
 export const RESIDENCES = {
   eyebrow: "Find your residence",
-  title: "Homes for every stage",
+  title: "Find a place you'll love",
   lead: "Every room type across our buildings, with what's free right now.",
   /** Thumbnail per room type name (lower case); anything else uses `fallback`. */
   photos: {

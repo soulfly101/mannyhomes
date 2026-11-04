@@ -50,7 +50,7 @@ test("the location section pins known areas and lists their buildings", async ()
   expect(await screen.findByRole("button", { name: "Oyarifa" })).toHaveAttribute("aria-pressed", "true");
   expect(within(screen.getByRole("list", { name: "Buildings in Oyarifa" })).getByText("Manny Building")).toBeInTheDocument();
   await waitFor(() => expect(mapCalls.markers.map((m) => m.title).sort()).toEqual(["Aburi", "Oyarifa"]));
-  expect(mapCalls.tiles[0]).toContain("basemaps.cartocdn.com/light_all");
+  expect(mapCalls.tiles[0]).toContain("tile.openstreetmap.org");
 
   await userEvent.click(screen.getByRole("button", { name: "Aburi" }));
   expect(within(screen.getByRole("list", { name: "Buildings in Aburi" })).getByText("Fully booked")).toBeInTheDocument();

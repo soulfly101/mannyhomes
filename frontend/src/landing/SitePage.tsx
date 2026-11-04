@@ -7,7 +7,7 @@ import { SiteHeader } from "./SiteHeader";
 export function SitePage({ children, enquiry = null }: { children: ReactNode; enquiry?: Residence | null }) {
   const residences = useAllResidences();
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-background font-sans text-foreground">
+    <div className="flex min-h-[100dvh] flex-col overflow-x-clip bg-background font-sans text-foreground">
       <SiteHeader />
       <main className="flex-1">{children}</main>
       <Footer residences={residences ?? []} enquiry={enquiry} />

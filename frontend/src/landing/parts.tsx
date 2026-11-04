@@ -1,14 +1,9 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-/** Small uppercase label with a dot, above each section ("• FACILITIES"). */
+/** Small label above a section ("The Altheo experience"). */
 export function Eyebrow({ children, light }: { children: ReactNode; light?: boolean }) {
-  return (
-    <p className={cn("flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em]", light ? "text-white/85" : "text-muted-foreground")}>
-      <span className={cn("h-1.5 w-1.5 rounded-full", light ? "bg-white" : "bg-foreground")} aria-hidden="true" />
-      {children}
-    </p>
-  );
+  return <p className={cn("text-sm font-semibold", light ? "text-white/90" : "text-primary")}>{children}</p>;
 }
 
 /** Section heading: eyebrow, serif title and an optional line on the right. `as="h1"` when it's the page's main heading. */
@@ -18,7 +13,7 @@ export function SectionHead({ eyebrow, title, lead, id, as: Heading = "h2" }: { 
       <div className="flex flex-col gap-3">
         <Eyebrow>{eyebrow}</Eyebrow>
         {title && (
-          <Heading id={id} className="font-serif text-4xl font-medium leading-tight md:text-5xl">
+          <Heading id={id} className="text-4xl font-bold tracking-tight leading-tight md:text-5xl">
             {title}
           </Heading>
         )}
@@ -28,9 +23,9 @@ export function SectionHead({ eyebrow, title, lead, id, as: Heading = "h2" }: { 
   );
 }
 
-/** Solid navy button/link with small corners, as in the reference design. Lifts 2px on hover. */
+/** Solid accent pill button/link. Lifts 2px on hover. */
 export const buttonClass =
-  "inline-flex items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-semibold tracking-wide text-primary-foreground transition duration-300 ease-out hover:bg-primary/90 motion-safe:hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
+  "inline-flex min-h-11 items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-semibold tracking-wide text-primary-foreground transition duration-300 ease-out hover:bg-primary/90 motion-safe:hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
 
 /**
  * Link in the hero menu: rises 2px and a thin underline slides in from the left on hover or keyboard focus.
@@ -50,6 +45,14 @@ export const chipClass = (selected: boolean) =>
   );
 
 export const outlineButtonClass =
-  "inline-flex items-center justify-center rounded-md border border-foreground/20 bg-transparent px-5 py-3 text-sm font-semibold tracking-wide text-foreground transition hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+  "inline-flex min-h-11 items-center justify-center rounded-full border border-foreground/20 bg-transparent px-6 py-3 text-sm font-semibold tracking-wide text-foreground transition hover:bg-foreground/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
+
+/**
+ * A photo (or card with a photo) that pops out on hover: it grows, rises and gets a deeper shadow.
+ * Put `photoZoom` on the image inside so it also zooms within its frame. Movement only when the device allows motion.
+ */
+export const photoPop =
+  "group/photo relative block overflow-hidden rounded-xl bg-muted shadow-sm transition duration-300 ease-out hover:z-10 hover:shadow-xl motion-safe:hover:-translate-y-1.5 motion-safe:hover:scale-[1.03]";
+export const photoZoom = "h-full w-full object-cover transition-transform duration-500 ease-out motion-safe:group-hover/photo:scale-105";
 
 export const sectionClass = "mx-auto w-full max-w-6xl px-4 sm:px-6";
