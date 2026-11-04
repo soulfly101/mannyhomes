@@ -22,6 +22,7 @@ test("visitors see the room without its price, and Book now sends them to sign u
   expect(screen.getByText("Manny Building · Oyarifa")).toBeInTheDocument();
   expect(screen.getByText("Bright corner flat.")).toBeInTheDocument();
   expect(screen.getByText("Log in to see the price")).toBeInTheDocument();
+  expect(screen.queryByText("Booking deposit")).not.toBeInTheDocument();
   expect(screen.getByText("2 available")).toHaveAttribute("data-tone", "success");
   expect(screen.getByRole("link", { name: "Book now" })).toHaveAttribute("href", "/register?next=%2Fresidences%2Fr2");
   expect(screen.getByRole("link", { name: /All residences/ })).toHaveAttribute("href", "/residences");
@@ -32,6 +33,7 @@ test("tenants see rent and sanitation, and Book now opens the booking page", asy
   renderDetails();
   expect(await screen.findByText("GH₵ 2,000 / month")).toBeInTheDocument();
   expect(screen.getByText("GH₵ 50 / month")).toBeInTheDocument();
+  expect(screen.getByText("GH₵ 300, refundable")).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "Book now" })).toHaveAttribute("href", "/book/r2");
 });
 
@@ -73,4 +75,14 @@ test("other loading problems are shown", async () => {
   mockApi({ ...loggedOut, ...googleOff, "GET /api/listings": { body: listings(false) }, "GET /api/listings/rooms/r2": { status: 500, body: { detail: "Something broke." } } });
   renderDetails();
   expect(await screen.findByText("Something broke.")).toBeInTheDocument();
+});
+
+
+test("no booking deposit line until the admin sets one", async () => {
+  const unset = roomListing(true);
+  unset.room.booking_deposit = 0;
+  mockApi({ "GET /api/auth/me": { body: AMA }, ...googleOff, "GET /api/listings": { body: listings(true) }, "GET /api/listings/rooms/r2": { body: unset } });
+  renderDetails();
+  await screen.findByText("GH₵ 2,000 / month");
+  expect(screen.queryByText("Booking deposit")).not.toBeInTheDocument();
 });

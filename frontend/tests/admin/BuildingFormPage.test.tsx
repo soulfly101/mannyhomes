@@ -37,6 +37,8 @@ test("adds a building with several room types", async () => {
   await userEvent.click(screen.getByRole("button", { name: "+ Add room type" }));
   await fillRow(1, "2 bedroom", "2000", "2");
   await userEvent.type(inRow(1, "Sanitation fee (optional)"), "80");
+  await userEvent.type(inRow(1, "Booking deposit"), "300");
+  await userEvent.type(inRow(1, "Renting deposit"), "4,000");
   await userEvent.click(screen.getByRole("button", { name: "Save building" }));
 
   await waitFor(() => expect(screen.getByTestId("location")).toHaveTextContent("/admin/buildings"));
@@ -47,8 +49,8 @@ test("adds a building with several room types", async () => {
     description: null,
     listed: true,
     room_types: [
-      { name: "1 bedroom", rent: 1200, quantity_available: 1, sanitation_fee_override: null, description: null },
-      { name: "2 bedroom", rent: 2000, quantity_available: 2, sanitation_fee_override: 80, description: null },
+      { name: "1 bedroom", rent: 1200, quantity_available: 1, sanitation_fee_override: null, booking_deposit: 0, renting_deposit: 0, description: null },
+      { name: "2 bedroom", rent: 2000, quantity_available: 2, sanitation_fee_override: 80, booking_deposit: 300, renting_deposit: 4000, description: null },
     ],
   });
 });
@@ -163,4 +165,27 @@ test("says so when the building can't be loaded", async () => {
   });
   renderAt("/admin/buildings/gone", routes);
   expect(await screen.findByRole("alert")).toHaveTextContent("doesn't exist");
+});
+
+
+test("deposits must be whole cedis", async () => {
+  const { calls } = mockApi(asAdmin);
+  renderAt("/admin/buildings/new", routes);
+  await userEvent.type(screen.getByLabelText("Building name"), "Manny Building");
+  await userEvent.type(screen.getByLabelText("Location"), "Oyarifa");
+  await fillRow(0, "1 bedroom", "1200", "1");
+  await userEvent.type(inRow(0, "Booking deposit"), "3OO");
+  await userEvent.type(inRow(0, "Renting deposit"), "-5");
+  await userEvent.click(screen.getByRole("button", { name: "Save building" }));
+  expect(await screen.findByText("Enter whole cedis, like 300, or leave empty.")).toBeInTheDocument();
+  expect(screen.getByText("Enter whole cedis, like 4000, or leave empty.")).toBeInTheDocument();
+  expect(calls.some((c) => c.key === "POST /api/admin/buildings")).toBe(false);
+});
+
+test("editing shows the deposits already set, and empty ones as blank", async () => {
+  mockApi({ ...asAdmin, "GET /api/admin/buildings/b1": { body: MANNY } });
+  renderAt("/admin/buildings/b1", routes);
+  await waitFor(() => expect(inRow(1, "Booking deposit")).toHaveValue("300"));
+  expect(inRow(1, "Renting deposit")).toHaveValue("4000");
+  expect(inRow(0, "Booking deposit")).toHaveValue("");
 });

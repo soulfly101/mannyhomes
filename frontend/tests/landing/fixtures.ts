@@ -7,6 +7,7 @@ export const room = (id: string, name: string, qty: number, rent: number | null)
   quantity_available: qty,
   rent,
   sanitation_fee: rent === null ? null : 50,
+  booking_deposit: rent === null ? null : 300,
 });
 
 export function listings(pricesVisible: boolean): ListingsResponse {

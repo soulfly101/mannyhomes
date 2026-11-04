@@ -91,8 +91,8 @@ test("the whole landing page renders, with a preview of the residences linking t
 test("the preview shows rooms that are free before fully booked ones, three at most", async () => {
   const many = listings(false);
   many.buildings[1].room_types.push(
-    { id: "r4", name: "Studio", description: null, quantity_available: 3, rent: null, sanitation_fee: null },
-    { id: "r5", name: "Penthouse", description: null, quantity_available: 1, rent: null, sanitation_fee: null },
+    { id: "r4", name: "Studio", description: null, quantity_available: 3, rent: null, sanitation_fee: null, booking_deposit: null },
+    { id: "r5", name: "Penthouse", description: null, quantity_available: 1, rent: null, sanitation_fee: null, booking_deposit: null },
   );
   mockApi({ ...loggedOut, ...googleOff, "GET /api/listings": { body: many } });
   render(

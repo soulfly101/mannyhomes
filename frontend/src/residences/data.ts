@@ -12,6 +12,8 @@ export type Residence = {
   quantity: number;
   rent: number | null;
   sanitation: number | null;
+  /** null for visitors; 0 when the admin hasn't set it yet. */
+  bookingDeposit: number | null;
   building: string;
   location: string;
 };
@@ -28,6 +30,7 @@ export const toResidences = (d: ListingsResponse): Residence[] =>
       quantity: rt.quantity_available,
       rent: rt.rent,
       sanitation: rt.sanitation_fee,
+      bookingDeposit: rt.booking_deposit,
       building: b.name,
       location: b.location,
     })),
@@ -40,6 +43,7 @@ export const fromRoomListing = ({ room, building }: RoomListing): Residence => (
   quantity: room.quantity_available,
   rent: room.rent,
   sanitation: room.sanitation_fee,
+  bookingDeposit: room.booking_deposit,
   building: building.name,
   location: building.location,
 });

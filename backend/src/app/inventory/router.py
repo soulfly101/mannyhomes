@@ -39,6 +39,8 @@ def _apply_room_type(rt: RoomType, data: RoomTypeIn, order: int) -> None:
     rt.rent = data.rent
     rt.quantity_available = data.quantity_available
     rt.sanitation_fee_override = data.sanitation_fee_override
+    rt.booking_deposit = data.booking_deposit
+    rt.renting_deposit = data.renting_deposit
     rt.description = data.description
     rt.sort_order = order
 

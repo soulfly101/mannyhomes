@@ -40,6 +40,9 @@ class RoomTypeIn(BaseModel):
     rent: int
     quantity_available: int
     sanitation_fee_override: int | None = None
+    # Whole cedis; 0 means not set yet.
+    booking_deposit: int = 0
+    renting_deposit: int = 0
     description: str | None = None
 
     @field_validator("name")
@@ -71,6 +74,16 @@ class RoomTypeIn(BaseModel):
     @classmethod
     def _fee(cls, v: int | None) -> int | None:
         return None if v is None else _cedis(v, minimum=0, message="The sanitation fee can't be negative.")
+
+    @field_validator("booking_deposit")
+    @classmethod
+    def _booking_deposit(cls, v: int) -> int:
+        return _cedis(v, minimum=0, message="The booking deposit can't be negative.")
+
+    @field_validator("renting_deposit")
+    @classmethod
+    def _renting_deposit(cls, v: int) -> int:
+        return _cedis(v, minimum=0, message="The renting deposit can't be negative.")
 
     @field_validator("description")
     @classmethod
@@ -136,6 +149,8 @@ class RoomTypeOut(BaseModel):
     quantity_available: int
     sanitation_fee_override: int | None
     sanitation_fee: int
+    booking_deposit: int
+    renting_deposit: int
     description: str | None
 
     @classmethod
@@ -147,6 +162,8 @@ class RoomTypeOut(BaseModel):
             quantity_available=rt.quantity_available,
             sanitation_fee_override=rt.sanitation_fee_override,
             sanitation_fee=rt.sanitation_fee,
+            booking_deposit=rt.booking_deposit,
+            renting_deposit=rt.renting_deposit,
             description=rt.description,
         )
 

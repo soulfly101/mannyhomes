@@ -25,6 +25,8 @@ class ListingRoomType(BaseModel):
     # Only for logged-in users; None for visitors.
     rent: int | None
     sanitation_fee: int | None
+    # Paid when booking (#14); 0 when the admin hasn't set it yet. None for visitors.
+    booking_deposit: int | None
 
 
 class Listing(BaseModel):
@@ -56,6 +58,7 @@ def _room(rt: RoomType, show_prices: bool) -> ListingRoomType:
         quantity_available=rt.quantity_available,
         rent=rt.rent if show_prices else None,
         sanitation_fee=rt.sanitation_fee if show_prices else None,
+        booking_deposit=rt.booking_deposit if show_prices else None,
     )
 
 

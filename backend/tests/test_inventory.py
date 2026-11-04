@@ -9,6 +9,7 @@ from .conftest import needs_db
 pytestmark = needs_db
 
 URL = "/api/admin/buildings"
+ROOM = {"name": "2 bedroom", "rent": 2000, "quantity_available": 2}
 
 MANNY = {
     "name": "Manny Building",
@@ -230,3 +231,25 @@ def test_logged_out_visitors_are_refused(client):
 def test_changes_need_the_csrf_header(client, admin, anon_client):
     anon_client.cookies.update(client.cookies)
     assert anon_client.post(URL, json=MANNY).status_code == 403
+
+
+def test_room_types_have_booking_and_renting_deposits(client, admin):
+    rooms = [{**ROOM, "booking_deposit": 300, "renting_deposit": 4000}]
+    body = create(client, room_types=rooms).json()
+    assert (body["room_types"][0]["booking_deposit"], body["room_types"][0]["renting_deposit"]) == (300, 4000)
+    # Left out, they're 0 (not set yet).
+    other = create(client, name="Other Block", room_types=[ROOM]).json()
+    assert (other["room_types"][0]["booking_deposit"], other["room_types"][0]["renting_deposit"]) == (0, 0)
+
+
+@pytest.mark.parametrize(
+    "field, message",
+    [
+        ("booking_deposit", "The booking deposit can't be negative."),
+        ("renting_deposit", "The renting deposit can't be negative."),
+    ],
+)
+def test_deposits_cant_be_negative(client, admin, field, message):
+    response = create(client, room_types=[{**ROOM, field: -1}])
+    assert response.status_code == 422
+    assert response.json()["errors"][f"room_types.0.{field}"] == message

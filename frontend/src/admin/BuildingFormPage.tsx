@@ -6,7 +6,7 @@ import type { Building, BuildingInput } from "./types";
 
 const SUGGESTIONS = ["1 bedroom", "2 bedroom", "3 bedroom", "Single room", "Chamber and hall", "Self-contained"];
 
-type Row = { key: number; id?: string; name: string; rent: string; quantity: string; fee: string };
+type Row = { key: number; id?: string; name: string; rent: string; quantity: string; fee: string; booking: string; renting: string };
 type Form = { name: string; location: string; fee: string; description: string; listed: boolean; rows: Row[] };
 type Errors = Record<string, string>;
 
@@ -14,7 +14,7 @@ const WHOLE = /^\d+$/;
 const clean = (v: string) => v.trim().replace(/[\s,]/g, "");
 
 let nextKey = 1;
-const newRow = (r: Partial<Row> = {}): Row => ({ key: nextKey++, name: "", rent: "", quantity: "", fee: "", ...r });
+const newRow = (r: Partial<Row> = {}): Row => ({ key: nextKey++, name: "", rent: "", quantity: "", fee: "", booking: "", renting: "", ...r });
 
 const EMPTY: Form = { name: "", location: "", fee: "0", description: "", listed: true, rows: [newRow()] };
 
@@ -32,6 +32,8 @@ function fromBuilding(b: Building): Form {
         rent: String(rt.rent),
         quantity: String(rt.quantity_available),
         fee: rt.sanitation_fee_override === null ? "" : String(rt.sanitation_fee_override),
+        booking: rt.booking_deposit ? String(rt.booking_deposit) : "",
+        renting: rt.renting_deposit ? String(rt.renting_deposit) : "",
       }),
     ),
   };
@@ -55,6 +57,8 @@ function validate(f: Form): Errors {
     if (r.fee.trim() && !WHOLE.test(clean(r.fee))) {
       e[`room_types.${i}.sanitation_fee_override`] = "Enter whole cedis, or leave empty to use the building's fee.";
     }
+    if (r.booking.trim() && !WHOLE.test(clean(r.booking))) e[`room_types.${i}.booking_deposit`] = "Enter whole cedis, like 300, or leave empty.";
+    if (r.renting.trim() && !WHOLE.test(clean(r.renting))) e[`room_types.${i}.renting_deposit`] = "Enter whole cedis, like 4000, or leave empty.";
   });
   return e;
 }
@@ -72,6 +76,8 @@ function toInput(f: Form): BuildingInput {
       rent: Number(clean(r.rent)),
       quantity_available: Number(clean(r.quantity)),
       sanitation_fee_override: r.fee.trim() ? Number(clean(r.fee)) : null,
+      booking_deposit: r.booking.trim() ? Number(clean(r.booking)) : 0,
+      renting_deposit: r.renting.trim() ? Number(clean(r.renting)) : 0,
       description: null,
     })),
   };
@@ -204,6 +210,26 @@ export function BuildingFormPage() {
                   value={r.fee}
                   error={errors[`room_types.${i}.sanitation_fee_override`]}
                   onChange={(e) => setRow(i, { fee: e.target.value }, "sanitation_fee_override")}
+                />
+                <Field
+                  label="Booking deposit"
+                  prefix="GH₵"
+                  inputMode="numeric"
+                  placeholder="300"
+                  hint="Paid to book; refundable."
+                  value={r.booking}
+                  error={errors[`room_types.${i}.booking_deposit`]}
+                  onChange={(e) => setRow(i, { booking: e.target.value }, "booking_deposit")}
+                />
+                <Field
+                  label="Renting deposit"
+                  prefix="GH₵"
+                  inputMode="numeric"
+                  placeholder="4000"
+                  hint="Charged at allocation."
+                  value={r.renting}
+                  error={errors[`room_types.${i}.renting_deposit`]}
+                  onChange={(e) => setRow(i, { renting: e.target.value }, "renting_deposit")}
                 />
                 <Button variant="ghost" className="room-remove" aria-label={`Remove room type ${r.name || i + 1}`} onClick={() => removeRow(i)}>
                   Remove

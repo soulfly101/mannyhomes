@@ -9,6 +9,8 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from .auth.router import router as auth_router
+from .billing.router import admin_router as billing_admin_router
+from .billing.router import router as billing_router
 from .config import get_settings
 from .contact.router import admin_router as contact_admin_router
 from .contact.router import router as contact_router
@@ -69,6 +71,8 @@ app.include_router(inventory_router, prefix="/api/admin/buildings")
 app.include_router(listings_router, prefix="/api/listings")
 app.include_router(contact_router, prefix="/api/contact")
 app.include_router(contact_admin_router, prefix="/api/admin/contact")
+app.include_router(billing_router, prefix="/api")
+app.include_router(billing_admin_router, prefix="/api/admin")
 
 
 @app.get("/api/health")

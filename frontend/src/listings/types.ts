@@ -6,6 +6,8 @@ export type ListingRoomType = {
   /** null for visitors: prices are for logged-in users. */
   rent: number | null;
   sanitation_fee: number | null;
+  /** Paid when booking; 0 when not set yet; null for visitors. */
+  booking_deposit: number | null;
 };
 
 export type Listing = {
