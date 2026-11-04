@@ -1,6 +1,7 @@
 """Booking API (#14): tenants book a room type and pay its deposit by Mobile Money."""
 
 import json
+from datetime import date
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -12,7 +13,7 @@ from ..auth.schemas import normalise_phone
 from ..billing.service import BillStatus, bill_status
 from ..config import get_settings
 from ..db import get_session
-from ..models import Booking, BookingStatus, PaymentStatus, Role, User
+from ..models import Booking, BookingStatus, PaymentStatus, Role, Tenancy, User
 from ..payments.gateway import MomoNetwork, PaymentGateway, get_gateway, valid_paystack_signature
 from .service import (
     BookingError,
@@ -38,6 +39,16 @@ class BookingPaymentOut(BaseModel):
     message: str | None
 
 
+class BookingTenancyOut(BaseModel):
+    room_number: str
+    start_date: date
+    rent: int
+    sanitation_fee: int
+    renting_deposit: int
+    renting_bill_number: str
+    renting_bill_status: BillStatus
+
+
 class BookingOut(BaseModel):
     id: str
     status: BookingStatus
@@ -51,6 +62,8 @@ class BookingOut(BaseModel):
     payment: BookingPaymentOut | None
     # True when payments are pretend (local development only).
     test_mode: bool
+    # Once the admin has allocated a room (#18).
+    tenancy: BookingTenancyOut | None
 
     @classmethod
     def of(cls, b: Booking, gateway: PaymentGateway | None) -> BookingOut:
@@ -67,7 +80,22 @@ class BookingOut(BaseModel):
             bill_status=bill_status(b.bill),
             payment=BookingPaymentOut(status=latest.status, message=latest.note) if latest else None,
             test_mode=bool(gateway and gateway.simulated),
+            tenancy=_tenancy(b.tenancy),
         )
+
+
+def _tenancy(t: Tenancy | None) -> BookingTenancyOut | None:
+    if t is None:
+        return None
+    return BookingTenancyOut(
+        room_number=t.room_number,
+        start_date=t.start_date,
+        rent=t.rent,
+        sanitation_fee=t.sanitation_fee,
+        renting_deposit=t.renting_bill.amount,
+        renting_bill_number=t.renting_bill.number,
+        renting_bill_status=bill_status(t.renting_bill),
+    )
 
 
 def _mine(db: Session, booking_id: str, tenant: User) -> Booking:

@@ -84,6 +84,9 @@ Two columns: form on the left, apartment photo on the right (photo hidden on pho
 
 Menu links to home page sections use `/#section` so they work from any page. **All copy, photos, facilities, locations and contact details are in `frontend/src/landing/content.ts`**; buildings, prices and availability come live from the admin inventory.
 
+### Admin allocation pages
+New admin screens use Tailwind under the existing top bar: `/admin/allocations` (queue) links to one page per booking, `/admin/allocations/:id`, which says what saving will do before it's saved. Anything blocking an allocation is shown instead of the form, with what to do about it.
+
 ### Badges (`@/components/ui/badge`)
 Small solid status label with a `tone` (`success`, `warning`, `danger`, `neutral`), used for availability ("3 available" / "Fully booked") and payment states. The tone mapping in the Status pills table below applies.
 

@@ -24,9 +24,14 @@ function AccountLinks({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <>
       {user.role === "admin" && (
-        <Link to="/admin/buildings" onClick={onNavigate} className={cn(navLinkClass, "text-sm font-medium")}>
-          Buildings
-        </Link>
+        <>
+          <Link to="/admin/buildings" onClick={onNavigate} className={cn(navLinkClass, "text-sm font-medium")}>
+            Buildings
+          </Link>
+          <Link to="/admin/allocations" onClick={onNavigate} className={cn(navLinkClass, "text-sm font-medium")}>
+            Allocations
+          </Link>
+        </>
       )}
       {user.role === "tenant" && (
         <Link to="/bookings" onClick={onNavigate} className={cn(navLinkClass, "text-sm font-medium")}>

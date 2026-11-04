@@ -29,6 +29,7 @@ from ..models import (
     PaymentMethod,
     PaymentStatus,
     RoomType,
+    Tenancy,
     User,
 )
 from ..payments.gateway import ChargeResult, ChargeStatus, GatewayError, MomoNetwork, PaymentGateway
@@ -88,7 +89,10 @@ def _free_rooms(db: Session, room: RoomType, exclude: str | None = None) -> int:
 def bookings_query():
     return (
         select(Booking)
-        .options(selectinload(Booking.bill).selectinload(Bill.payments))
+        .options(
+            selectinload(Booking.bill).selectinload(Bill.payments),
+            selectinload(Booking.tenancy).selectinload(Tenancy.renting_bill),
+        )
         .order_by(Booking.created_at.desc())
     )
 
@@ -117,10 +121,17 @@ def start_booking(db: Session, tenant: User, room_type_id: str) -> Booking:
     open_bookings = db.scalars(
         bookings_query().where(
             Booking.tenant_id == tenant.id,
-            Booking.status.in_([BookingStatus.PENDING_PAYMENT, BookingStatus.AWAITING_ALLOCATION]),
+            Booking.status.in_(
+                [BookingStatus.PENDING_PAYMENT, BookingStatus.AWAITING_ALLOCATION, BookingStatus.ALLOCATED]
+            ),
         )
     ).all()
     for existing in open_bookings:
+        if existing.status == BookingStatus.ALLOCATED:
+            raise BookingError(
+                f"You already have a room at {existing.building_name}. Contact us to change it.",
+                409,
+            )
         if existing.status == BookingStatus.AWAITING_ALLOCATION:
             raise BookingError(
                 f"You've already booked a {existing.room_name} at {existing.building_name}. "
@@ -258,7 +269,7 @@ def confirm_payment(
         payment.note = "Paid twice: this payment needs refunding."
         db.commit()
         return booking
-    if booking is not None and booking.status != BookingStatus.AWAITING_ALLOCATION:
+    if booking is not None and booking.status in (BookingStatus.PENDING_PAYMENT, BookingStatus.CANCELLED):
         booking.status = BookingStatus.AWAITING_ALLOCATION
         booking.paid_at = payment.paid_at
         booking.hold_until = None

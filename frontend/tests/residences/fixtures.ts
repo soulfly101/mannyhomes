@@ -23,5 +23,6 @@ export const booking = (overrides: Partial<Booking> = {}): Booking => ({
   bill_status: "unpaid",
   payment: null,
   test_mode: false,
+  tenancy: null,
   ...overrides,
 });
