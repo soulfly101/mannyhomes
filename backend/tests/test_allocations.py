@@ -26,6 +26,10 @@ from .conftest import needs_db
 pytestmark = needs_db
 
 URL = "/api/admin/allocations"
+SIGNATURE = (
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJ"
+    "AAAADUlEQVR42mNk+M/wHwAEBgIApD5fRAAAAABJRU5ErkJggg=="
+)
 
 
 def person(db, email, role=Role.TENANT, name="Ama Mensah") -> User:
@@ -42,6 +46,8 @@ def log_in(client, db, user):
 @pytest.fixture
 def admin(client, db):
     a = person(db, "admin-alloc@example.com", role=Role.ADMIN, name="Esi Admin")
+    a.signature_image = SIGNATURE
+    db.commit()
     log_in(client, db, a)
     return a
 
@@ -270,9 +276,21 @@ def test_no_renting_deposit_set_stops_it(client, db, admin):
     room = make_room(db, renting=0)
     booking = paid_booking(db, room)
     reason = "Set the renting deposit for 2 bedroom at Manny Building first."
-    assert client.get(f"{URL}/{booking.id}").json()["blocked_reason"] == reason
+    item = client.get(f"{URL}/{booking.id}").json()
+    assert (item["blocked_reason"], item["blocked_fix"]) == (reason, "buildings")
     response = give(client, booking)
     assert (response.status_code, response.json()["detail"]) == (409, reason)
+    nothing_changed(db, room, booking, 2)
+
+
+def test_no_signature_stops_it_and_says_where_to_fix_it(client, db, admin, room):
+    admin.signature_image = None
+    db.commit()
+    booking = paid_booking(db, room)
+    item = client.get(f"{URL}/{booking.id}").json()
+    assert item["blocked_reason"] == "Upload your signature first: it goes on the tenancy agreement."
+    assert item["blocked_fix"] == "signature"
+    assert give(client, booking).status_code == 409
     nothing_changed(db, room, booking, 2)
 
 

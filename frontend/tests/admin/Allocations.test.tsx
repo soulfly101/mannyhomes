@@ -22,6 +22,7 @@ const pending = (overrides: Partial<PendingAllocation> = {}): PendingAllocation 
   rooms_left: 2,
   taken_rooms: ["A1", "A2"],
   blocked_reason: null,
+  blocked_fix: null,
   ...overrides,
 });
 
@@ -117,12 +118,18 @@ test("other refusals show as a message", async () => {
 });
 
 test("a booking that can't be allocated yet says why instead of showing the form", async () => {
-  mockApi({ ...asAdmin, "GET /api/admin/allocations/bk1": { body: pending({ blocked_reason: "Set the renting deposit for 2 bedroom at Manny Building first." }) } });
+  mockApi({ ...asAdmin, "GET /api/admin/allocations/bk1": { body: pending({ blocked_reason: "Set the renting deposit for 2 bedroom at Manny Building first.", blocked_fix: "buildings" }) } });
   renderAt("/admin/allocations/bk1", routes);
   expect(await screen.findByRole("heading", { name: "This can't be allocated yet" })).toBeInTheDocument();
   expect(screen.getByText("Set the renting deposit for 2 bedroom at Manny Building first.")).toBeInTheDocument();
   expect(screen.getByRole("link", { name: "Go to buildings" })).toHaveAttribute("href", "/admin/buildings");
   expect(screen.queryByLabelText("Room")).not.toBeInTheDocument();
+});
+
+test("no signature yet points to adding one", async () => {
+  mockApi({ ...asAdmin, "GET /api/admin/allocations/bk1": { body: pending({ blocked_reason: "Upload your signature first.", blocked_fix: "signature" }) } });
+  renderAt("/admin/allocations/bk1", routes);
+  expect(await screen.findByRole("link", { name: "Add your signature" })).toHaveAttribute("href", "/admin/signature");
 });
 
 test("a deleted room type hides the prices", async () => {

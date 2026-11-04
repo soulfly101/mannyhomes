@@ -17,7 +17,7 @@ from uuid import uuid4
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session, selectinload
 
-from ..billing.service import BillingError, create_bill, mark_payment, record_payment, void_bill
+from ..billing.service import BillingError, balance, create_bill, mark_payment, record_payment, void_bill
 from ..db import utcnow
 from ..models import (
     Bill,
@@ -92,13 +92,14 @@ def bookings_query():
         .options(
             selectinload(Booking.bill).selectinload(Bill.payments),
             selectinload(Booking.tenancy).selectinload(Tenancy.renting_bill),
+            selectinload(Booking.tenancy).selectinload(Tenancy.agreement),
         )
         .order_by(Booking.created_at.desc())
     )
 
 
-def _waiting_payment(booking: Booking) -> Payment | None:
-    return next((p for p in reversed(booking.bill.payments) if p.status == PaymentStatus.PENDING), None)
+def waiting_payment(bill: Bill) -> Payment | None:
+    return next((p for p in reversed(bill.payments) if p.status == PaymentStatus.PENDING), None)
 
 
 def cancel_booking(db: Session, booking: Booking) -> None:
@@ -108,7 +109,7 @@ def cancel_booking(db: Session, booking: Booking) -> None:
         raise BookingError(
             "This booking is paid, so it can't be cancelled here. Contact us about a refund.", 409
         )
-    if _waiting_payment(booking):
+    if waiting_payment(booking.bill):
         raise BookingError("A payment is still in progress. Wait for it to finish, then try again.", 409)
     void_bill(db, booking.bill)
     booking.status = BookingStatus.CANCELLED
@@ -185,7 +186,7 @@ def start_payment(
     refresh_booking(db, booking, gateway)
     if booking.status != BookingStatus.PENDING_PAYMENT:
         return booking.bill.payments[-1]
-    if _waiting_payment(booking):
+    if waiting_payment(booking.bill):
         raise BookingError("A payment is already waiting. Approve the prompt on your phone.", 409)
 
     room = _locked_room(db, booking.room_type_id)
@@ -194,10 +195,17 @@ def start_payment(
             "This residence has just been fully booked. Have a look at what else is free.", 409
         )
     booking.hold_until = utcnow() + HOLD
+    return charge_bill(db, booking.bill, gateway, tenant=tenant, phone=phone, network=network)
+
+
+def charge_bill(
+    db: Session, bill: Bill, gateway: PaymentGateway, *, tenant: User, phone: str, network: MomoNetwork
+) -> Payment:
+    """Sends a Mobile Money prompt for what's left on a bill. Saved first, so a fast webhook finds it."""
     payment = record_payment(
         db,
-        booking.bill,
-        amount=booking.bill.amount,
+        bill,
+        amount=balance(bill),
         method=PaymentMethod.PAYSTACK_MOMO,
         reference=f"altheo-{uuid4().hex}",
         status=PaymentStatus.PENDING,
@@ -278,8 +286,12 @@ def confirm_payment(
 
 
 def refresh_booking(db: Session, booking: Booking, gateway: PaymentGateway | None) -> None:
+    refresh_bill(db, booking.bill, gateway)
+
+
+def refresh_bill(db: Session, bill: Bill, gateway: PaymentGateway | None) -> None:
     """Checks a payment in progress with the provider, in case its webhook is late or can't reach us."""
-    payment = _waiting_payment(booking)
+    payment = waiting_payment(bill)
     if payment is None or gateway is None:
         return
     try:

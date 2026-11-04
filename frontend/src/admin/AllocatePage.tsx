@@ -102,9 +102,15 @@ export function AllocatePage() {
                 <div role="alert">
                   <h2 className="text-2xl font-bold tracking-tight">This can't be allocated yet</h2>
                   <p className="mt-2 text-sm text-muted-foreground">{item.blocked_reason}</p>
-                  <Link to="/admin/buildings" className={`${buttonClass} mt-5`}>
-                    Go to buildings
-                  </Link>
+                  {item.blocked_fix === "signature" ? (
+                    <Link to="/admin/signature" className={`${buttonClass} mt-5`}>
+                      Add your signature
+                    </Link>
+                  ) : (
+                    <Link to="/admin/buildings" className={`${buttonClass} mt-5`}>
+                      Go to buildings
+                    </Link>
+                  )}
                 </div>
               ) : (
                 <form onSubmit={submit} noValidate className="flex flex-col gap-5">
@@ -118,7 +124,7 @@ export function AllocatePage() {
                     error={fieldError}
                   />
                   <p className="text-sm text-muted-foreground">
-                    Saving takes one {item.room} off what's available, bills the {formatCedis(item.renting_deposit ?? 0)} renting deposit and starts the tenancy today.
+                    Saving takes one {item.room} off what's available, bills the {formatCedis(item.renting_deposit ?? 0)} renting deposit, starts the tenancy today and creates the tenancy agreement with your signature.
                   </p>
                   <div>
                     <button type="submit" disabled={busy} aria-busy={busy || undefined} className={`${buttonClass} disabled:cursor-progress disabled:opacity-80`}>

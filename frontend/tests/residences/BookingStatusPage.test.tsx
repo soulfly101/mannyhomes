@@ -46,7 +46,7 @@ test("once allocated the tenant sees their room and what's next", async () => {
     status: "allocated",
     bill_status: "paid",
     payment: { status: "success", message: null },
-    tenancy: { room_number: "A12", start_date: "2026-11-04", rent: 2000, sanitation_fee: 50, renting_deposit: 4000, renting_bill_number: "BILL-000009", renting_bill_status: "unpaid" },
+    tenancy: { room_number: "A12", start_date: "2026-11-04", rent: 2000, sanitation_fee: 50, renting_deposit: 4000, renting_bill_number: "BILL-000009", renting_bill_status: "unpaid", renting_bill_id: 9, agreement_id: "ag1", agreement_signed: false },
   });
   mockApi({ ...base, "GET /api/bookings/bk1": { body: allocated } });
   renderStatus();

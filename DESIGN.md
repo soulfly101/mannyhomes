@@ -83,6 +83,8 @@ Two columns: form on the left, apartment photo on the right (photo hidden on pho
 | *(booking steps)* | `BookingSteps` shows Details → Pay → Confirmed on `/book/:id` and `/bookings/:id` |
 | `/bookings/:id` | One booking: "Approve the prompt on your phone" while waiting, then confirmed or failed with what to do next |
 | `/dashboard` | A tenant's home base: "Booking Confirmed - Awaiting Room Allocation", checking by itself until a room is allocated, then their "Tenant Dashboard" with building, location, room type, room and costs |
+| `/agreements/:id` | Read and sign the tenancy agreement (draw or type), then pay or print it. The document (`AgreementDocument`) is always white paper, in dark mode too, and prints cleanly |
+| `/bills/:id/pay` | Pay one bill by Mobile Money; locked with a reason if it can't be paid yet |
 | `/bookings` | A tenant's bookings |
 
 Menu links to home page sections use `/#section` so they work from any page. **All copy, photos, facilities, locations and contact details are in `frontend/src/landing/content.ts`**; buildings, prices and availability come live from the admin inventory.

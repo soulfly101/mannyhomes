@@ -20,6 +20,9 @@ export type Booking = {
     renting_deposit: number;
     renting_bill_number: string;
     renting_bill_status: "paid" | "partial" | "unpaid";
+    renting_bill_id: number;
+    agreement_id: string | null;
+    agreement_signed: boolean;
   } | null;
 };
 

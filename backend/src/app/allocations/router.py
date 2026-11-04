@@ -42,10 +42,13 @@ class PendingAllocation(BaseModel):
     taken_rooms: list[str]
     # Why it can't be allocated yet; None when it can.
     blocked_reason: str | None
+    # Which page fixes it: "buildings" or "signature".
+    blocked_fix: str | None
 
     @classmethod
-    def of(cls, db: Session, b: Booking) -> PendingAllocation:
+    def of(cls, db: Session, b: Booking, admin: User) -> PendingAllocation:
         rt = b.room_type
+        blocked = blocked_reason(rt, admin)
         return cls(
             booking_id=b.id,
             tenant=TenantOut(id=b.tenant.id, name=b.tenant.name, email=b.tenant.email, phone=b.tenant.phone),
@@ -59,22 +62,23 @@ class PendingAllocation(BaseModel):
             renting_deposit=rt.renting_deposit if rt else None,
             rooms_left=rt.quantity_available if rt else None,
             taken_rooms=taken_rooms(db, rt.building_id) if rt else [],
-            blocked_reason=blocked_reason(rt),
+            blocked_reason=blocked[0] if blocked else None,
+            blocked_fix=blocked[1] if blocked else None,
         )
 
 
 @router.get("")
-def pending_allocations(db: DB) -> list[PendingAllocation]:
+def pending_allocations(admin: Admin, db: DB) -> list[PendingAllocation]:
     """Tenants who have paid their booking deposit and are waiting for a room, longest wait first."""
-    return [PendingAllocation.of(db, b) for b in db.scalars(queue_query()).all()]
+    return [PendingAllocation.of(db, b, admin) for b in db.scalars(queue_query()).all()]
 
 
 @router.get("/{booking_id}")
-def pending_allocation(booking_id: str, db: DB) -> PendingAllocation:
+def pending_allocation(booking_id: str, admin: Admin, db: DB) -> PendingAllocation:
     booking = db.scalar(queue_query().where(Booking.id == booking_id))
     if booking is None:
         raise HTTPException(status_code=404, detail="That booking isn't waiting for a room.")
-    return PendingAllocation.of(db, booking)
+    return PendingAllocation.of(db, booking, admin)
 
 
 class AllocateIn(BaseModel):

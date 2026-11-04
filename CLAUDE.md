@@ -61,6 +61,13 @@ Database changes go through **Alembic** migrations in `backend/migrations/versio
 - The room number is typed by the admin; one active tenancy per room in a building, ignoring case. A tenancy with `ended_at` set (move-out, #26) frees the room, and #26 must also add 1 back to `quantity_available`.
 - Allocation is refused, with the reason shown to the admin, if the room type has no renting deposit set, has no rooms left, or was deleted.
 
+## Tenancy agreements
+- `backend/src/app/agreements/`. **The wording in `template.py` is a DRAFT placeholder**: every document says so until a lawyer approves or replaces it and `DRAFT_WORDING` is set to False. Don't let real tenants sign it before then.
+- Created in the same transaction as the allocation, so an admin needs a signature first (`/admin/signature`). The wording, dates and landlord's signature are frozen on the agreement; later changes never touch it. It can only be signed once.
+- Signature images must be real PNGs under 500 KB (`check_signature_image`); wording renders as text, never HTML.
+- **The renting deposit can't be paid online until the agreement is signed** (`payment_block`). Bills are paid at `/api/me/bills/{id}/pay` (`/bills/:id/pay`), which #16 can reuse for sanitation.
+- Pages: `/agreements/:id` (tenant), `/admin/agreements`, `/admin/signature`. PDFs come from the browser's print button.
+
 Settings live in `.env` files (copied from the `.env.example` next to them). Never commit a `.env`.
 
 ## Rules

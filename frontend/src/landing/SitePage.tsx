@@ -10,7 +10,9 @@ export function SitePage({ children, enquiry = null }: { children: ReactNode; en
     <div className="flex min-h-[100dvh] flex-col overflow-x-clip bg-background font-sans text-foreground">
       <SiteHeader />
       <main className="flex-1">{children}</main>
-      <Footer residences={residences ?? []} enquiry={enquiry} />
+      <div className="print:hidden">
+        <Footer residences={residences ?? []} enquiry={enquiry} />
+      </div>
     </div>
   );
 }

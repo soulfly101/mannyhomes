@@ -47,6 +47,10 @@ class BookingTenancyOut(BaseModel):
     renting_deposit: int
     renting_bill_number: str
     renting_bill_status: BillStatus
+    renting_bill_id: int
+    # None only for tenancies from before agreements existed.
+    agreement_id: str | None
+    agreement_signed: bool
 
 
 class BookingOut(BaseModel):
@@ -95,6 +99,9 @@ def _tenancy(t: Tenancy | None) -> BookingTenancyOut | None:
         renting_deposit=t.renting_bill.amount,
         renting_bill_number=t.renting_bill.number,
         renting_bill_status=bill_status(t.renting_bill),
+        renting_bill_id=t.renting_bill.id,
+        agreement_id=t.agreement.id if t.agreement else None,
+        agreement_signed=bool(t.agreement and t.agreement.signed_at),
     )
 
 

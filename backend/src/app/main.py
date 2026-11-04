@@ -8,8 +8,11 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from .agreements.router import admin_router as agreements_admin_router
+from .agreements.router import router as agreements_router
 from .allocations.router import router as allocations_router
 from .auth.router import router as auth_router
+from .billing.pay_router import router as bill_pay_router
 from .billing.router import admin_router as billing_admin_router
 from .billing.router import router as billing_router
 from .bookings.router import router as bookings_router
@@ -81,6 +84,9 @@ app.include_router(listings_router, prefix="/api/listings")
 app.include_router(contact_router, prefix="/api/contact")
 app.include_router(contact_admin_router, prefix="/api/admin/contact")
 app.include_router(billing_router, prefix="/api")
+app.include_router(bill_pay_router, prefix="/api/me/bills")
+app.include_router(agreements_router, prefix="/api/agreements")
+app.include_router(agreements_admin_router, prefix="/api/admin")
 app.include_router(billing_admin_router, prefix="/api/admin")
 app.include_router(allocations_router, prefix="/api/admin/allocations")
 app.include_router(bookings_router, prefix="/api/bookings")
