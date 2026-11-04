@@ -127,5 +127,21 @@ test("the log in button shows it's working and can't be pressed twice", async ()
   const busy = await screen.findByRole("button", { name: "Please wait…" });
   expect(busy).toBeDisabled();
   finish(undefined);
+  await waitFor(() => expect(screen.getByTestId("location").textContent).toBe("/dashboard"));
+});
+
+test("tenants with no next go to their dashboard; others go home", async () => {
+  mockApi({ "GET /api/auth/me": { status: 401 }, ...googleOff, "POST /api/auth/login": { body: AMA } });
+  const { unmount } = renderAt("/login", routes);
+  await userEvent.type(await screen.findByLabelText("Email address"), "ama@example.com");
+  await userEvent.type(screen.getByLabelText("Password"), "correct-horse");
+  await userEvent.click(screen.getByRole("button", { name: "Log in" }));
+  await waitFor(() => expect(screen.getByTestId("location").textContent).toBe("/dashboard"));
+  unmount();
+  mockApi({ "GET /api/auth/me": { status: 401 }, ...googleOff, "POST /api/auth/login": { body: { ...AMA, role: "admin" } } });
+  renderAt("/login", routes);
+  await userEvent.type(await screen.findByLabelText("Email address"), "admin@example.com");
+  await userEvent.type(screen.getByLabelText("Password"), "correct-horse");
+  await userEvent.click(screen.getByRole("button", { name: "Log in" }));
   await waitFor(() => expect(screen.getByTestId("location").textContent).toBe("/"));
 });

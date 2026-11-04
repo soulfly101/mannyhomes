@@ -82,6 +82,7 @@ Two columns: form on the left, apartment photo on the right (photo hidden on pho
 | `/book/:id` | Booking a room type (tenants only): summary and the Mobile Money form (number, network, "Pay GH₵ 300") |
 | *(booking steps)* | `BookingSteps` shows Details → Pay → Confirmed on `/book/:id` and `/bookings/:id` |
 | `/bookings/:id` | One booking: "Approve the prompt on your phone" while waiting, then confirmed or failed with what to do next |
+| `/dashboard` | A tenant's home base: "Booking Confirmed - Awaiting Room Allocation", checking by itself until a room is allocated, then their "Tenant Dashboard" with building, location, room type, room and costs |
 | `/bookings` | A tenant's bookings |
 
 Menu links to home page sections use `/#section` so they work from any page. **All copy, photos, facilities, locations and contact details are in `frontend/src/landing/content.ts`**; buildings, prices and availability come live from the admin inventory.
@@ -130,7 +131,7 @@ The mapping lives in `frontend/src/components/StatusPill.tsx`; add new statuses 
 
 ### Navigation
 - **Public pages:** `SiteNav` stays at the top while scrolling. **Admin pages:** the `AdminLayout` sidebar. **`<TopBar>`** is only left on the status page.
-- Logged-out visitors see "Log in" and "Sign up". Nothing in it wraps. The logged-in person shows as their **initials** in a small round badge (`<UserInitials>`), never their full name, which stays available on hover and to screen readers.
+- Logged-out visitors see "Log in" and "Sign up". Nothing in it wraps; below 1024px the sections move into the menu button. The logged-in person shows as their **initials** in a small round badge (`<UserInitials>`), never their full name, which stays available on hover and to screen readers.
 - **Phones:** the sections move to a scrollable pill row under the top bar. No hamburger menus for primary sections.
 - Current section is a filled `--action` pill; others are `--text-muted` text.
 - Tenant, admin and staff areas share the same shell with different sections.

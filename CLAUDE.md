@@ -50,7 +50,7 @@ Database changes go through **Alembic** migrations in `backend/migrations/versio
 - APIs: `GET /api/me/bills`, `GET /api/admin/bills`, `POST /api/admin/bills/{id}/payments` (cash/bank), `GET /api/admin/tenants/{id}/compliance?period=YYYY-MM`.
 
 ## Booking and payments
-- `POST /api/bookings` → `POST /api/bookings/{id}/pay` → the prompt on the tenant's phone → status `awaiting_allocation` (`backend/src/app/bookings/`). Pages: `/book/:roomTypeId`, `/bookings/:id`, `/bookings`.
+- `POST /api/bookings` → `POST /api/bookings/{id}/pay` → the prompt on the tenant's phone → status `awaiting_allocation` (`backend/src/app/bookings/`). Pages: `/book/:roomTypeId`, `/bookings/:id`, `/bookings`, and `/dashboard` (a tenant's home base; where they land after logging in with no `next`).
 - One open booking per tenant. Paid bookings hold a room, and unpaid ones hold it for 10 minutes, so listings show `quantity_available` minus holds; the tenant's own unpaid hold isn't counted against them. `quantity_available` itself still only changes at allocation and move-out.
 - Gateways live in `backend/src/app/payments/gateway.py` behind `PaymentGateway`; add a provider there (e.g. Korba) without touching bookings. `get_gateway()` picks Paystack when `PAYSTACK_SECRET_KEY` is set; **without a key, pretend payments work only when `APP_ENV=development`** (docker compose sets it; the default is production, where payments are simply off).
 - `POST /api/webhooks/paystack` needs no CSRF header; it checks the `x-paystack-signature` HMAC instead. The page also asks Paystack directly while waiting, so a missed webhook isn't fatal. A confirmation only counts if the amount and currency match, and if money really arrived it counts even after a timeout or cancellation.
