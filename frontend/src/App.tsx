@@ -1,4 +1,5 @@
 import { Route, Routes, useLocation } from "react-router";
+import { AdminLayout } from "./admin/AdminLayout";
 import { AllocatePage } from "./admin/AllocatePage";
 import { AllocationsPage } from "./admin/AllocationsPage";
 import { BuildingFormPage } from "./admin/BuildingFormPage";
@@ -17,9 +18,9 @@ import { ResidencesPage } from "./residences/ResidencesPage";
 import { ScrollManager } from "./ScrollManager";
 import { StatusPage } from "./pages/StatusPage";
 
-// These pages have their own header: the home page hero, the public site pages (SiteHeader) and the two-column auth pages.
+// These pages have their own header: the home page hero, the public site pages (SiteHeader), the admin sidebar and the two-column auth pages.
 const NO_TOP_BAR = ["/", "/login", "/register", "/onboarding"];
-const SITE_PAGES = ["/residences", "/book/", "/bookings"];
+const SITE_PAGES = ["/residences", "/book/", "/bookings", "/admin"];
 const usesTopBar = (path: string) => !NO_TOP_BAR.includes(path) && !SITE_PAGES.some((p) => path.startsWith(p));
 
 export function App() {
@@ -53,11 +54,19 @@ export function App() {
             </RequireAuth>
           }
         />
-        <Route path="/admin/buildings" element={<RequireAuth roles={["admin"]}><BuildingsPage /></RequireAuth>} />
-        <Route path="/admin/buildings/new" element={<RequireAuth roles={["admin"]}><BuildingFormPage /></RequireAuth>} />
-        <Route path="/admin/buildings/:id" element={<RequireAuth roles={["admin"]}><BuildingFormPage /></RequireAuth>} />
-        <Route path="/admin/allocations" element={<RequireAuth roles={["admin"]}><AllocationsPage /></RequireAuth>} />
-        <Route path="/admin/allocations/:bookingId" element={<RequireAuth roles={["admin"]}><AllocatePage /></RequireAuth>} />
+        <Route
+          element={
+            <RequireAuth roles={["admin"]}>
+              <AdminLayout />
+            </RequireAuth>
+          }
+        >
+          <Route path="/admin/buildings" element={<BuildingsPage />} />
+          <Route path="/admin/buildings/new" element={<BuildingFormPage />} />
+          <Route path="/admin/buildings/:id" element={<BuildingFormPage />} />
+          <Route path="/admin/allocations" element={<AllocationsPage />} />
+          <Route path="/admin/allocations/:bookingId" element={<AllocatePage />} />
+        </Route>
         <Route path="*" element={<LandingPage />} />
       </Routes>
     </>

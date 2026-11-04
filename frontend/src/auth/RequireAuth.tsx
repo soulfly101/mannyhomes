@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Navigate, useLocation } from "react-router";
+import { Link, Navigate, useLocation } from "react-router";
 import { Card } from "../components/Card";
 import { useAuth, type Role } from "./AuthContext";
 
@@ -23,6 +23,9 @@ export function RequireAuth({ children, roles }: { children: ReactNode; roles?: 
         <Card as="section" aria-labelledby="no-access-title">
           <h1 id="no-access-title">You don't have access to this page</h1>
           <p className="muted">It's only for Altheo Homes staff. If you think that's wrong, ask an admin.</p>
+          <Link to="/" className="btn btn-secondary">
+            Go to the home page
+          </Link>
         </Card>
       </main>
     );
