@@ -74,3 +74,15 @@ test("the older stylesheet's variables never override the theme's", () => {
   const theme = names(globals.slice(0, globals.indexOf("@theme inline")));
   expect([...names(tokens)].filter((n) => theme.has(n))).toEqual([]);
 });
+
+test("dark colours are the same for the device setting and the admin toggle", () => {
+  for (const css of [globals, readFileSync(join(SRC, "styles/tokens.css"), "utf8")]) {
+    const block = (start: string) => {
+      const from = css.indexOf("{", css.indexOf(start)) + 1;
+      return [...css.slice(from, css.indexOf("}", from)).matchAll(/(--[a-z0-9-]+):\s*([^;]+);/g)].map((m) => `${m[1]}=${m[2]}`);
+    };
+    const device = block(':root:not([data-theme="light"])');
+    expect(device.length).toBeGreaterThan(5);
+    expect(block(':root[data-theme="dark"]')).toEqual(device);
+  }
+});

@@ -90,7 +90,7 @@ Two columns: form on the left, apartment photo on the right (photo hidden on pho
 Menu links to home page sections use `/#section` so they work from any page. **All copy, photos, facilities, locations and contact details are in `frontend/src/landing/content.ts`**; buildings, prices and availability come live from the admin inventory.
 
 ### Admin area
-Every admin page sits in `AdminLayout` (`frontend/src/admin/AdminLayout.tsx`): a sidebar with icons on wide screens, a bar with a row of sections on phones. Add new admin sections to its `SECTIONS` list. `/admin/allocations` (queue) links to one page per booking, `/admin/allocations/:id`, which says what saving will do before it's saved. Anything blocking an allocation is shown instead of the form, with what to do about it.
+Every admin page sits in `AdminLayout` (`frontend/src/admin/AdminLayout.tsx`): a sidebar with icons on wide screens, a bar with a row of sections on phones. Add new admin sections to its `SECTIONS` list. `/admin` is the dashboard: stat cards, money collected per month, bookings by stage, recent tenants and recent activity. The sidebar has a **dark/light toggle**; the admin area starts dark. `/admin/allocations` (queue) links to one page per booking, `/admin/allocations/:id`, which says what saving will do before it's saved. Anything blocking an allocation is shown instead of the form, with what to do about it.
 
 ### Badges (`@/components/ui/badge`)
 Small solid status label with a `tone` (`success`, `warning`, `danger`, `neutral`), used for availability ("3 available" / "Fully booked") and payment states. The tone mapping in the Status pills table below applies.
@@ -154,6 +154,9 @@ The mapping lives in `frontend/src/components/StatusPill.tsx`; add new statuses 
 - Location chips pop out on hover (grow 5%, rise 2px, soft shadow) and press in slightly when clicked (`chipClass` in the same file).
 - Movement uses Tailwind's `motion-safe:` variant so it never runs for reduced-motion users.
 - Respect **reduced motion**: when the device asks for it, there's no movement, only instant changes (handled globally in `components.css`).
+
+## Charts
+Colours are `--chart-1` to `--chart-4` in `globals.css`, checked with the colour validator against the card colour in both modes. Lines are 2px with 8px markers and a 10% solid wash under them, never a gradient. Every chart has a hover tooltip and text for each value (a table or a labelled list), so colour is never the only signal. Show people as initials, never stock photos.
 
 ## Accessibility (required)
 - Text contrast at least **4.5:1** (3:1 for large text and icons), in light and dark mode.

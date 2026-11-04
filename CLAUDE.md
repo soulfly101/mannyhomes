@@ -61,6 +61,10 @@ Database changes go through **Alembic** migrations in `backend/migrations/versio
 - The room number is typed by the admin; one active tenancy per room in a building, ignoring case. A tenancy with `ended_at` set (move-out, #26) frees the room, and #26 must also add 1 back to `quantity_available`.
 - Allocation is refused, with the reason shown to the admin, if the room type has no renting deposit set, has no rooms left, or was deleted.
 
+## Admin dashboard
+- `/admin` (`frontend/src/admin/AdminDashboardPage.tsx`) reads `GET /api/admin/overview?months=` (`backend/src/app/overview/`). Every number comes from real records; with nothing yet it says so rather than showing sample figures. Admins land there after logging in with no `next`.
+- The admin area has a dark/light toggle (`AdminLayout`): dark at first, remembered per browser, and removed on leaving the admin area, so public pages keep following the device. It sets `data-theme` on `<html>`; `globals.css` and `tokens.css` each hold the dark colours twice, which must stay identical (a test checks this).
+
 ## Tenancy agreements
 - `backend/src/app/agreements/`. **The wording in `template.py` is a DRAFT placeholder**: every document says so until a lawyer approves or replaces it and `DRAFT_WORDING` is set to False. Don't let real tenants sign it before then.
 - Created in the same transaction as the allocation, so an admin needs a signature first (`/admin/signature`). The wording, dates and landlord's signature are frozen on the agreement; later changes never touch it. It can only be signed once.
