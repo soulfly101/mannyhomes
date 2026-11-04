@@ -31,7 +31,16 @@ test("admins get an Allocations link", async () => {
 test("tenants don't see admin links", async () => {
   mockApi({ "GET /api/auth/me": { body: AMA }, ...googleOff });
   renderBar();
-  await screen.findByText("Ama Mensah");
+  await screen.findByText("AM");
   expect(screen.queryByRole("link", { name: "Buildings" })).not.toBeInTheDocument();
   expect(screen.queryByRole("link", { name: "Allocations" })).not.toBeInTheDocument();
+});
+
+test("the person shows as initials, with the full name for hover and screen readers", async () => {
+  mockApi({ "GET /api/auth/me": { body: AMA }, ...googleOff });
+  renderBar();
+  const badge = await screen.findByRole("img", { name: "Ama Mensah" });
+  expect(badge).toHaveTextContent(/^AM$/);
+  expect(badge).toHaveAttribute("title", "Ama Mensah");
+  expect(screen.queryByText("Ama Mensah")).not.toBeInTheDocument();
 });

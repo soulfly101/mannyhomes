@@ -1,4 +1,4 @@
-import { formatCedis } from "../src/format";
+import { formatCedis, initials } from "../src/format";
 
 test.each([
   [0, "GH₵ 0"],
@@ -8,4 +8,14 @@ test.each([
   [99.6, "GH₵ 100"],
 ])("%d is shown as %s", (amount, expected) => {
   expect(formatCedis(amount)).toBe(expected);
+});
+
+test.each([
+  ["Ama Mensah", "AM"],
+  ["Kofi Ama Mensah", "KM"],
+  ["Ama", "A"],
+  ["  ama   mensah  ", "AM"],
+  ["", ""],
+])("the initials of %j are %j", (name, expected) => {
+  expect(initials(name)).toBe(expected);
 });

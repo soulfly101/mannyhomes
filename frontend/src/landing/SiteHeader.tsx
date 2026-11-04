@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router";
 import { Menu, X } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
+import { UserInitials } from "../components/UserInitials";
 import { cn } from "@/lib/utils";
 import { BRAND, NAV_LINKS } from "./content";
 import { buttonClass, navLinkClass } from "./parts";
@@ -38,7 +39,7 @@ function AccountLinks({ onNavigate }: { onNavigate?: () => void }) {
           My bookings
         </Link>
       )}
-      <span className="text-sm text-white/80">{user.name}</span>
+      <UserInitials name={user.name} className="bg-white text-ink" />
       <button type="button" onClick={() => void logout()} className="min-h-11 text-sm font-medium text-white/90 underline-offset-4 hover:text-white hover:underline">
         Log out
       </button>

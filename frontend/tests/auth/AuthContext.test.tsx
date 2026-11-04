@@ -22,14 +22,14 @@ test("shows log in and sign up to visitors", async () => {
   expect(screen.getByRole("link", { name: "Log in" })).toHaveAttribute("href", "/login");
 });
 
-test("shows the user's name and logs them out", async () => {
+test("shows the user's initials and logs them out", async () => {
   const { calls } = mockApi({
     "GET /api/auth/me": { body: AMA },
     ...googleOff,
     "POST /api/auth/logout": { status: 204 },
   });
   renderTopBar();
-  expect(await screen.findByText("Ama Mensah")).toBeInTheDocument();
+  expect(await screen.findByText("AM")).toBeInTheDocument();
   await userEvent.click(screen.getByRole("button", { name: "Log out" }));
   await waitFor(() => expect(screen.getByRole("link", { name: "Log in" })).toBeInTheDocument());
   expect(calls.some((c) => c.key === "POST /api/auth/logout")).toBe(true);
