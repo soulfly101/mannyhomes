@@ -8,6 +8,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from .allocations.router import router as allocations_router
 from .auth.router import router as auth_router
 from .billing.router import admin_router as billing_admin_router
 from .billing.router import router as billing_router
@@ -81,6 +82,7 @@ app.include_router(contact_router, prefix="/api/contact")
 app.include_router(contact_admin_router, prefix="/api/admin/contact")
 app.include_router(billing_router, prefix="/api")
 app.include_router(billing_admin_router, prefix="/api/admin")
+app.include_router(allocations_router, prefix="/api/admin/allocations")
 app.include_router(bookings_router, prefix="/api/bookings")
 app.include_router(webhook_router, prefix="/api/webhooks")
 

@@ -1,4 +1,6 @@
 import { Route, Routes, useLocation } from "react-router";
+import { AllocatePage } from "./admin/AllocatePage";
+import { AllocationsPage } from "./admin/AllocationsPage";
 import { BuildingFormPage } from "./admin/BuildingFormPage";
 import { BuildingsPage } from "./admin/BuildingsPage";
 import { RequireAuth } from "./auth/RequireAuth";
@@ -54,6 +56,8 @@ export function App() {
         <Route path="/admin/buildings" element={<RequireAuth roles={["admin"]}><BuildingsPage /></RequireAuth>} />
         <Route path="/admin/buildings/new" element={<RequireAuth roles={["admin"]}><BuildingFormPage /></RequireAuth>} />
         <Route path="/admin/buildings/:id" element={<RequireAuth roles={["admin"]}><BuildingFormPage /></RequireAuth>} />
+        <Route path="/admin/allocations" element={<RequireAuth roles={["admin"]}><AllocationsPage /></RequireAuth>} />
+        <Route path="/admin/allocations/:bookingId" element={<RequireAuth roles={["admin"]}><AllocatePage /></RequireAuth>} />
         <Route path="*" element={<LandingPage />} />
       </Routes>
     </>

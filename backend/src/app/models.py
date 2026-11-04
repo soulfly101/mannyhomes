@@ -223,6 +223,7 @@ class Payment(Base):
 class BookingStatus(StrEnum):
     PENDING_PAYMENT = "pending_payment"
     AWAITING_ALLOCATION = "awaiting_allocation"
+    ALLOCATED = "allocated"
     CANCELLED = "cancelled"
 
 
@@ -252,3 +253,38 @@ class Booking(Base):
     tenant: Mapped[User] = relationship()
     room_type: Mapped[RoomType | None] = relationship()
     bill: Mapped[Bill] = relationship()
+    tenancy: Mapped[Tenancy | None] = relationship(back_populates="booking")
+
+
+class Tenancy(Base):
+    """A tenant living in a specific room (#18), started when the admin allocates it to their booking.
+
+    Rent and sanitation are copied here, so later price changes never alter what this tenant pays.
+    """
+
+    __tablename__ = "tenancies"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    booking_id: Mapped[str] = mapped_column(ForeignKey("bookings.id"), unique=True)
+    # Kept as NULL if the building or room type is later deleted; the names below stay.
+    room_type_id: Mapped[str | None] = mapped_column(ForeignKey("room_types.id", ondelete="SET NULL"))
+    building_id: Mapped[str | None] = mapped_column(
+        ForeignKey("buildings.id", ondelete="SET NULL"), index=True
+    )
+    room_name: Mapped[str] = mapped_column(String(60))
+    building_name: Mapped[str] = mapped_column(String(100))
+    location: Mapped[str] = mapped_column(String(100))
+    # The physical room, typed in by the admin, e.g. "A12". One active tenancy per room in a building.
+    room_number: Mapped[str] = mapped_column(String(20))
+    rent: Mapped[int] = mapped_column(Integer)
+    sanitation_fee: Mapped[int] = mapped_column(Integer)
+    renting_bill_id: Mapped[int] = mapped_column(ForeignKey("bills.id"))
+    start_date: Mapped[date] = mapped_column(Date)
+    # Set at move-out (#26). None means the tenant is living there now.
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime)
+    allocated_by_id: Mapped[str | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+    booking: Mapped[Booking] = relationship(back_populates="tenancy")
+    renting_bill: Mapped[Bill] = relationship()

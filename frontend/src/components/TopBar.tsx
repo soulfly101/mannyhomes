@@ -28,6 +28,9 @@ export function TopBar() {
             <NavLink to="/admin/buildings" className="topbar-link">
               Buildings
             </NavLink>
+            <NavLink to="/admin/allocations" className="topbar-link">
+              Allocations
+            </NavLink>
           </nav>
         )}
         {user === undefined ? null : user ? (

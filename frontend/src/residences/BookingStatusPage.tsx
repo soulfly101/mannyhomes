@@ -3,12 +3,15 @@ import { Link, useParams } from "react-router";
 import { ApiError, apiFetch } from "../api";
 import { Badge } from "@/components/ui/badge";
 import { FormError } from "@/components/ui/sign-in";
-import { formatCedis } from "../format";
+import { formatCedis, formatDate } from "../format";
 import { buttonClass, outlineButtonClass, sectionClass } from "../landing/parts";
 import { SitePage } from "../landing/SitePage";
 import { BOOKING_LABEL, type Booking } from "./bookings";
 
 export const POLL_MS = 4000;
+
+const DEPOSIT_TONE = { paid: "success", partial: "warning", unpaid: "danger" } as const;
+const DEPOSIT_TEXT = { paid: "Paid", partial: "Partly paid", unpaid: "Unpaid" };
 
 /** One booking (/bookings/:id): waits for the Mobile Money approval, then shows how it ended. */
 export function BookingStatusPage() {
@@ -80,6 +83,27 @@ export function BookingStatusPage() {
                   <Badge tone={BOOKING_LABEL[booking.status].tone}>{BOOKING_LABEL[booking.status].text}</Badge>
                 </dd>
               </dl>
+              {booking.tenancy && (
+                <dl className="grid grid-cols-[auto_1fr] gap-x-10 gap-y-3 rounded-md border border-border bg-card p-6 text-sm" aria-label="Your tenancy">
+                  <dt className="text-muted-foreground">Room</dt>
+                  <dd className="font-semibold">{booking.tenancy.room_number}</dd>
+                  <dt className="text-muted-foreground">Start date</dt>
+                  <dd>{formatDate(booking.tenancy.start_date)}</dd>
+                  <dt className="text-muted-foreground">Rent</dt>
+                  <dd>{formatCedis(booking.tenancy.rent)} / month</dd>
+                  <dt className="text-muted-foreground">Sanitation</dt>
+                  <dd>{formatCedis(booking.tenancy.sanitation_fee)} / month</dd>
+                  <dt className="text-muted-foreground">Renting deposit</dt>
+                  <dd>
+                    <span className="font-semibold">{formatCedis(booking.tenancy.renting_deposit)}</span>
+                    <span className="ml-3 inline-block">
+                      <Badge tone={DEPOSIT_TONE[booking.tenancy.renting_bill_status]}>{DEPOSIT_TEXT[booking.tenancy.renting_bill_status]}</Badge>
+                    </span>
+                  </dd>
+                  <dt className="text-muted-foreground">Bill</dt>
+                  <dd>{booking.tenancy.renting_bill_number}</dd>
+                </dl>
+              )}
               {waiting && booking.test_mode && (
                 <div className="rounded-md border border-dashed border-border p-6">
                   <h2 className="font-semibold">Test mode</h2>
@@ -127,6 +151,16 @@ function Headline({ booking, waiting }: { booking: Booking; waiting: boolean }) 
       {text}
     </h1>
   );
+  if (booking.status === "allocated" && booking.tenancy) {
+    return (
+      <div role="status">
+        {title(`Your room is ready: ${booking.tenancy.room_number}`)}
+        <p className="mt-3 text-muted-foreground">
+          Room {booking.tenancy.room_number} at {booking.building} is yours. Our team will contact you about your tenancy agreement and the renting deposit.
+        </p>
+      </div>
+    );
+  }
   if (booking.status === "awaiting_allocation") {
     return (
       <div role="status">

@@ -55,6 +55,12 @@ Database changes go through **Alembic** migrations in `backend/migrations/versio
 - Gateways live in `backend/src/app/payments/gateway.py` behind `PaymentGateway`; add a provider there (e.g. Korba) without touching bookings. `get_gateway()` picks Paystack when `PAYSTACK_SECRET_KEY` is set; **without a key, pretend payments work only when `APP_ENV=development`** (docker compose sets it; the default is production, where payments are simply off).
 - `POST /api/webhooks/paystack` needs no CSRF header; it checks the `x-paystack-signature` HMAC instead. The page also asks Paystack directly while waiting, so a missed webhook isn't fatal. A confirmation only counts if the amount and currency match, and if money really arrived it counts even after a timeout or cancellation.
 
+## Allocation and tenancies
+- `/admin/allocations` is the queue of paid bookings (longest wait first); `/admin/allocations/:bookingId` assigns the room (`backend/src/app/allocations/`, `GET`/`POST /api/admin/allocations…`).
+- `allocate()` does it all in one transaction: `quantity_available` −1, a renting deposit bill (due in 7 days), a `tenancies` row with rent and sanitation **copied**, booking status `allocated`.
+- The room number is typed by the admin; one active tenancy per room in a building, ignoring case. A tenancy with `ended_at` set (move-out, #26) frees the room, and #26 must also add 1 back to `quantity_available`.
+- Allocation is refused, with the reason shown to the admin, if the room type has no renting deposit set, has no rooms left, or was deleted.
+
 Settings live in `.env` files (copied from the `.env.example` next to them). Never commit a `.env`.
 
 ## Rules

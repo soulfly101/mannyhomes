@@ -40,6 +40,24 @@ test("while waiting it tells the tenant to approve, and notices when the money a
   }
 });
 
+test("once allocated the tenant sees their room and what's next", async () => {
+  const allocated = booking({
+    status: "allocated",
+    bill_status: "paid",
+    payment: { status: "success", message: null },
+    tenancy: { room_number: "A12", start_date: "2026-11-04", rent: 2000, sanitation_fee: 50, renting_deposit: 4000, renting_bill_number: "BILL-000009", renting_bill_status: "unpaid" },
+  });
+  mockApi({ ...base, "GET /api/bookings/bk1": { body: allocated } });
+  renderStatus();
+  expect(await screen.findByRole("heading", { name: "Your room is ready: A12" })).toBeInTheDocument();
+  expect(screen.getByText("Room allocated")).toHaveAttribute("data-tone", "success");
+  expect(screen.getByText("4 Nov 2026")).toBeInTheDocument();
+  expect(screen.getByText("GH₵ 2,000 / month")).toBeInTheDocument();
+  expect(screen.getByText("GH₵ 4,000")).toBeInTheDocument();
+  expect(screen.getByText("Unpaid")).toHaveAttribute("data-tone", "danger");
+  expect(screen.getByText("BILL-000009")).toBeInTheDocument();
+});
+
 test("a failed payment says why and offers another try or cancelling", async () => {
   const cancelled = booking({ status: "cancelled" });
   mockApi({ ...base, "GET /api/bookings/bk1": { body: booking({ payment: { status: "failed", message: "Insufficient funds" } }) }, "POST /api/bookings/bk1/cancel": { body: cancelled } });

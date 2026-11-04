@@ -22,9 +22,16 @@ test("admins get a Buildings link, marked as the current page", async () => {
   expect(link).toHaveAttribute("aria-current", "page");
 });
 
+test("admins get an Allocations link", async () => {
+  mockApi(asAdmin);
+  renderBar();
+  expect(await screen.findByRole("link", { name: "Allocations" })).toHaveAttribute("href", "/admin/allocations");
+});
+
 test("tenants don't see admin links", async () => {
   mockApi({ "GET /api/auth/me": { body: AMA }, ...googleOff });
   renderBar();
   await screen.findByText("Ama Mensah");
   expect(screen.queryByRole("link", { name: "Buildings" })).not.toBeInTheDocument();
+  expect(screen.queryByRole("link", { name: "Allocations" })).not.toBeInTheDocument();
 });
