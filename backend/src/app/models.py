@@ -218,3 +218,37 @@ class Payment(Base):
 
     bill: Mapped[Bill] = relationship(back_populates="payments")
     recorded_by: Mapped[User | None] = relationship()
+
+
+class BookingStatus(StrEnum):
+    PENDING_PAYMENT = "pending_payment"
+    AWAITING_ALLOCATION = "awaiting_allocation"
+    CANCELLED = "cancelled"
+
+
+class Booking(Base):
+    """A tenant reserving a room type by paying its booking deposit (#14). The admin allocates next (#18)."""
+
+    __tablename__ = "bookings"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    room_type_id: Mapped[str | None] = mapped_column(
+        ForeignKey("room_types.id", ondelete="SET NULL"), index=True
+    )
+    # Copied so the booking still reads properly if the room type is renamed or deleted.
+    room_name: Mapped[str] = mapped_column(String(60))
+    building_name: Mapped[str] = mapped_column(String(100))
+    location: Mapped[str] = mapped_column(String(100))
+    bill_id: Mapped[int] = mapped_column(ForeignKey("bills.id"))
+    status: Mapped[BookingStatus] = mapped_column(
+        _str_enum(BookingStatus, "booking_status"), default=BookingStatus.PENDING_PAYMENT
+    )
+    # While paying, the room is held until this time so it can't be sold to someone else meanwhile.
+    hold_until: Mapped[datetime | None] = mapped_column(DateTime)
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+
+    tenant: Mapped[User] = relationship()
+    room_type: Mapped[RoomType | None] = relationship()
+    bill: Mapped[Bill] = relationship()

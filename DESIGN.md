@@ -78,7 +78,9 @@ Two columns: form on the left, apartment photo on the right (photo hidden on pho
 | `/` home (`frontend/src/landing/`) | Hero (video/photo + menu), the Altheo experience, a **preview of 3 residences** with "View all residences", facilities, location map, gallery, call to action, footer |
 | `/residences` | Every listed room type with location chips (the filter is kept in the address, e.g. `?location=Aburi`); each row links to its page |
 | `/residences/:id` | One room type: photo, rent and fees (logged in only), availability, **Book now** and **Enquire** (fills in the footer contact form) |
-| `/book/:id` | Booking a room type (tenants only). The Mobile Money payment of the booking deposit comes with #14 |
+| `/book/:id` | Booking a room type (tenants only): summary and the Mobile Money form (number, network, "Pay GH₵ 300") |
+| `/bookings/:id` | One booking: "Approve the prompt on your phone" while waiting, then confirmed or failed with what to do next |
+| `/bookings` | A tenant's bookings |
 
 Menu links to home page sections use `/#section` so they work from any page. **All copy, photos, facilities, locations and contact details are in `frontend/src/landing/content.ts`**; buildings, prices and availability come live from the admin inventory.
 

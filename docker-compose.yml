@@ -33,6 +33,8 @@ services:
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       GOOGLE_REDIRECT_URI: http://localhost:${FRONTEND_PORT:-5173}/api/auth/google/callback
+      APP_ENV: development
+      PAYSTACK_SECRET_KEY: ${PAYSTACK_SECRET_KEY:-}
       # Reload on code changes even where file events don't reach containers (e.g. Colima).
       WATCHFILES_FORCE_POLLING: "true"
     ports:

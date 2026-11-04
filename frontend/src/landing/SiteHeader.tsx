@@ -28,6 +28,11 @@ function AccountLinks({ onNavigate }: { onNavigate?: () => void }) {
           Buildings
         </Link>
       )}
+      {user.role === "tenant" && (
+        <Link to="/bookings" onClick={onNavigate} className={cn(navLinkClass, "text-sm font-medium")}>
+          My bookings
+        </Link>
+      )}
       <span className="text-sm text-white/80">{user.name}</span>
       <button type="button" onClick={() => void logout()} className="min-h-11 text-sm font-medium text-white/90 underline-offset-4 hover:text-white hover:underline">
         Log out

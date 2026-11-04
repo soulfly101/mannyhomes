@@ -11,6 +11,8 @@ from sqlalchemy.orm import Session
 from .auth.router import router as auth_router
 from .billing.router import admin_router as billing_admin_router
 from .billing.router import router as billing_router
+from .bookings.router import router as bookings_router
+from .bookings.router import webhook_router
 from .config import get_settings
 from .contact.router import admin_router as contact_admin_router
 from .contact.router import router as contact_router
@@ -28,7 +30,13 @@ app = FastAPI(title="Altheo Homes API")
 @app.middleware("http")
 async def require_csrf_header(request: Request, call_next):
     """Browsers can only send this custom header cross-site after a CORS check, which blocks forgeries."""
-    if request.method not in SAFE_METHODS and request.url.path.startswith("/api/"):
+    # Webhooks come from the payment provider, not a browser, and prove themselves with a signature instead.
+    path = request.url.path
+    if (
+        request.method not in SAFE_METHODS
+        and path.startswith("/api/")
+        and not path.startswith("/api/webhooks/")
+    ):
         if request.headers.get(CSRF_HEADER) != CSRF_VALUE:
             return JSONResponse(
                 status_code=403, content={"detail": "Missing request header. Reload the page."}
@@ -73,6 +81,8 @@ app.include_router(contact_router, prefix="/api/contact")
 app.include_router(contact_admin_router, prefix="/api/admin/contact")
 app.include_router(billing_router, prefix="/api")
 app.include_router(billing_admin_router, prefix="/api/admin")
+app.include_router(bookings_router, prefix="/api/bookings")
+app.include_router(webhook_router, prefix="/api/webhooks")
 
 
 @app.get("/api/health")
