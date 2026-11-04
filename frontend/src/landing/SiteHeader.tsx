@@ -106,7 +106,7 @@ export function SiteNav({ label = "Main", menuId = "mobile-menu" }: { label?: st
 /** Header for every page except the home page (whose hero has the menu over the video): stays at the top while scrolling. */
 export function SiteHeader() {
   return (
-    <header id="top" className="sticky top-0 z-50 bg-ink text-white shadow-sm">
+    <header id="top" className="sticky top-0 z-50 bg-ink text-white shadow-sm print:hidden">
       <SiteNav />
     </header>
   );

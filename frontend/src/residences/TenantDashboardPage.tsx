@@ -68,6 +68,34 @@ function RoomFactsGrid({ booking }: { booking: Booking }) {
 
 const cardClass = "rounded-xl border border-border bg-card p-6 shadow-sm";
 
+/** What the tenant does next: sign the agreement, then pay the deposit. Paying stays locked until it's signed. */
+function NextStep({ booking }: { booking: Booking }) {
+  const t = booking.tenancy!;
+  if (!t.agreement_id) return <p className="mt-4 text-sm text-muted-foreground">Our team will contact you about your tenancy agreement and the renting deposit.</p>;
+  if (!t.agreement_signed) {
+    return (
+      <div className="mt-5">
+        <p className="text-sm text-muted-foreground">Next, read and sign your tenancy agreement. You can pay the renting deposit once it's signed.</p>
+        <Link to={`/agreements/${t.agreement_id}`} className={`${buttonClass} mt-4`}>
+          Read and sign your agreement
+        </Link>
+      </div>
+    );
+  }
+  return (
+    <div className="mt-5 flex flex-wrap gap-3">
+      {t.renting_bill_status !== "paid" && (
+        <Link to={`/bills/${t.renting_bill_id}/pay`} className={buttonClass}>
+          Pay renting deposit
+        </Link>
+      )}
+      <Link to={`/agreements/${t.agreement_id}`} className={outlineButtonClass}>
+        View your agreement
+      </Link>
+    </div>
+  );
+}
+
 function ActiveTenancy({ booking, justAllocated }: { booking: Booking; justAllocated: boolean }) {
   const t = booking.tenancy!;
   const deposit = DEPOSIT[t.renting_bill_status];
@@ -105,7 +133,7 @@ function ActiveTenancy({ booking, justAllocated }: { booking: Booking; justAlloc
                 <Badge tone={deposit.tone}>{deposit.text}</Badge>
               </dd>
             </dl>
-            {t.renting_bill_status !== "paid" && <p className="mt-4 text-sm text-muted-foreground">Our team will contact you about your tenancy agreement and the renting deposit.</p>}
+            <NextStep booking={booking} />
           </section>
         </div>
       </div>

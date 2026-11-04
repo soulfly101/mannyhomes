@@ -13,7 +13,7 @@ const allocated = booking({
   status: "allocated",
   bill_status: "paid",
   payment: { status: "success", message: null },
-  tenancy: { room_number: "A12", start_date: "2026-11-04", rent: 2000, sanitation_fee: 50, renting_deposit: 4000, renting_bill_number: "BILL-000009", renting_bill_status: "unpaid" },
+  tenancy: { room_number: "A12", start_date: "2026-11-04", rent: 2000, sanitation_fee: 50, renting_deposit: 4000, renting_bill_number: "BILL-000009", renting_bill_status: "unpaid", renting_bill_id: 9, agreement_id: "ag1", agreement_signed: false },
 });
 
 const renderDashboard = () =>
@@ -54,11 +54,33 @@ test("once allocated it's the Tenant Dashboard with building, location, room typ
   expect(screen.getByRole("link", { name: "View booking details" })).toHaveAttribute("href", "/bookings/bk1");
 });
 
-test("a paid renting deposit doesn't ask them to wait for contact", async () => {
-  mockApi({ ...base, "GET /api/bookings": { body: [{ ...allocated, tenancy: { ...allocated.tenancy!, renting_bill_status: "paid" } }] } });
+test("after allocation the next step is signing, and paying isn't offered yet", async () => {
+  mockApi({ ...base, "GET /api/bookings": { body: [allocated] } });
+  renderDashboard();
+  expect(await screen.findByRole("link", { name: "Read and sign your agreement" })).toHaveAttribute("href", "/agreements/ag1");
+  expect(screen.queryByRole("link", { name: "Pay renting deposit" })).not.toBeInTheDocument();
+});
+
+test("once signed the next step is paying the deposit", async () => {
+  mockApi({ ...base, "GET /api/bookings": { body: [{ ...allocated, tenancy: { ...allocated.tenancy!, agreement_signed: true } }] } });
+  renderDashboard();
+  expect(await screen.findByRole("link", { name: "Pay renting deposit" })).toHaveAttribute("href", "/bills/9/pay");
+  expect(screen.getByRole("link", { name: "View your agreement" })).toHaveAttribute("href", "/agreements/ag1");
+  expect(screen.queryByRole("link", { name: "Read and sign your agreement" })).not.toBeInTheDocument();
+});
+
+test("with the deposit paid only the agreement remains", async () => {
+  mockApi({ ...base, "GET /api/bookings": { body: [{ ...allocated, tenancy: { ...allocated.tenancy!, agreement_signed: true, renting_bill_status: "paid" } }] } });
   renderDashboard();
   expect(await screen.findByText("Paid")).toHaveAttribute("data-tone", "success");
-  expect(screen.queryByText(/Our team will contact you/)).not.toBeInTheDocument();
+  expect(screen.queryByRole("link", { name: "Pay renting deposit" })).not.toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "View your agreement" })).toBeInTheDocument();
+});
+
+test("an older tenancy with no agreement says the team will be in touch", async () => {
+  mockApi({ ...base, "GET /api/bookings": { body: [{ ...allocated, tenancy: { ...allocated.tenancy!, agreement_id: null } }] } });
+  renderDashboard();
+  expect(await screen.findByText(/Our team will contact you/)).toBeInTheDocument();
 });
 
 describe("live update", () => {

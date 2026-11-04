@@ -3,6 +3,7 @@ from enum import StrEnum
 from uuid import uuid4
 
 from sqlalchemy import Date, DateTime, Enum, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy.dialects.mysql import MEDIUMTEXT
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import Base, utcnow
@@ -37,6 +38,8 @@ class User(Base):
     )
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime)
+    # An admin's signature as a PNG data URL, stamped on agreements (#24). Loaded only when asked for.
+    signature_image: Mapped[str | None] = mapped_column(MEDIUMTEXT, deferred=True)
 
     sessions: Mapped[list[UserSession]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
@@ -288,3 +291,39 @@ class Tenancy(Base):
 
     booking: Mapped[Booking] = relationship(back_populates="tenancy")
     renting_bill: Mapped[Bill] = relationship()
+    tenant: Mapped[User] = relationship(foreign_keys=[tenant_id])
+    agreement: Mapped[Agreement | None] = relationship(back_populates="tenancy")
+
+
+class Agreement(Base):
+    """A tenancy agreement (#24). Frozen when the room is allocated, and finished when the tenant signs.
+
+    The wording, dates and the landlord's signature are copied here, so nothing later can change a document
+    someone has signed. Large fields are only loaded when asked for.
+    """
+
+    __tablename__ = "agreements"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    tenancy_id: Mapped[str] = mapped_column(ForeignKey("tenancies.id"), unique=True)
+    lease_start: Mapped[date] = mapped_column(Date)
+    lease_end: Mapped[date] = mapped_column(Date)
+    # The filled-in wording: plain text, with "## " marking headings.
+    body: Mapped[str] = mapped_column(Text, deferred=True)
+    # True while the wording hasn't been approved by a lawyer; the document says so.
+    draft_wording: Mapped[bool] = mapped_column(default=True)
+    landlord_name: Mapped[str] = mapped_column(String(120))
+    landlord_signature: Mapped[str] = mapped_column(MEDIUMTEXT, deferred=True)
+    # "drawn" or "typed"; empty until signed.
+    tenant_signature_kind: Mapped[str | None] = mapped_column(String(8))
+    tenant_signature_image: Mapped[str | None] = mapped_column(MEDIUMTEXT, deferred=True)
+    tenant_typed_name: Mapped[str | None] = mapped_column(String(120))
+    signed_at: Mapped[datetime | None] = mapped_column(DateTime)
+    # Evidence of the signing.
+    signed_ip: Mapped[str | None] = mapped_column(String(45))
+    signed_user_agent: Mapped[str | None] = mapped_column(String(255))
+    # SHA-256 of what was signed, shown on the document so a copy can be checked later.
+    document_hash: Mapped[str | None] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+
+    tenancy: Mapped[Tenancy] = relationship(back_populates="agreement")

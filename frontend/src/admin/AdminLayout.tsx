@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, NavLink, Outlet } from "react-router";
-import { Building2, ExternalLink, KeyRound, type LucideIcon } from "lucide-react";
+import { Building2, ExternalLink, FileSignature, KeyRound, PenLine, type LucideIcon } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { UserInitials } from "../components/UserInitials";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,8 @@ import { BRAND } from "../landing/content";
 const SECTIONS: { to: string; label: string; icon: LucideIcon }[] = [
   { to: "/admin/buildings", label: "Buildings", icon: Building2 },
   { to: "/admin/allocations", label: "Allocations", icon: KeyRound },
+  { to: "/admin/agreements", label: "Agreements", icon: FileSignature },
+  { to: "/admin/signature", label: "Signature", icon: PenLine },
 ];
 
 const linkClass = "flex min-h-11 shrink-0 items-center gap-3 whitespace-nowrap rounded-xl px-3 text-sm font-semibold transition duration-200 motion-safe:hover:translate-x-0.5";
@@ -28,8 +30,8 @@ export function AdminLayout() {
   };
 
   return (
-    <div className="min-h-dvh bg-background font-sans text-foreground md:grid md:grid-cols-[240px_minmax(0,1fr)]">
-      <aside className="sticky top-0 z-40 flex flex-wrap items-center justify-between gap-2 border-b border-border bg-card p-3 md:h-dvh md:flex-col md:flex-nowrap md:items-stretch md:justify-start md:gap-6 md:border-b-0 md:border-r md:p-4">
+    <div className="min-h-dvh bg-background font-sans text-foreground md:grid md:grid-cols-[240px_minmax(0,1fr)] print:block">
+      <aside className="sticky top-0 z-40 flex print:hidden flex-wrap items-center justify-between gap-2 border-b border-border bg-card p-3 md:h-dvh md:flex-col md:flex-nowrap md:items-stretch md:justify-start md:gap-6 md:border-b-0 md:border-r md:p-4">
         <Link to="/admin/buildings" className="flex min-h-11 items-center gap-3 text-foreground">
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-lg font-bold text-primary-foreground">{BRAND.monogram}</span>
           <span className="font-bold tracking-tight">{BRAND.name}</span>

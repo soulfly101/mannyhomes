@@ -14,6 +14,8 @@ export type PendingAllocation = {
   taken_rooms: string[];
   /** Why it can't be allocated yet; null when it can. */
   blocked_reason: string | null;
+  /** Which page fixes it. */
+  blocked_fix: "buildings" | "signature" | null;
 };
 
 export type AllocatedTenancy = {

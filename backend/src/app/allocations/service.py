@@ -1,7 +1,7 @@
 """Allocating rooms (#18): the admin gives a tenant who has paid their booking deposit a specific room.
 
-It all happens in one transaction: availability goes down by one, the renting deposit is billed, and the
-tenancy starts with the rent and sanitation fee copied.
+It all happens in one transaction: availability goes down by one, the renting deposit is billed, the
+tenancy starts with the rent and sanitation fee copied, and the tenancy agreement is created for signing.
 """
 
 from datetime import timedelta
@@ -9,6 +9,7 @@ from datetime import timedelta
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
+from ..agreements.service import create_agreement
 from ..billing.service import create_bill
 from ..db import utcnow
 from ..models import Bill, BillKind, Booking, BookingStatus, Building, RoomType, Tenancy, User
@@ -47,16 +48,19 @@ def taken_rooms(db: Session, building_id: str) -> list[str]:
     return sorted(rooms, key=str.casefold)
 
 
-def blocked_reason(room: RoomType | None) -> str | None:
-    """Why this booking can't be allocated yet, in words the admin can act on."""
+def blocked_reason(room: RoomType | None, admin: User) -> tuple[str, str] | None:
+    """Why this booking can't be allocated yet, in words the admin can act on, and where to fix it."""
     if room is None:
-        return "This room type has been deleted. Refund the deposit or add it back first."
+        return "This room type has been deleted. Refund the deposit or add it back first.", "buildings"
     if room.renting_deposit <= 0:
-        return f"Set the renting deposit for {room.name} at {room.building.name} first."
+        return f"Set the renting deposit for {room.name} at {room.building.name} first.", "buildings"
     if room.quantity_available <= 0:
         return (
-            f"{room.building.name} has no {room.name} rooms left. Raise the number available if one is free."
+            f"{room.building.name} has no {room.name} rooms left. Raise the number available if one is free.",
+            "buildings",
         )
+    if not admin.signature_image:
+        return "Upload your signature first: it goes on the tenancy agreement.", "signature"
     return None
 
 
@@ -82,9 +86,9 @@ def allocate(db: Session, booking_id: str, room_number: str, admin: User) -> Ten
         if building
         else None
     )
-    reason = blocked_reason(room)
+    reason = blocked_reason(room, admin)
     if reason:
-        raise AllocationError(reason)
+        raise AllocationError(reason[0])
 
     taken = db.scalar(
         select(Tenancy.id).where(
@@ -125,6 +129,8 @@ def allocate(db: Session, booking_id: str, room_number: str, admin: User) -> Ten
         allocated_by_id=admin.id,
     )
     db.add(tenancy)
+    db.flush()
+    create_agreement(db, tenancy, tenant_name=booking.tenant.name, admin=admin)
     booking.status = BookingStatus.ALLOCATED
     db.commit()
     return tenancy

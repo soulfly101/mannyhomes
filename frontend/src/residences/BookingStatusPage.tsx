@@ -165,7 +165,7 @@ function Headline({ booking, waiting }: { booking: Booking; waiting: boolean }) 
       <div role="status">
         {title(`Your room is ready: ${booking.tenancy.room_number}`)}
         <p className="mt-3 text-muted-foreground">
-          Room {booking.tenancy.room_number} at {booking.building} is yours. Our team will contact you about your tenancy agreement and the renting deposit.
+          Room {booking.tenancy.room_number} at {booking.building} is yours. Next, sign your tenancy agreement from your dashboard, then pay the renting deposit.
         </p>
       </div>
     );
