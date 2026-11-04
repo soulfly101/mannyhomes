@@ -6,6 +6,7 @@ import { FormError } from "@/components/ui/sign-in";
 import { formatCedis, formatDate } from "../format";
 import { buttonClass, outlineButtonClass, sectionClass } from "../landing/parts";
 import { SitePage } from "../landing/SitePage";
+import { BookingSteps } from "./BookingSteps";
 import { BOOKING_LABEL, type Booking } from "./bookings";
 
 export const POLL_MS = 4000;
@@ -68,8 +69,9 @@ export function BookingStatusPage() {
           {error && <FormError>{error}</FormError>}
           {booking && (
             <div className="mt-2 flex flex-col gap-6">
+              {booking.status !== "cancelled" && <BookingSteps current={booking.status === "pending_payment" ? 2 : 3} />}
               <Headline booking={booking} waiting={waiting} />
-              <dl className="grid grid-cols-[auto_1fr] gap-x-10 gap-y-3 rounded-md border border-border bg-card p-6 text-sm">
+              <dl className="grid grid-cols-[auto_1fr] gap-x-10 gap-y-3 rounded-xl border border-border bg-card p-6 shadow-sm text-sm">
                 <dt className="text-muted-foreground">Residence</dt>
                 <dd>
                   {booking.room}, {booking.building}, {booking.location}
@@ -84,7 +86,7 @@ export function BookingStatusPage() {
                 </dd>
               </dl>
               {booking.tenancy && (
-                <dl className="grid grid-cols-[auto_1fr] gap-x-10 gap-y-3 rounded-md border border-border bg-card p-6 text-sm" aria-label="Your tenancy">
+                <dl className="grid grid-cols-[auto_1fr] gap-x-10 gap-y-3 rounded-xl border border-border bg-card p-6 shadow-sm text-sm" aria-label="Your tenancy">
                   <dt className="text-muted-foreground">Room</dt>
                   <dd className="font-semibold">{booking.tenancy.room_number}</dd>
                   <dt className="text-muted-foreground">Start date</dt>
@@ -105,7 +107,7 @@ export function BookingStatusPage() {
                 </dl>
               )}
               {waiting && booking.test_mode && (
-                <div className="rounded-md border border-dashed border-border p-6">
+                <div className="rounded-xl border border-dashed border-border p-6">
                   <h2 className="font-semibold">Test mode</h2>
                   <p className="mt-1 text-sm text-muted-foreground">No real prompt was sent and nothing is charged. Choose what the customer does:</p>
                   <div className="mt-4 flex flex-wrap gap-3">

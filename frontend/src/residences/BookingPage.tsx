@@ -4,9 +4,11 @@ import { ArrowLeft } from "lucide-react";
 import { ApiError, apiFetch } from "../api";
 import { useAuth } from "../auth/AuthContext";
 import { AuthField, FormError } from "@/components/ui/sign-in";
+import { cn } from "@/lib/utils";
 import { formatCedis } from "../format";
-import { buttonClass, chipClass, sectionClass } from "../landing/parts";
+import { buttonClass, sectionClass } from "../landing/parts";
 import { SitePage, useEnquiry } from "../landing/SitePage";
+import { BookingSteps } from "./BookingSteps";
 import { NETWORKS, type Booking, type Network } from "./bookings";
 import { useRoom, type Residence } from "./data";
 import { RoomFacts } from "./ResidenceDetailsPage";
@@ -60,9 +62,18 @@ function PayForm({ r }: { r: Residence }) {
       />
       <fieldset>
         <legend className="text-sm font-medium text-muted-foreground">Network</legend>
-        <div className="mt-2 flex flex-wrap gap-2">
+        <div className="mt-2 grid grid-cols-3 gap-2">
           {NETWORKS.map((n) => (
-            <button key={n.code} type="button" aria-pressed={network === n.code} onClick={() => setNetwork(n.code)} className={chipClass(network === n.code)}>
+            <button
+              key={n.code}
+              type="button"
+              aria-pressed={network === n.code}
+              onClick={() => setNetwork(n.code)}
+              className={cn(
+                "min-h-14 rounded-xl border-2 px-2 py-3 text-sm font-semibold transition duration-200 hover:shadow-sm motion-safe:hover:-translate-y-0.5",
+                network === n.code ? "border-primary bg-accent" : "border-border bg-card hover:border-foreground/30",
+              )}
+            >
               {n.label}
             </button>
           ))}
@@ -98,16 +109,19 @@ export function BookingPage() {
             Back to {state.residence.name}
           </Link>
           <div className="mt-6 max-w-2xl">
+            <div className="mb-6">
+              <BookingSteps current={2} />
+            </div>
             <h1 id="booking-title" className="text-5xl font-bold tracking-tight leading-tight">
               Book a {state.residence.name}
             </h1>
             <p className="mt-2 text-muted-foreground">
               {state.residence.building} · {state.residence.location}
             </p>
-            <div className="mt-8 rounded-md border border-border bg-card p-6">
+            <div className="mt-8 rounded-xl border border-border bg-card p-6 shadow-sm">
               <RoomFacts r={state.residence} />
             </div>
-            <div className="mt-8 rounded-md border border-border bg-card p-6">
+            <div className="mt-8 rounded-xl border border-border bg-card p-6 shadow-sm">
               {state.residence.quantity === 0 ? (
                 <Notice title="Fully booked right now" text="Enquire and we'll let you know as soon as one frees up." onEnquire={() => enquire(state.residence)} />
               ) : !state.residence.bookingDeposit ? (

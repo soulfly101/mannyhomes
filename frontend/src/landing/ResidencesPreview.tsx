@@ -1,11 +1,8 @@
 import { Link } from "react-router";
-import { Reveal, sideFor } from "../components/Reveal";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import { formatCedis } from "../format";
-import { availability, photoFor, type Residence } from "../residences/data";
+import type { Residence } from "../residences/data";
+import { ResidenceCard } from "../residences/ResidenceCard";
 import { RESIDENCES } from "./content";
-import { SectionHead, buttonClass, photoPop, photoZoom, sectionClass } from "./parts";
+import { SectionHead, buttonClass, sectionClass } from "./parts";
 
 const PREVIEW_COUNT = 3;
 
@@ -22,23 +19,7 @@ export function ResidencesPreview({ residences }: { residences: Residence[] | nu
       {shown.length > 0 && (
         <ul className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3" aria-label="Featured residences">
           {shown.map((r, i) => (
-            <Reveal as="li" key={r.id} from={sideFor(i)} delay={i * 100}>
-              <Link to={`/residences/${r.id}`} className={cn(photoPop, "h-full bg-card")}>
-                <div className="aspect-[4/3] overflow-hidden">
-                  <img src={photoFor(r.name)} alt="" className={photoZoom} />
-                </div>
-                <div className="p-5">
-                  <h3 className="text-xl font-bold tracking-tight">{r.name}</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {r.building} · {r.location}
-                  </p>
-                  <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
-                    <Badge tone={r.quantity ? "success" : "danger"}>{availability(r.quantity)}</Badge>
-                    {r.rent !== null && <span className="font-semibold">{formatCedis(r.rent)} / month</span>}
-                  </div>
-                </div>
-              </Link>
-            </Reveal>
+            <ResidenceCard key={r.id} r={r} index={i} />
           ))}
         </ul>
       )}

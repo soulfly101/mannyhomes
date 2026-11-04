@@ -42,6 +42,7 @@ test("tenants see a summary of the room they're booking", async () => {
   expect(screen.getByText("Manny Building · Oyarifa")).toBeInTheDocument();
   expect(screen.getByText("GH₵ 2,000 / month")).toBeInTheDocument();
   expect(screen.getByRole("heading", { name: "Pay the booking deposit" })).toBeInTheDocument();
+  expect(within(screen.getByRole("list", { name: "Booking steps" })).getByText("Pay").closest("li")).toHaveAttribute("aria-current", "step");
   expect(screen.getByRole("link", { name: /Back to 2 bedroom/ })).toHaveAttribute("href", "/residences/r2");
 });
 

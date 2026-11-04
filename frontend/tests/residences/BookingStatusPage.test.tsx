@@ -58,6 +58,25 @@ test("once allocated the tenant sees their room and what's next", async () => {
   expect(screen.getByText("BILL-000009")).toBeInTheDocument();
 });
 
+const step = () => document.querySelector('[aria-current="step"]');
+
+test.each([
+  ["waiting for payment", waiting, "Pay"],
+  ["confirmed", paid, "Confirmed"],
+])("the steps show where the tenant is when %s", async (_name, reply, label) => {
+  mockApi({ ...base, "GET /api/bookings/bk1": { body: reply } });
+  renderStatus();
+  await screen.findByRole("list", { name: "Booking steps" });
+  expect(step()).toHaveTextContent(label);
+});
+
+test("a cancelled booking has no steps", async () => {
+  mockApi({ ...base, "GET /api/bookings/bk1": { body: booking({ status: "cancelled" }) } });
+  renderStatus();
+  await screen.findByRole("heading", { name: "Booking cancelled" });
+  expect(screen.queryByRole("list", { name: "Booking steps" })).not.toBeInTheDocument();
+});
+
 test("a failed payment says why and offers another try or cancelling", async () => {
   const cancelled = booking({ status: "cancelled" });
   mockApi({ ...base, "GET /api/bookings/bk1": { body: booking({ payment: { status: "failed", message: "Insufficient funds" } }) }, "POST /api/bookings/bk1/cancel": { body: cancelled } });

@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Route } from "react-router";
 import { ResidenceDetailsPage } from "../../src/residences/ResidenceDetailsPage";
@@ -21,6 +21,8 @@ test("visitors see the room without its price, and Book now sends them to sign u
   expect(await screen.findByRole("heading", { level: 1, name: "2 bedroom" })).toBeInTheDocument();
   expect(screen.getByText("Manny Building · Oyarifa")).toBeInTheDocument();
   expect(screen.getByText("Bright corner flat.")).toBeInTheDocument();
+  expect(within(screen.getByRole("list", { name: "Key facts" })).getByText("Oyarifa")).toBeInTheDocument();
+  expect(within(screen.getByRole("complementary", { name: "Price and booking" })).getByRole("link", { name: "Book now" })).toBeInTheDocument();
   expect(screen.getByText("Log in to see the price")).toBeInTheDocument();
   expect(screen.queryByText("Booking deposit")).not.toBeInTheDocument();
   expect(screen.getByText("2 available")).toHaveAttribute("data-tone", "success");
