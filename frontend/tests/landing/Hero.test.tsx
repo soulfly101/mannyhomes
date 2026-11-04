@@ -67,10 +67,12 @@ test("visitors see log in and sign up", async () => {
   expect(screen.getAllByRole("link", { name: "Log in" })[0]).toHaveAttribute("href", "/login");
 });
 
-test("logged-in tenants see their name and can log out", async () => {
+test("logged-in tenants see their initials, not their name, and can log out", async () => {
   const { calls } = mockApi({ "GET /api/auth/me": { body: AMA }, ...googleOff, "POST /api/auth/logout": { status: 204 } });
   renderHero();
-  expect((await screen.findAllByText("Ama Mensah"))[0]).toBeInTheDocument();
+  const badge = (await screen.findAllByRole("img", { name: "Ama Mensah" }))[0];
+  expect(badge).toHaveTextContent(/^AM$/);
+  expect(screen.queryByText("Ama Mensah")).not.toBeInTheDocument();
   expect(screen.queryByRole("link", { name: "Buildings" })).not.toBeInTheDocument();
   await userEvent.click(screen.getAllByRole("button", { name: "Log out" })[0]);
   await waitFor(() => expect(calls.some((c) => c.key === "POST /api/auth/logout")).toBe(true));

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, NavLink } from "react-router";
 import { useAuth } from "../auth/AuthContext";
 import { Button } from "./Button";
+import { UserInitials } from "./UserInitials";
 
 /** Glass top bar (DESIGN.md → Navigation): name on the left, account actions on the right. */
 export function TopBar() {
@@ -35,7 +36,7 @@ export function TopBar() {
         )}
         {user === undefined ? null : user ? (
           <div className="topbar-actions">
-            <span className="topbar-user">{user.name}</span>
+            <UserInitials name={user.name} className="bg-primary text-primary-foreground" />
             <Button variant="secondary" busy={busy} onClick={onLogout}>
               Log out
             </Button>

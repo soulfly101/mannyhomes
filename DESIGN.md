@@ -127,7 +127,7 @@ The mapping lives in `frontend/src/components/StatusPill.tsx`; add new statuses 
 - Phone numbers: one field, Ghanaian format, `inputmode="tel"`. Money: `inputmode="numeric"`, GH₵ shown before the field.
 
 ### Navigation
-- **Top bar (`<TopBar>`):** glass, sticky, logo left, sections in the middle (desktop), account + "Log out" right. Logged-out visitors see "Log in" and "Sign up". Nothing in it wraps; on phones the user's name is hidden to make room.
+- **Top bar (`<TopBar>`):** glass, sticky, logo left, sections in the middle (desktop), account + "Log out" right. Logged-out visitors see "Log in" and "Sign up". Nothing in it wraps. The logged-in person shows as their **initials** in a small round badge (`<UserInitials>`), never their full name, which stays available on hover and to screen readers.
 - **Phones:** the sections move to a scrollable pill row under the top bar. No hamburger menus for primary sections.
 - Current section is a filled `--accent` pill; others are `--muted` text.
 - Tenant, admin and staff areas share the same shell with different sections.
