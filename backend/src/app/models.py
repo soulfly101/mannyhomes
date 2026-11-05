@@ -284,6 +284,8 @@ class Tenancy(Base):
     sanitation_fee: Mapped[int] = mapped_column(Integer)
     renting_bill_id: Mapped[int] = mapped_column(ForeignKey("bills.id"))
     start_date: Mapped[date] = mapped_column(Date)
+    # Set by the admin if it differs from the day the agreement was signed (see app.sanitation).
+    move_in_date: Mapped[date | None] = mapped_column(Date)
     # Set at move-out (#26). None means the tenant is living there now.
     ended_at: Mapped[datetime | None] = mapped_column(DateTime)
     allocated_by_id: Mapped[str | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))

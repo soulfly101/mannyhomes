@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from ..auth.deps import current_user, require_role
 from ..db import get_session
 from ..models import Bill, BillKind, PaymentMethod, PaymentStatus, Role, RoomType, User
+from ..sanitation.service import ensure_sanitation_bills
 from .service import (
     BillingError,
     BillStatus,
@@ -105,6 +106,7 @@ class BillOut(BaseModel):
 @router.get("/me/bills")
 def my_bills(user: Tenant, db: DB) -> list[BillOut]:
     """The logged-in person's own bills, newest first."""
+    ensure_sanitation_bills(db, tenant_id=user.id)
     return [BillOut.of(b) for b in db.scalars(bills_query().where(Bill.tenant_id == user.id)).all()]
 
 
@@ -118,6 +120,7 @@ def list_bills(
     building: str | None = None,
 ) -> list[BillOut]:
     """Every live bill, newest first, optionally filtered."""
+    ensure_sanitation_bills(db)
     query = bills_query()
     if tenant:
         query = query.where(Bill.tenant_id == tenant)
@@ -197,6 +200,7 @@ def compliance(tenant_id: str, db: DB, period: str | None = None) -> ComplianceO
     """Whether the tenant has cleared both deposits and the month's sanitation bill."""
     if db.get(User, tenant_id) is None:
         raise HTTPException(status_code=404, detail="That tenant doesn't exist.")
+    ensure_sanitation_bills(db, tenant_id=tenant_id)
     try:
         c = tenant_compliance(db, tenant_id, period or current_period())
     except BillingError as e:

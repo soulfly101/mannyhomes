@@ -103,7 +103,8 @@ def test_the_figures_add_up(client, db, admin, room):
     # 5 minus 2 allocated = 3; one held by the unpaid booking and one by the paid one.
     assert f["rooms_available"] == 1
     assert f["collected_this_month"] == 900
-    assert f["still_owed"] == 8000  # two renting deposits; the unpaid booking deposit isn't owed
+    # Two renting deposits and the signed tenant's sanitation bill; the unpaid booking deposit isn't owed.
+    assert f["still_owed"] == 8050
     assert {s["key"]: s["count"] for s in body["stages"]} == {"payment": 1, "room": 1, "sign": 1, "signed": 1}
     assert {t["name"]: (t["status"], t["tone"]) for t in body["recent_tenants"]}["Signed Tenant"] == (
         "Room A2",

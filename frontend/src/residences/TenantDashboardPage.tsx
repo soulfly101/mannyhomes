@@ -9,6 +9,7 @@ import { FormError } from "@/components/ui/sign-in";
 import { formatCedis, formatDate } from "../format";
 import { buttonClass, outlineButtonClass, photoPop, photoZoom, sectionClass } from "../landing/parts";
 import { SitePage } from "../landing/SitePage";
+import { BillRow, currentSanitationBills, type TenantBill } from "./bills";
 import { BookingSteps } from "./BookingSteps";
 import type { Booking } from "./bookings";
 import { photoFor } from "./data";
@@ -96,6 +97,44 @@ function NextStep({ booking }: { booking: Booking }) {
   );
 }
 
+/** The tenant's "Billing / Payments" section: this month's sanitation bill and anything still owed. */
+function BillingSection({ booking }: { booking: Booking }) {
+  const [bills, setBills] = useState<TenantBill[] | null>(null);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    apiFetch<TenantBill[]>("/api/me/bills")
+      .then(setBills)
+      .catch((e) => setError(e instanceof ApiError ? e.message : "Couldn't load your bills. Try again."));
+  }, []);
+  const current = bills ? currentSanitationBills(bills) : [];
+  if (booking.tenancy!.sanitation_fee <= 0 && bills && current.length === 0) return null;
+
+  return (
+    <section aria-labelledby="billing-title" className={`${cardClass} mt-6`}>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 id="billing-title" className="text-2xl font-bold tracking-tight">
+          Billing / Payments
+        </h2>
+        <Link to="/bills" className={outlineButtonClass}>
+          See all bills
+        </Link>
+      </div>
+      <div className="mt-4">
+        {error && <FormError>{error}</FormError>}
+        {!bills && !error && <p className="text-muted-foreground">Loading your bills…</p>}
+        {bills && current.length === 0 && <p className="text-sm text-muted-foreground">Your monthly sanitation bills will appear here once you've signed your agreement. Each is due on the day of the month you moved in.</p>}
+        {current.length > 0 && (
+          <ul aria-label="Sanitation bills">
+            {current.map((b) => (
+              <BillRow key={b.id} bill={b} />
+            ))}
+          </ul>
+        )}
+      </div>
+    </section>
+  );
+}
+
 function ActiveTenancy({ booking, justAllocated }: { booking: Booking; justAllocated: boolean }) {
   const t = booking.tenancy!;
   const deposit = DEPOSIT[t.renting_bill_status];
@@ -137,6 +176,7 @@ function ActiveTenancy({ booking, justAllocated }: { booking: Booking; justAlloc
           </section>
         </div>
       </div>
+      <BillingSection booking={booking} />
     </>
   );
 }

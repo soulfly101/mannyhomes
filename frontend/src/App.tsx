@@ -8,6 +8,7 @@ import { AllocationsPage } from "./admin/AllocationsPage";
 import { BuildingFormPage } from "./admin/BuildingFormPage";
 import { BuildingsPage } from "./admin/BuildingsPage";
 import { SignaturePage } from "./admin/SignaturePage";
+import { TenantsPage } from "./admin/TenantsPage";
 import { RequireAuth } from "./auth/RequireAuth";
 import { TopBar } from "./components";
 import { LandingPage } from "./landing/LandingPage";
@@ -15,6 +16,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { OnboardingPage } from "./pages/OnboardingPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { BillPayPage } from "./residences/BillPayPage";
+import { BillsPage } from "./residences/BillsPage";
 import { BookingPage } from "./residences/BookingPage";
 import { BookingsPage } from "./residences/BookingsPage";
 import { BookingStatusPage } from "./residences/BookingStatusPage";
@@ -48,6 +50,7 @@ export function App() {
           }
         />
         <Route path="/agreements/:agreementId" element={<RequireAuth roles={["tenant"]}><AgreementPage /></RequireAuth>} />
+        <Route path="/bills" element={<RequireAuth roles={["tenant"]}><BillsPage /></RequireAuth>} />
         <Route path="/bills/:billId/pay" element={<RequireAuth roles={["tenant"]}><BillPayPage /></RequireAuth>} />
         <Route path="/dashboard" element={<RequireAuth roles={["tenant"]}><TenantDashboardPage /></RequireAuth>} />
         <Route path="/bookings" element={<RequireAuth roles={["tenant"]}><BookingsPage /></RequireAuth>} />
@@ -74,6 +77,7 @@ export function App() {
           <Route path="/admin/buildings" element={<BuildingsPage />} />
           <Route path="/admin/buildings/new" element={<BuildingFormPage />} />
           <Route path="/admin/buildings/:id" element={<BuildingFormPage />} />
+          <Route path="/admin/tenants" element={<TenantsPage />} />
           <Route path="/admin/agreements" element={<AgreementsPage />} />
           <Route path="/admin/agreements/:agreementId" element={<AdminAgreementPage />} />
           <Route path="/admin/signature" element={<SignaturePage />} />

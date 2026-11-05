@@ -24,6 +24,7 @@ from .db import get_session
 from .inventory.router import router as inventory_router
 from .listings.router import router as listings_router
 from .overview.router import router as overview_router
+from .sanitation.router import router as tenancies_router
 
 CSRF_HEADER = "X-Requested-With"
 CSRF_VALUE = "altheo"
@@ -91,6 +92,7 @@ app.include_router(agreements_admin_router, prefix="/api/admin")
 app.include_router(billing_admin_router, prefix="/api/admin")
 app.include_router(overview_router, prefix="/api/admin")
 app.include_router(allocations_router, prefix="/api/admin/allocations")
+app.include_router(tenancies_router, prefix="/api/admin/tenancies")
 app.include_router(bookings_router, prefix="/api/bookings")
 app.include_router(webhook_router, prefix="/api/webhooks")
 
