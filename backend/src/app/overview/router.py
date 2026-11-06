@@ -28,6 +28,7 @@ from ..models import (
     Tenancy,
     User,
 )
+from ..sanitation.service import ensure_sanitation_bills
 
 DB = Annotated[Session, Depends(get_session)]
 
@@ -150,6 +151,7 @@ def _activity(db: Session) -> list[Activity]:
 
 @router.get("/overview")
 def overview(db: DB, months: Annotated[int, Query(ge=1, le=12)] = 6) -> Overview:
+    ensure_sanitation_bills(db)
     today = utcnow().date()
     # Always at least two months, for the comparison with last month.
     starts = _month_starts(today, max(months, 2))

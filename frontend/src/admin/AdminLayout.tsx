@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet } from "react-router";
-import { Building2, ExternalLink, FileSignature, KeyRound, LayoutDashboard, Moon, PenLine, Sun, type LucideIcon } from "lucide-react";
+import { Building2, ExternalLink, FileSignature, KeyRound, LayoutDashboard, Moon, PenLine, Sun, Users, type LucideIcon } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { UserInitials } from "../components/UserInitials";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,7 @@ const SECTIONS: { to: string; label: string; icon: LucideIcon }[] = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { to: "/admin/buildings", label: "Buildings", icon: Building2 },
   { to: "/admin/allocations", label: "Allocations", icon: KeyRound },
+  { to: "/admin/tenants", label: "Tenants", icon: Users },
   { to: "/admin/agreements", label: "Agreements", icon: FileSignature },
   { to: "/admin/signature", label: "Signature", icon: PenLine },
 ];

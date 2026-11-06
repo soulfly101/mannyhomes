@@ -72,6 +72,7 @@ Database changes go through **Alembic** migrations in `backend/migrations/versio
 - **The renting deposit can't be paid online until the agreement is signed** (`payment_block`). Bills are paid at `/api/me/bills/{id}/pay` (`/bills/:id/pay`), which #16 can reuse for sanitation.
 - Pages: `/agreements/:id` (tenant), `/admin/agreements`, `/admin/signature`. PDFs come from the browser's print button.
 
+- Monthly sanitation bills (#16, `app/sanitation/`) follow each tenant's move-in date: the admin's date at `/admin/tenants`, otherwise the day they signed. Each bill is the full fee for a month starting that day, so there's no part-month charge. There's no scheduler: `ensure_sanitation_bills` creates missing bills whenever bills are read, so call it anywhere that reads them.
 Settings live in `.env` files (copied from the `.env.example` next to them). Never commit a `.env`.
 
 ## Rules
