@@ -6,6 +6,7 @@ import { CallToAction } from "../../src/landing/CallToAction";
 import { EXPERIENCE, FACILITIES, GALLERY } from "../../src/landing/content";
 import { Experience } from "../../src/landing/Experience";
 import { Facilities } from "../../src/landing/Facilities";
+import { Footer } from "../../src/landing/Footer";
 import { Gallery } from "../../src/landing/Gallery";
 import { LandingPage } from "../../src/landing/LandingPage";
 import { LocationSection } from "../../src/landing/LocationSection";
@@ -105,4 +106,18 @@ test("the preview shows rooms that are free before fully booked ones, three at m
   const cards = within(await screen.findByRole("list", { name: "Featured residences" })).getAllByRole("link");
   expect(cards).toHaveLength(3);
   expect(cards.map((c) => c.getAttribute("href"))).not.toContain("/residences/r3");
+});
+
+test("the footer ends with the copyright line, with no decorative drawing", () => {
+  mockApi({ ...loggedOut, ...googleOff });
+  const { container } = render(
+    <MemoryRouter>
+      <AuthProvider>
+        <Footer residences={[]} enquiry={null} />
+      </AuthProvider>
+    </MemoryRouter>,
+  );
+  const footer = container.querySelector("footer")!;
+  expect(footer.querySelector('svg[viewBox="0 0 1200 120"]')).toBeNull();
+  expect(footer.lastElementChild).toHaveTextContent(/© \d{4} Altheo Homes\. All rights reserved\./);
 });
