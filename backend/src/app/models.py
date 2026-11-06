@@ -2,7 +2,18 @@ from datetime import date, datetime
 from enum import StrEnum
 from uuid import uuid4
 
-from sqlalchemy import Date, DateTime, Enum, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import (
+    Boolean,
+    Date,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+    false,
+)
 from sqlalchemy.dialects.mysql import MEDIUMTEXT
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -153,6 +164,7 @@ class BillKind(StrEnum):
 class PaymentMethod(StrEnum):
     PAYSTACK_MOMO = "paystack_momo"
     PAYSTACK_CARD = "paystack_card"
+    MOOLRE_MOMO = "moolre_momo"
     CASH = "cash"
     BANK = "bank"
 
@@ -199,7 +211,7 @@ class Bill(Base):
 
 
 class Payment(Base):
-    """Money paid towards a bill: by Paystack (MoMo or card) or recorded by an admin (cash or bank)."""
+    """Money paid towards a bill: through a payment provider or recorded by an admin (cash or bank)."""
 
     __tablename__ = "payments"
 
@@ -210,13 +222,20 @@ class Payment(Base):
     status: Mapped[PaymentStatus] = mapped_column(
         _str_enum(PaymentStatus, "payment_status"), default=PaymentStatus.PENDING
     )
-    # The Paystack reference, or one we make up for cash/bank.
+    # The reference sent to the payment provider, or one we make up for cash/bank.
     # Unique, so the same payment is never counted twice.
     reference: Mapped[str] = mapped_column(String(100), unique=True)
     paid_at: Mapped[datetime | None] = mapped_column(DateTime)
     # The admin who recorded a cash or bank payment.
     recorded_by_id: Mapped[str | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
     note: Mapped[str | None] = mapped_column(String(200))
+    # The number and network being charged, for repeating the request with an SMS code.
+    momo_phone: Mapped[str | None] = mapped_column(String(16))
+    momo_network: Mapped[str | None] = mapped_column(String(8))
+    # True while the provider wants an SMS code; no prompt has gone to the phone yet.
+    otp_required: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+    # When the code was accepted: the time to approve the prompt runs from here, not from created_at.
+    prompted_at: Mapped[datetime | None] = mapped_column(DateTime)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
     bill: Mapped[Bill] = relationship(back_populates="payments")

@@ -18,6 +18,7 @@ const bill = (overrides = {}) => ({
   status: "unpaid",
   payments: [] as { status: string; note: string | null }[],
   locked_reason: null,
+  otp_required: false,
   test_mode: false,
   ...overrides,
 });
@@ -91,4 +92,55 @@ test("a bill that isn't theirs isn't found", async () => {
   mockApi({ ...base, "GET /api/me/bills/9": { status: 404, body: { detail: "That bill doesn't exist." } } });
   renderPage();
   expect(await screen.findByRole("heading", { name: "We can't find that bill" })).toBeInTheDocument();
+});
+
+const askingForCode = { status: "pending", note: "Enter the code sent by SMS to that number." };
+
+test("a first payment can ask for the SMS code, and the code sends the prompt", async () => {
+  const { calls } = mockApi({
+    ...base,
+    "GET /api/me/bills/9": { body: bill() },
+    "POST /api/me/bills/9/pay": { body: bill({ payments: [askingForCode], otp_required: true }) },
+    "POST /api/me/bills/9/otp": { body: bill({ payments: [pending] }) },
+  });
+  renderPage();
+  await screen.findByLabelText("Mobile Money number");
+  await userEvent.click(screen.getByRole("button", { name: "MTN MoMo" }));
+  await userEvent.click(screen.getByRole("button", { name: "Pay GH₵ 4,000" }));
+  expect(await screen.findByRole("heading", { level: 1, name: "Enter the code from your SMS" })).toBeInTheDocument();
+  expect(screen.queryByText(/You have about 3 minutes/)).not.toBeInTheDocument();
+  await userEvent.type(screen.getByLabelText("SMS code"), "1234");
+  await userEvent.click(screen.getByRole("button", { name: "Confirm code" }));
+  expect(await screen.findByRole("heading", { level: 1, name: "Approve the prompt on your phone" })).toBeInTheDocument();
+  expect(calls.find((c) => c.key === "POST /api/me/bills/9/otp")!.body).toEqual({ code: "1234" });
+});
+
+test("an empty code is caught before asking the server, and a refused one is explained", async () => {
+  const { calls } = mockApi({
+    ...base,
+    "GET /api/me/bills/9": { body: bill({ payments: [askingForCode], otp_required: true }) },
+    "POST /api/me/bills/9/otp": { status: 502, body: { detail: "Online payment isn't working right now." } },
+  });
+  renderPage();
+  await userEvent.click(await screen.findByRole("button", { name: "Confirm code" }));
+  expect(await screen.findByText("Enter the code from the SMS.")).toBeInTheDocument();
+  expect(calls.some((c) => c.key === "POST /api/me/bills/9/otp")).toBe(false);
+  await userEvent.type(screen.getByLabelText("SMS code"), "1234");
+  await userEvent.click(screen.getByRole("button", { name: "Confirm code" }));
+  expect(await screen.findByText("Online payment isn't working right now.")).toBeInTheDocument();
+});
+
+test("a tenant stuck on the code can use a different number", async () => {
+  const { calls } = mockApi({
+    ...base,
+    "GET /api/me/bills/9": { body: bill({ payments: [askingForCode], otp_required: true }) },
+    "POST /api/me/bills/9/pay": { body: bill({ payments: [pending] }) },
+  });
+  renderPage();
+  await userEvent.click(await screen.findByRole("button", { name: "Use a different number" }));
+  expect(screen.queryByLabelText("SMS code")).not.toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: "Telecel Cash" }));
+  await userEvent.click(screen.getByRole("button", { name: "Pay GH₵ 4,000" }));
+  expect(await screen.findByRole("heading", { level: 1, name: "Approve the prompt on your phone" })).toBeInTheDocument();
+  expect(calls.find((c) => c.key === "POST /api/me/bills/9/pay")!.body).toEqual({ phone: "0241234567", network: "vod" });
 });

@@ -25,7 +25,7 @@ const allocated = (signed: boolean, sanitation_fee = 50) =>
   booking({
     status: "allocated",
     bill_status: "paid",
-    payment: { status: "success", message: null },
+    payment: { status: "success", message: null, otp_required: false },
     tenancy: { room_number: "A12", start_date: "2026-11-04", rent: 2000, sanitation_fee, renting_deposit: 4000, renting_bill_number: "BILL-000009", renting_bill_status: "paid", renting_bill_id: 9, agreement_id: "ag1", agreement_signed: signed },
   });
 

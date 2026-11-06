@@ -75,7 +75,7 @@ test("the form starts with the tenant's phone number and the amount on the butto
 });
 
 test("paying creates the booking, sends the prompt and moves to the booking's own page", async () => {
-  const { calls } = mockApi({ ...asTenant(), "POST /api/bookings": { status: 201, body: booking() }, "POST /api/bookings/bk1/pay": { body: booking({ payment: { status: "pending", message: null } }) } });
+  const { calls } = mockApi({ ...asTenant(), "POST /api/bookings": { status: 201, body: booking() }, "POST /api/bookings/bk1/pay": { body: booking({ payment: { status: "pending", message: null, otp_required: false } }) } });
   renderBooking();
   const phone = await screen.findByLabelText("Mobile Money number");
   await userEvent.clear(phone);

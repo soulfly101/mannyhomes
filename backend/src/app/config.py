@@ -18,10 +18,17 @@ class Settings(BaseSettings):
     # Signs short-lived values like the Google sign-in state. Use a long random value in production.
     secret_key: str = "dev-only-insecure-secret-change-me"
 
-    # "development" allows the pretend payment mode when no Paystack key is set.
+    # "development" allows the pretend payment mode when no payment provider is set up.
     # docker compose sets it for local work.
     app_env: Literal["development", "production"] = "production"
-    # Paystack secret key (sk_test_… locally). Empty means Paystack is off.
+    # Moolre is used when these three are set. Point the base URL at https://sandbox.moolre.com to test.
+    moolre_username: str | None = None
+    moolre_public_key: str | None = None
+    moolre_account_number: str | None = None
+    moolre_base_url: str = "https://api.moolre.com"
+    # Moolre puts this in each callback. Empty means callbacks are refused and pages ask Moolre instead.
+    moolre_callback_secret: str | None = None
+    # The backup provider, used when Moolre isn't set up (sk_test_… locally). Empty means Paystack is off.
     paystack_secret_key: str | None = None
 
     session_cookie_name: str = "altheo_session"

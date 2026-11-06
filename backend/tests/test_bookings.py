@@ -12,7 +12,7 @@ from app.bookings.service import HOLD, PAYMENT_WINDOW, TIMED_OUT
 from app.config import get_settings
 from app.db import utcnow
 from app.main import app
-from app.models import Bill, Booking, Building, Payment, PaymentStatus, Role, RoomType, User
+from app.models import Bill, Booking, Building, Payment, PaymentMethod, PaymentStatus, Role, RoomType, User
 from app.payments.gateway import (
     ChargeResult,
     ChargeStatus,
@@ -31,9 +31,10 @@ PAY = {"phone": "055 123 4987", "network": "mtn"}
 
 
 class FakeGateway:
-    """Stands in for Paystack: records charges and answers what the test says."""
+    """Stands in for a provider: records charges and answers what the test says."""
 
     simulated = False
+    method = PaymentMethod.PAYSTACK_MOMO
 
     def __init__(self):
         self.charges = []
@@ -259,7 +260,11 @@ def test_pay_sends_the_prompt_and_waits(client, db, tenant, room, gateway):
     body = book(client, room).json()
     response = client.post(f"{URL}/{body['id']}/pay", json=PAY)
     assert response.status_code == 200
-    assert response.json()["payment"] == {"status": "pending", "message": "Approve on your phone"}
+    assert response.json()["payment"] == {
+        "status": "pending",
+        "message": "Approve on your phone",
+        "otp_required": False,
+    }
     assert response.json()["status"] == "pending_payment"
     charge = gateway.charges[0]
     assert {k: charge[k] for k in ("email", "amount", "phone", "network")} == {
@@ -293,7 +298,11 @@ def test_a_refused_charge_can_be_tried_again(client, db, tenant, room, gateway):
     gateway.charge_result = ChargeResult(ChargeStatus.FAILED, message="Insufficient funds")
     body = book(client, room).json()
     failed = client.post(f"{URL}/{body['id']}/pay", json=PAY).json()
-    assert failed["payment"] == {"status": "failed", "message": "Insufficient funds"}
+    assert failed["payment"] == {
+        "status": "failed",
+        "message": "Insufficient funds",
+        "otp_required": False,
+    }
     assert failed["status"] == "pending_payment"
     gateway.charge_result = ChargeResult(ChargeStatus.PENDING)
     assert client.post(f"{URL}/{body['id']}/pay", json=PAY).json()["payment"]["status"] == "pending"
@@ -331,6 +340,7 @@ def test_a_failure_reported_later_is_shown(client, db, tenant, room, gateway):
     assert client.get(f"{URL}/{body['id']}").json()["payment"] == {
         "status": "failed",
         "message": "Declined by the customer",
+        "otp_required": False,
     }
 
 
@@ -341,7 +351,11 @@ def test_a_prompt_nobody_approves_times_out(client, db, tenant, room, gateway):
     payment = payment_for(db, body["id"])
     payment.created_at = utcnow() - PAYMENT_WINDOW - timedelta(seconds=1)
     db.commit()
-    assert client.get(f"{URL}/{body['id']}").json()["payment"] == {"status": "failed", "message": TIMED_OUT}
+    assert client.get(f"{URL}/{body['id']}").json()["payment"] == {
+        "status": "failed",
+        "message": TIMED_OUT,
+        "otp_required": False,
+    }
 
 
 def test_a_provider_hiccup_while_checking_changes_nothing(client, db, tenant, room, gateway):

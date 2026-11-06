@@ -5,7 +5,7 @@ Web app for **Altheo Homes**, a company that rents out apartments in several apa
 - **Tenants** browse complexes and their apartment types, see prices after signing up, book an apartment type with a refundable booking deposit, pay rent and fees, report repairs and book cleaning.
 - **The property manager** approves bookings, assigns the exact unit, tracks bills, payments and refunds, manages complexes, apartment types, units and prices, and runs repairs.
 - **Technicians (staff)** see and update the repair jobs assigned to them.
-- Payments go through **Paystack** (Mobile Money and card). Money is **whole Ghana cedis (GH₵)**, stored as integers.
+- Payments go through **Moolre** (Mobile Money), with **Paystack** as the backup. Money is **whole Ghana cedis (GH₵)**, stored as integers.
 - Prices are only shown to logged-in users.
 
 ## Stack and layout
@@ -52,7 +52,9 @@ Database changes go through **Alembic** migrations in `backend/migrations/versio
 ## Booking and payments
 - `POST /api/bookings` → `POST /api/bookings/{id}/pay` → the prompt on the tenant's phone → status `awaiting_allocation` (`backend/src/app/bookings/`). Pages: `/book/:roomTypeId`, `/bookings/:id`, `/bookings`, and `/dashboard` (a tenant's home base; where they land after logging in with no `next`).
 - One open booking per tenant. Paid bookings hold a room, and unpaid ones hold it for 10 minutes, so listings show `quantity_available` minus holds; the tenant's own unpaid hold isn't counted against them. `quantity_available` itself still only changes at allocation and move-out.
-- Gateways live in `backend/src/app/payments/gateway.py` behind `PaymentGateway`; add a provider there (e.g. Korba) without touching bookings. `get_gateway()` picks Paystack when `PAYSTACK_SECRET_KEY` is set; **without a key, pretend payments work only when `APP_ENV=development`** (docker compose sets it; the default is production, where payments are simply off).
+- Gateways live in `backend/src/app/payments/gateway.py` behind `PaymentGateway`; add a provider there (e.g. Korba) without touching bookings. `get_gateway()` picks Moolre when `MOOLRE_USERNAME`, `MOOLRE_PUBLIC_KEY` and `MOOLRE_ACCOUNT_NUMBER` are all set, then Paystack when `PAYSTACK_SECRET_KEY` is set; **with neither, pretend payments work only when `APP_ENV=development`** (docker compose sets it; the default is production, where payments are simply off). In test mode, numbers ending in 000 ask for an SMS code.
+- Moolre can ask for an SMS code before it sends the prompt (`POST /api/bookings/{id}/otp`, `POST /api/me/bills/{id}/otp`). The retry keeps the same reference. A lost reply stays pending for the status check and never gets a new reference, so nobody is charged twice.
+- `POST /api/webhooks/moolre` needs no CSRF header; it checks `data.secret` against `MOOLRE_CALLBACK_SECRET`, then asks Moolre's status check before counting anything. The callback alone is never proof of payment.
 - `POST /api/webhooks/paystack` needs no CSRF header; it checks the `x-paystack-signature` HMAC instead. The page also asks Paystack directly while waiting, so a missed webhook isn't fatal. A confirmation only counts if the amount and currency match, and if money really arrived it counts even after a timeout or cancellation.
 
 ## Allocation and tenancies

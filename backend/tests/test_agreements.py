@@ -42,6 +42,7 @@ PAY = {"phone": "055 123 4987", "network": "mtn"}
 
 class FakeGateway:
     simulated = False
+    method = PaymentMethod.PAYSTACK_MOMO
 
     def __init__(self):
         self.charges = []

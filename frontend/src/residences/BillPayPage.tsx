@@ -9,6 +9,7 @@ import { SitePage } from "../landing/SitePage";
 import { POLL_MS } from "./BookingStatusPage";
 import type { Network } from "./bookings";
 import { MomoForm } from "./MomoForm";
+import { OtpForm } from "./OtpForm";
 
 type Bill = {
   id: number;
@@ -20,6 +21,7 @@ type Bill = {
   status: "paid" | "partial" | "unpaid";
   payments: { status: "pending" | "success" | "failed"; note: string | null }[];
   locked_reason: string | null;
+  otp_required: boolean;
   test_mode: boolean;
 };
 
@@ -31,6 +33,7 @@ export function BillPayPage() {
   const [bill, setBill] = useState<Bill | null>(null);
   const [error, setError] = useState("");
   const [notFound, setNotFound] = useState(false);
+  const [changingNumber, setChangingNumber] = useState(false);
   const url = `/api/me/bills/${billId}`;
 
   const load = useCallback(
@@ -49,6 +52,7 @@ export function BillPayPage() {
 
   const latest = bill?.payments[bill.payments.length - 1];
   const waiting = latest?.status === "pending";
+  const needsCode = waiting && !!bill?.otp_required && !changingNumber;
   useEffect(() => {
     if (!waiting) return;
     const timer = window.setInterval(() => void load(), POLL_MS);
@@ -57,6 +61,10 @@ export function BillPayPage() {
 
   const pay = async (phone: string, network: Network) => {
     setBill(await apiFetch<Bill>(`${url}/pay`, { method: "POST", body: { phone, network } }));
+    setChangingNumber(false);
+  };
+  const enterCode = async (code: string) => {
+    setBill(await apiFetch<Bill>(`${url}/otp`, { method: "POST", body: { code } }));
   };
   const simulate = async (outcome: "success" | "failed") => {
     setError("");
@@ -82,7 +90,7 @@ export function BillPayPage() {
             <>
               <div>
                 <h1 id="bill-title" className="text-4xl font-bold tracking-tight md:text-5xl">
-                  {bill.status === "paid" ? "Payment received" : waiting ? "Approve the prompt on your phone" : `Pay ${formatCedis(bill.balance)}`}
+                  {bill.status === "paid" ? "Payment received" : needsCode ? "Enter the code from your SMS" : waiting && !changingNumber ? "Approve the prompt on your phone" : `Pay ${formatCedis(bill.balance)}`}
                 </h1>
                 <p className="mt-2 text-muted-foreground">
                   {bill.description} · {bill.number}
@@ -104,7 +112,15 @@ export function BillPayPage() {
                   </Link>
                 </div>
               )}
-              {bill.status !== "paid" && !bill.locked_reason && waiting && (
+              {bill.status !== "paid" && !bill.locked_reason && needsCode && (
+                <div className={cardClass}>
+                  <OtpForm message={latest?.note ?? null} onSubmit={enterCode} />
+                  <button type="button" onClick={() => setChangingNumber(true)} className={`${outlineButtonClass} mt-3`}>
+                    Use a different number
+                  </button>
+                </div>
+              )}
+              {bill.status !== "paid" && !bill.locked_reason && waiting && !bill.otp_required && (
                 <div role="status" className={cardClass}>
                   <p>{latest?.note ?? "Enter your Mobile Money PIN on your phone."} You have about 3 minutes. Keep this page open; it updates by itself.</p>
                   {bill.test_mode && (
@@ -123,7 +139,7 @@ export function BillPayPage() {
                   )}
                 </div>
               )}
-              {bill.status !== "paid" && !bill.locked_reason && !waiting && (
+              {bill.status !== "paid" && !bill.locked_reason && (!waiting || changingNumber) && (
                 <div className={cardClass}>
                   {latest?.status === "failed" && (
                     <div className="mb-5">

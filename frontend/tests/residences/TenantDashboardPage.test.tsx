@@ -8,11 +8,11 @@ import { booking } from "./fixtures";
 
 const base = { "GET /api/auth/me": { body: AMA }, ...googleOff, "GET /api/listings": { body: listings(true) } };
 
-const awaiting = booking({ status: "awaiting_allocation", bill_status: "paid", payment: { status: "success", message: null } });
+const awaiting = booking({ status: "awaiting_allocation", bill_status: "paid", payment: { status: "success", message: null, otp_required: false } });
 const allocated = booking({
   status: "allocated",
   bill_status: "paid",
-  payment: { status: "success", message: null },
+  payment: { status: "success", message: null, otp_required: false },
   tenancy: { room_number: "A12", start_date: "2026-11-04", rent: 2000, sanitation_fee: 50, renting_deposit: 4000, renting_bill_number: "BILL-000009", renting_bill_status: "unpaid", renting_bill_id: 9, agreement_id: "ag1", agreement_signed: false },
 });
 
