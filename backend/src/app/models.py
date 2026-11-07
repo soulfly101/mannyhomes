@@ -159,6 +159,7 @@ class BillKind(StrEnum):
     BOOKING_DEPOSIT = "booking_deposit"
     RENTING_DEPOSIT = "renting_deposit"
     SANITATION = "sanitation"
+    LATE_FEE = "late_fee"
 
 
 class PaymentMethod(StrEnum):
@@ -176,14 +177,14 @@ class PaymentStatus(StrEnum):
 
 
 class Bill(Base):
-    """Something a tenant owes (#19): a deposit or a month's sanitation fee.
+    """Something a tenant owes (#19): a deposit, a month's sanitation fee or a late fee on one (#25).
 
     The amount is copied when the bill is created, so later price changes never alter it.
     Whether it's Paid, Partial or Unpaid is worked out from its successful payments (see app.billing).
     """
 
     __tablename__ = "bills"
-    # One sanitation bill per tenant per month. Deposits have no period (NULLs never clash).
+    # One sanitation bill and one late fee per tenant per month. Deposits have no period (NULLs never clash).
     __table_args__ = (UniqueConstraint("tenant_id", "kind", "period", name="uq_bills_tenant_kind_period"),)
 
     # Also the bill number shown to people, e.g. BILL-000042.
@@ -192,7 +193,7 @@ class Bill(Base):
     kind: Mapped[BillKind] = mapped_column(_str_enum(BillKind, "bill_kind"))
     amount: Mapped[int] = mapped_column(Integer)
     description: Mapped[str] = mapped_column(String(200))
-    # "2026-11" for a month's sanitation bill; None for deposits.
+    # "2026-11" for a month's sanitation bill or its late fee; None for deposits.
     period: Mapped[str | None] = mapped_column(String(7))
     due_date: Mapped[date] = mapped_column(Date)
     # The room type it's for, if any. Kept as NULL if the room type is later deleted.
@@ -240,6 +241,21 @@ class Payment(Base):
 
     bill: Mapped[Bill] = relationship(back_populates="payments")
     recorded_by: Mapped[User | None] = relationship()
+
+
+class PenaltySettings(Base):
+    """The admin's choice of penalties for overdue sanitation bills (#25): one row, or none if never saved."""
+
+    __tablename__ = "penalty_settings"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=False)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+    # The day they were last switched on: only bills due from then on get a late fee.
+    enabled_on: Mapped[date | None] = mapped_column(Date)
+    # The flat fee in whole cedis, copied onto each late fee bill. 0 means no fee.
+    late_fee: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    # Stops new repair tickets until the tenant is cleared (for #17 to enforce with `tickets_frozen`).
+    freeze_tickets: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
 
 
 class BookingStatus(StrEnum):

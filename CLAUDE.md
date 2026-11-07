@@ -75,6 +75,7 @@ Database changes go through **Alembic** migrations in `backend/migrations/versio
 - Pages: `/agreements/:id` (tenant), `/admin/agreements`, `/admin/signature`. PDFs come from the browser's print button.
 
 - Monthly sanitation bills (#16, `app/sanitation/`) follow each tenant's move-in date: the admin's date at `/admin/tenants`, otherwise the day they signed. Each bill is the full fee for a month starting that day, so there's no part-month charge. There's no scheduler: `ensure_sanitation_bills` creates missing bills whenever bills are read, so call it anywhere that reads them.
+- Optional penalties for overdue sanitation bills (#25, `app/sanitation/penalties.py`), set at `/admin/settings` (`GET`/`PUT /api/admin/settings/penalties`). Off means nothing happens. On means a flat late fee, a freeze on new repair tickets, or both. Each overdue month gets one `late_fee` bill with the amount copied, added by `ensure_sanitation_bills`, and only for bills due on or after the day penalties were switched on. Late fees don't count towards compliance. **Repair tickets (#17) must refuse new tickets when `tickets_frozen()` is true.**
 Settings live in `.env` files (copied from the `.env.example` next to them). Never commit a `.env`.
 
 ## Rules

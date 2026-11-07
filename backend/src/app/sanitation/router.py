@@ -1,10 +1,10 @@
-"""Admin API for who's living where, and the move-in date that sets their sanitation bills (#16)."""
+"""Admin API for who's living where, the move-in date behind their bills (#16), and penalties (#25)."""
 
 from datetime import date
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -12,11 +12,13 @@ from ..auth.deps import require_role
 from ..billing.service import BillStatus, balance, bill_status, current_period
 from ..db import get_session
 from ..models import Bill, BillKind, Role, Tenancy
+from .penalties import PenaltyError, penalty_settings, save_penalty_settings
 from .service import MoveInError, ensure_sanitation_bills, move_in_of, set_move_in, tenancies_query
 
 DB = Annotated[Session, Depends(get_session)]
 
 router = APIRouter(tags=["admin: tenancies"], dependencies=[Depends(require_role(Role.ADMIN))])
+settings_router = APIRouter(tags=["admin: settings"], dependencies=[Depends(require_role(Role.ADMIN))])
 
 
 class MonthBill(BaseModel):
@@ -89,3 +91,37 @@ def update_move_in(tenancy_id: str, data: MoveInIn, db: DB) -> TenancyRow:
         db.rollback()
         raise HTTPException(status_code=409, detail=str(e)) from e
     return _row(tenancy, _this_months_bill(db, tenancy.tenant_id))
+
+
+class PenaltiesIn(BaseModel):
+    enabled: bool
+    late_fee: int = Field(ge=0, le=100_000)
+    freeze_tickets: bool
+
+
+class PenaltiesOut(PenaltiesIn):
+    # The day they were last switched on: only bills due from then on get a late fee.
+    enabled_on: date | None
+
+
+def _penalties(settings) -> PenaltiesOut:
+    return PenaltiesOut(
+        enabled=settings.enabled,
+        late_fee=settings.late_fee,
+        freeze_tickets=settings.freeze_tickets,
+        enabled_on=settings.enabled_on,
+    )
+
+
+@settings_router.get("/penalties")
+def get_penalties(db: DB) -> PenaltiesOut:
+    return _penalties(penalty_settings(db))
+
+
+@settings_router.put("/penalties")
+def update_penalties(data: PenaltiesIn, db: DB) -> PenaltiesOut:
+    try:
+        return _penalties(save_penalty_settings(db, **data.model_dump()))
+    except PenaltyError as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(e)) from e

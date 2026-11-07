@@ -127,3 +127,20 @@ test("the bills page says when there's nothing, or when loading fails", async ()
   billsPage();
   expect(await screen.findByText("Something broke.")).toBeInTheDocument();
 });
+
+test("late fees can be paid like the fee they came from", async () => {
+  const late = bill({ id: 21, number: "BILL-000021", kind: "late_fee", description: "Late fee: Sanitation fee, November 2026", amount: 20, balance: 20 });
+  mockApi({ "GET /api/auth/me": { body: AMA }, ...googleOff, "GET /api/me/bills": { body: [late] } });
+  renderAt("/bills", <Route path="/bills" element={<BillsPage />} />);
+  const pay = await screen.findByRole("link", { name: "Pay Fee: Late fee: Sanitation fee, November 2026" });
+  expect(pay).toHaveAttribute("href", "/bills/21/pay");
+});
+
+test("the dashboard list includes unpaid late fees, and a paid one doesn't crowd it", () => {
+  const month = bill();
+  const late = bill({ id: 21, kind: "late_fee" });
+  expect(currentSanitationBills([late, month]).map((b) => b.id)).toEqual([21, 20]);
+  const paidMonth = bill({ status: "paid", balance: 0 });
+  const paidLate = bill({ id: 21, kind: "late_fee", status: "paid", balance: 0 });
+  expect(currentSanitationBills([paidLate, paidMonth]).map((b) => b.id)).toEqual([20]);
+});

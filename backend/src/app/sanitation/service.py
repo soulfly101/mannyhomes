@@ -19,6 +19,7 @@ from sqlalchemy.orm import Session, selectinload
 from ..billing.service import BillingError, balance, create_bill, current_period, paid_amount
 from ..db import utcnow
 from ..models import Agreement, Bill, BillKind, PaymentStatus, RoomType, Tenancy
+from .penalties import apply_late_fees, cancel_late_fees_no_longer_owed
 
 MAX_MOVE_IN_AHEAD = timedelta(days=365)
 
@@ -67,7 +68,7 @@ def _month_name(period: str) -> str:
 
 
 def ensure_sanitation_bills(db: Session, *, tenant_id: str | None = None, today: date | None = None) -> None:
-    """Creates any monthly bills that are missing, for one tenant or everyone. Commits if it made any."""
+    """Creates missing monthly bills and late fees, for one tenant or everyone. Commits if it made any."""
     today = today or utcnow().date()
     query = tenancies_query().where(Tenancy.sanitation_fee > 0)
     if tenant_id:
@@ -106,6 +107,8 @@ def ensure_sanitation_bills(db: Session, *, tenant_id: str | None = None, today:
                 created = True
             except IntegrityError, BillingError:
                 continue  # someone looking at the same moment created it first
+    if apply_late_fees(db, [t.tenant_id for t in tenancies], today):
+        created = True
     if created:
         db.commit()
 
@@ -145,5 +148,7 @@ def set_move_in(db: Session, tenancy: Tenancy, move_in: date, *, today: date | N
         if balance(bill) > 0:
             bill.due_date = due_date(move_in, bill.period)
     tenancy.move_in_date = move_in
+    db.flush()
+    cancel_late_fees_no_longer_owed(db, tenancy.tenant_id, today)
     db.commit()
     ensure_sanitation_bills(db, tenant_id=tenancy.tenant_id, today=today)
