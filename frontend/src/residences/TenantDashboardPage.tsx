@@ -177,6 +177,17 @@ function ActiveTenancy({ booking, justAllocated }: { booking: Booking; justAlloc
         </div>
       </div>
       <BillingSection booking={booking} />
+      <section aria-labelledby="repairs-title" className={`${cardClass} mt-6 flex flex-wrap items-center justify-between gap-4`}>
+        <div>
+          <h2 id="repairs-title" className="text-2xl font-bold tracking-tight">
+            Repairs
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">Something broken in your room? Tell us and follow it until it's fixed.</p>
+        </div>
+        <Link to="/repairs" className={buttonClass}>
+          Report an issue
+        </Link>
+      </section>
     </>
   );
 }

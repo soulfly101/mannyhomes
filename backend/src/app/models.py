@@ -14,6 +14,7 @@ from sqlalchemy import (
     UniqueConstraint,
     false,
 )
+from sqlalchemy.dialects.mysql import DATETIME as MYSQL_DATETIME
 from sqlalchemy.dialects.mysql import MEDIUMTEXT
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -364,3 +365,46 @@ class Agreement(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
 
     tenancy: Mapped[Tenancy] = relationship(back_populates="agreement")
+
+
+_PRECISE = DateTime().with_variant(MYSQL_DATETIME(fsp=6), "mysql")
+
+
+class TicketCategory(StrEnum):
+    PLUMBING = "plumbing"
+    ELECTRICAL = "electrical"
+    GENERAL = "general"
+
+
+class TicketStatus(StrEnum):
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    RESOLVED = "resolved"
+    CLOSED = "closed"
+
+
+class Ticket(Base):
+    """A problem a tenant reports (#17), which admins work through (#21).
+
+    The room number and building are copied, so the report still says where it was after a move-out.
+    """
+
+    __tablename__ = "tickets"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    tenancy_id: Mapped[str] = mapped_column(ForeignKey("tenancies.id"))
+    category: Mapped[TicketCategory] = mapped_column(_str_enum(TicketCategory, "ticket_category"))
+    # Shown as plain text, never HTML.
+    description: Mapped[str] = mapped_column(Text)
+    status: Mapped[TicketStatus] = mapped_column(
+        _str_enum(TicketStatus, "ticket_status"), default=TicketStatus.PENDING
+    )
+    room_number: Mapped[str] = mapped_column(String(20))
+    building_name: Mapped[str] = mapped_column(String(100))
+    # To the microsecond, so two reports sent in the same second still list in the order they came.
+    created_at: Mapped[datetime] = mapped_column(_PRECISE, default=utcnow, index=True)
+    # When it was reported or its status last changed.
+    updated_at: Mapped[datetime] = mapped_column(_PRECISE, default=utcnow)
+
+    tenant: Mapped[User] = relationship()
