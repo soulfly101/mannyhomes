@@ -26,7 +26,6 @@ from ..models import (
     BookingStatus,
     Building,
     Payment,
-    PaymentMethod,
     PaymentStatus,
     RoomType,
     Tenancy,
@@ -40,6 +39,7 @@ HOLD = timedelta(minutes=10)
 # Networks give people 180 seconds to approve a prompt; after this we stop waiting.
 PAYMENT_WINDOW = timedelta(minutes=4)
 TIMED_OUT = "The prompt timed out before it was approved. Try again."
+OTP_TIMED_OUT = "The SMS code wasn't entered in time. Try again."
 
 
 class BookingError(Exception):
@@ -186,6 +186,7 @@ def start_payment(
     refresh_booking(db, booking, gateway)
     if booking.status != BookingStatus.PENDING_PAYMENT:
         return booking.bill.payments[-1]
+    abandon_otp(db, booking.bill)
     if waiting_payment(booking.bill):
         raise BookingError("A payment is already waiting. Approve the prompt on your phone.", 409)
 
@@ -206,10 +207,12 @@ def charge_bill(
         db,
         bill,
         amount=balance(bill),
-        method=PaymentMethod.PAYSTACK_MOMO,
+        method=gateway.method,
         reference=f"altheo-{uuid4().hex}",
         status=PaymentStatus.PENDING,
     )
+    payment.momo_phone = phone
+    payment.momo_network = network
     db.commit()
 
     try:
@@ -227,13 +230,49 @@ def charge_bill(
     return payment
 
 
+def submit_otp(db: Session, bill: Bill, gateway: PaymentGateway, *, tenant: User, code: str) -> None:
+    """Repeats the charge with the SMS code, under the same reference, which sends the prompt."""
+    payment = waiting_payment(bill)
+    if payment is None or not payment.otp_required:
+        raise BookingError("There's no code waiting to be entered.", 409)
+    try:
+        result = gateway.charge_momo(
+            email=tenant.email,
+            amount=payment.amount,
+            phone=payment.momo_phone,
+            network=payment.momo_network,
+            reference=payment.reference,
+            otp=code,
+        )
+    except GatewayError as e:
+        raise BookingError(str(e), 502) from e
+    _apply(db, payment, result)
+
+
+def abandon_otp(db: Session, bill: Bill) -> None:
+    """Lets a tenant start again with another number. Safe: no prompt goes out until the code is accepted."""
+    payment = waiting_payment(bill)
+    if payment is not None and payment.otp_required:
+        fail_payment(db, payment, "Replaced by a new payment.")
+
+
 def _apply(db: Session, payment: Payment, result: ChargeResult) -> None:
+    if result.status == ChargeStatus.OTP_REQUIRED:
+        payment.otp_required = True
+        payment.note = (result.message or "")[:200] or None
+        db.commit()
+        return
+    if result.status == ChargeStatus.PENDING and payment.otp_required:
+        payment.otp_required = False
+        payment.note = None
+        payment.prompted_at = utcnow()
     if result.status == ChargeStatus.SUCCESS:
         confirm_payment(db, payment.reference, amount_cedis=result.amount_cedis, currency=result.currency)
     elif result.status == ChargeStatus.FAILED:
         fail_payment(db, payment, result.message or "The payment didn't go through. Try again.")
-    elif result.message:
-        payment.note = result.message[:200]
+    else:
+        if result.message:
+            payment.note = result.message[:200]
         db.commit()
 
 
@@ -294,13 +333,33 @@ def refresh_bill(db: Session, bill: Bill, gateway: PaymentGateway | None) -> Non
     payment = waiting_payment(bill)
     if payment is None or gateway is None:
         return
+    if payment.otp_required:
+        # Nothing has been sent to the phone yet, so there's nothing to ask the provider about.
+        if utcnow() - payment.created_at > PAYMENT_WINDOW:
+            fail_payment(db, payment, OTP_TIMED_OUT)
+        return
     try:
         result = gateway.verify(payment.reference)
     except GatewayError:
         return  # try again on the next check
     if result.status == ChargeStatus.PENDING:
         # Pretend payments wait for the test buttons, however long that takes.
-        if not gateway.simulated and utcnow() - payment.created_at > PAYMENT_WINDOW:
+        started = payment.prompted_at or payment.created_at
+        if not gateway.simulated and utcnow() - started > PAYMENT_WINDOW:
             fail_payment(db, payment, TIMED_OUT)
         return
     _apply(db, payment, result)
+
+
+def settle_from_provider(db: Session, reference: str, gateway: PaymentGateway) -> None:
+    """A callback says something happened to this payment, so ask the provider what. Safe to repeat."""
+    payment = db.scalar(select(Payment).where(Payment.reference == reference))
+    if payment is None:
+        logger.warning("Callback for an unknown payment reference: %s", reference)
+        return
+    if payment.status == PaymentStatus.SUCCESS or payment.otp_required:
+        return
+    result = gateway.verify(reference)
+    # A payment we'd given up on still counts if the money arrived, but nothing else changes it.
+    if result.status == ChargeStatus.SUCCESS or payment.status == PaymentStatus.PENDING:
+        _apply(db, payment, result)

@@ -9,8 +9,8 @@ import { listings } from "../landing/fixtures";
 import { booking } from "./fixtures";
 
 const base = { "GET /api/auth/me": { body: AMA }, ...googleOff, "GET /api/listings": { body: listings(true) } };
-const waiting = booking({ payment: { status: "pending", message: "Please complete authorization on your phone" } });
-const paid = booking({ status: "awaiting_allocation", bill_status: "paid", payment: { status: "success", message: null } });
+const waiting = booking({ payment: { status: "pending", message: "Please complete authorization on your phone", otp_required: false } });
+const paid = booking({ status: "awaiting_allocation", bill_status: "paid", payment: { status: "success", message: null, otp_required: false } });
 
 const renderStatus = () => renderAt("/bookings/bk1", <Route path="/bookings/:bookingId" element={<BookingStatusPage />} />);
 
@@ -45,7 +45,7 @@ test("once allocated the tenant sees their room and what's next", async () => {
   const allocated = booking({
     status: "allocated",
     bill_status: "paid",
-    payment: { status: "success", message: null },
+    payment: { status: "success", message: null, otp_required: false },
     tenancy: { room_number: "A12", start_date: "2026-11-04", rent: 2000, sanitation_fee: 50, renting_deposit: 4000, renting_bill_number: "BILL-000009", renting_bill_status: "unpaid", renting_bill_id: 9, agreement_id: "ag1", agreement_signed: false },
   });
   mockApi({ ...base, "GET /api/bookings/bk1": { body: allocated } });
@@ -80,7 +80,7 @@ test("a cancelled booking has no steps", async () => {
 
 test("a failed payment says why and offers another try or cancelling", async () => {
   const cancelled = booking({ status: "cancelled" });
-  mockApi({ ...base, "GET /api/bookings/bk1": { body: booking({ payment: { status: "failed", message: "Insufficient funds" } }) }, "POST /api/bookings/bk1/cancel": { body: cancelled } });
+  mockApi({ ...base, "GET /api/bookings/bk1": { body: booking({ payment: { status: "failed", message: "Insufficient funds", otp_required: false } }) }, "POST /api/bookings/bk1/cancel": { body: cancelled } });
   renderStatus();
   expect(await screen.findByRole("heading", { name: "The payment didn't go through" })).toBeInTheDocument();
   expect(screen.getByText("Insufficient funds")).toBeInTheDocument();
@@ -129,4 +129,22 @@ test("the list explains when there are no bookings", async () => {
   mockApi({ ...base, "GET /api/bookings": { body: [] } });
   renderList();
   expect(await screen.findByText(/No bookings yet/)).toBeInTheDocument();
+});
+
+const askingForCode = booking({ payment: { status: "pending", message: "Enter the code sent by SMS to that number.", otp_required: true } });
+
+test("a booking waiting for the SMS code asks for it, and the code sends the prompt", async () => {
+  const { calls } = mockApi({
+    ...base,
+    "GET /api/bookings/bk1": { body: askingForCode },
+    "POST /api/bookings/bk1/otp": { body: booking({ payment: { status: "pending", message: null, otp_required: false } }) },
+  });
+  renderAt("/bookings/bk1", <Route path="/bookings/:bookingId" element={<BookingStatusPage />} />);
+  expect(await screen.findByRole("heading", { level: 1, name: "Enter the code from your SMS" })).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Use a different number" })).toHaveAttribute("href", `/book/${askingForCode.room_type_id}`);
+  await userEvent.type(screen.getByLabelText("SMS code"), "1234");
+  await userEvent.click(screen.getByRole("button", { name: "Confirm code" }));
+  expect(await screen.findByRole("heading", { level: 1, name: "Approve the prompt on your phone" })).toBeInTheDocument();
+  expect(calls.find((c) => c.key === "POST /api/bookings/bk1/otp")!.body).toEqual({ code: "1234" });
+  expect(screen.queryByLabelText("SMS code")).not.toBeInTheDocument();
 });

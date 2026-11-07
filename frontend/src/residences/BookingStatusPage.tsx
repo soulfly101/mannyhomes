@@ -8,6 +8,7 @@ import { buttonClass, outlineButtonClass, sectionClass } from "../landing/parts"
 import { SitePage } from "../landing/SitePage";
 import { BookingSteps } from "./BookingSteps";
 import { BOOKING_LABEL, type Booking } from "./bookings";
+import { OtpForm } from "./OtpForm";
 
 export const POLL_MS = 4000;
 
@@ -38,12 +39,17 @@ export function BookingStatusPage() {
   }, [load]);
 
   const waiting = booking?.status === "pending_payment" && booking.payment?.status === "pending";
+  const needsCode = waiting && !!booking?.payment?.otp_required;
   // Keep asking while the tenant approves the prompt on their phone.
   useEffect(() => {
     if (!waiting) return;
     const timer = window.setInterval(() => void load(), POLL_MS);
     return () => window.clearInterval(timer);
   }, [waiting, load]);
+
+  const enterCode = async (code: string) => {
+    setBooking(await apiFetch<Booking>(`${url}/otp`, { method: "POST", body: { code } }));
+  };
 
   const act = async (path: string, body?: unknown) => {
     setBusy(true);
@@ -106,7 +112,17 @@ export function BookingStatusPage() {
                   <dd>{booking.tenancy.renting_bill_number}</dd>
                 </dl>
               )}
-              {waiting && booking.test_mode && (
+              {needsCode && (
+                <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+                  <OtpForm message={booking.payment?.message ?? null} onSubmit={enterCode} />
+                  {booking.room_type_id && (
+                    <Link to={`/book/${booking.room_type_id}`} className={`${outlineButtonClass} mt-3`}>
+                      Use a different number
+                    </Link>
+                  )}
+                </div>
+              )}
+              {waiting && !needsCode && booking.test_mode && (
                 <div className="rounded-xl border border-dashed border-border p-6">
                   <h2 className="font-semibold">Test mode</h2>
                   <p className="mt-1 text-sm text-muted-foreground">No real prompt was sent and nothing is charged. Choose what the customer does:</p>
@@ -187,6 +203,9 @@ function Headline({ booking, waiting }: { booking: Booking; waiting: boolean }) 
         <p className="mt-3 text-muted-foreground">Nothing was charged. The room has gone back on the list.</p>
       </div>
     );
+  }
+  if (waiting && booking.payment?.otp_required) {
+    return title("Enter the code from your SMS");
   }
   if (waiting) {
     return (

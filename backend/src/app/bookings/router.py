@@ -5,7 +5,7 @@ from datetime import date
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
 from ..auth.deps import require_role
@@ -14,7 +14,16 @@ from ..billing.service import BillStatus, bill_status
 from ..config import get_settings
 from ..db import get_session
 from ..models import Booking, BookingStatus, PaymentStatus, Role, Tenancy, User
-from ..payments.gateway import MomoNetwork, PaymentGateway, get_gateway, valid_paystack_signature
+from ..payments.gateway import (
+    GatewayError,
+    MomoNetwork,
+    MoolreGateway,
+    PaymentGateway,
+    get_gateway,
+    moolre_gateway,
+    valid_moolre_secret,
+    valid_paystack_signature,
+)
 from .service import (
     BookingError,
     bookings_query,
@@ -22,8 +31,10 @@ from .service import (
     confirm_payment,
     fail_payment,
     refresh_booking,
+    settle_from_provider,
     start_booking,
     start_payment,
+    submit_otp,
 )
 
 DB = Annotated[Session, Depends(get_session)]
@@ -37,6 +48,8 @@ webhook_router = APIRouter(tags=["webhooks"])
 class BookingPaymentOut(BaseModel):
     status: PaymentStatus
     message: str | None
+    # True while the provider wants the SMS code; no prompt has gone to the phone yet.
+    otp_required: bool
 
 
 class BookingTenancyOut(BaseModel):
@@ -82,7 +95,13 @@ class BookingOut(BaseModel):
             deposit=b.bill.amount,
             bill_number=b.bill.number,
             bill_status=bill_status(b.bill),
-            payment=BookingPaymentOut(status=latest.status, message=latest.note) if latest else None,
+            payment=BookingPaymentOut(
+                status=latest.status,
+                message=latest.note,
+                otp_required=latest.otp_required and latest.status == PaymentStatus.PENDING,
+            )
+            if latest
+            else None,
             test_mode=bool(gateway and gateway.simulated),
             tenancy=_tenancy(b.tenancy),
         )
@@ -171,6 +190,24 @@ def pay_deposit(booking_id: str, data: PayIn, tenant: Tenant, db: DB, gateway: G
     return BookingOut.of(booking, gateway)
 
 
+class OtpIn(BaseModel):
+    code: str = Field(pattern=r"^\s*[0-9A-Za-z]{3,12}\s*$")
+
+
+@router.post("/{booking_id}/otp")
+def enter_otp(booking_id: str, data: OtpIn, tenant: Tenant, db: DB, gateway: Gateway) -> BookingOut:
+    """The SMS code the provider asked for, which lets the prompt go to the tenant's phone."""
+    if gateway is None:
+        raise HTTPException(status_code=503, detail="Online payment isn't available right now.")
+    booking = _mine(db, booking_id, tenant)
+    try:
+        submit_otp(db, booking.bill, gateway, tenant=tenant, code=data.code.strip())
+    except BookingError as e:
+        db.rollback()
+        raise _http(e) from e
+    return BookingOut.of(booking, gateway)
+
+
 @router.post("/{booking_id}/cancel")
 def cancel(booking_id: str, tenant: Tenant, db: DB, gateway: Gateway) -> BookingOut:
     booking = _mine(db, booking_id, tenant)
@@ -221,4 +258,28 @@ async def paystack_webhook(request: Request, db: DB) -> dict:
             amount_cedis=amount / 100 if isinstance(amount, int) else None,
             currency=data.get("currency"),
         )
+    return {"received": True}
+
+
+@webhook_router.post("/moolre")
+async def moolre_webhook(
+    request: Request, db: DB, gateway: Annotated[MoolreGateway | None, Depends(moolre_gateway)]
+) -> dict:
+    """Moolre tells us a payment changed. Its word isn't taken for it: we ask Moolre's status check."""
+    secret = get_settings().moolre_callback_secret
+    if not secret or gateway is None:
+        raise HTTPException(status_code=404, detail="Not found")
+    try:
+        event = json.loads(await request.body())
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail="Invalid body") from e
+    data = event.get("data") if isinstance(event, dict) else None
+    if not isinstance(data, dict) or not valid_moolre_secret(data.get("secret"), secret):
+        raise HTTPException(status_code=401, detail="Invalid secret")
+    reference = data.get("externalref")
+    if isinstance(reference, str) and reference:
+        try:
+            settle_from_provider(db, reference, gateway)
+        except GatewayError as e:
+            raise HTTPException(status_code=503, detail="Try again later") from e
     return {"received": True}

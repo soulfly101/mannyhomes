@@ -8,7 +8,7 @@ export type Booking = {
   deposit: number;
   bill_number: string;
   bill_status: "paid" | "partial" | "unpaid";
-  payment: { status: "pending" | "success" | "failed"; message: string | null } | null;
+  payment: { status: "pending" | "success" | "failed"; message: string | null; otp_required: boolean } | null;
   /** Pretend payments (local development only): nothing is charged. */
   test_mode: boolean;
   /** Once the admin has allocated a room. */
