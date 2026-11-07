@@ -92,6 +92,9 @@ Menu links to home page sections use `/#section` so they work from any page. **A
 ### Admin area
 Every admin page sits in `AdminLayout` (`frontend/src/admin/AdminLayout.tsx`): a sidebar with icons on wide screens, a bar with a row of sections on phones. Add new admin sections to its `SECTIONS` list. `/admin` is the dashboard: stat cards, money collected per month, bookings by stage, recent tenants and recent activity. The sidebar has a **dark/light toggle**; the admin area starts dark. `/admin/allocations` (queue) links to one page per booking, `/admin/allocations/:id`, which says what saving will do before it's saved. Anything blocking an allocation is shown instead of the form, with what to do about it.
 
+### Switches (`@/components/ui/switch`)
+For settings that are on or off. The thumb slides across, and the words ON and OFF sit beside it so colour never says it alone. `/admin/settings` holds the admin's settings.
+
 ### Badges (`@/components/ui/badge`)
 Small solid status label with a `tone` (`success`, `warning`, `danger`, `neutral`), used for availability ("3 available" / "Fully booked") and payment states. The tone mapping in the Status pills table below applies.
 

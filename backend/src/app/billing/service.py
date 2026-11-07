@@ -22,6 +22,10 @@ from ..db import utcnow
 from ..models import Bill, BillKind, Payment, PaymentMethod, PaymentStatus, RoomType, User
 
 PERIOD = re.compile(r"^\d{4}-(0[1-9]|1[0-2])$")
+# Bills that are for a particular month: one of each per tenant per month.
+MONTHLY_KINDS = {BillKind.SANITATION: "sanitation bill", BillKind.LATE_FEE: "late fee"}
+# What "fully compliant" looks at. Late fees are charged on top and don't count.
+COMPLIANCE_KINDS = (BillKind.BOOKING_DEPOSIT, BillKind.RENTING_DEPOSIT, BillKind.SANITATION)
 
 
 class BillStatus(StrEnum):
@@ -65,20 +69,20 @@ def create_bill(
     period: str | None = None,
     room_type: RoomType | None = None,
 ) -> Bill:
-    """Adds a bill (not committed). Sanitation bills need a period and there's one per tenant per month."""
+    """Adds a bill (not committed). Monthly bills need a period and there's one per tenant per month."""
     if amount <= 0:
         raise BillingError("A bill must be for more than GH₵ 0.")
-    if kind == BillKind.SANITATION:
+    if kind in MONTHLY_KINDS:
         if period is None or not PERIOD.match(period):
-            raise BillingError("A sanitation bill needs the month it's for, like 2026-11.")
+            raise BillingError(f"A {MONTHLY_KINDS[kind]} needs the month it's for, like 2026-11.")
         # Cancelled bills count too: the month stays taken so it can't be billed twice by mistake.
         taken = db.scalar(
             select(Bill.id).where(Bill.tenant_id == tenant.id, Bill.kind == kind, Bill.period == period)
         )
         if taken is not None:
-            raise BillingError(f"This tenant already has a sanitation bill for {period}.")
+            raise BillingError(f"This tenant already has a {MONTHLY_KINDS[kind]} for {period}.")
     elif period is not None:
-        raise BillingError("Only sanitation bills are for a month.")
+        raise BillingError("Only sanitation bills and late fees are for a month.")
     bill = Bill(
         tenant_id=tenant.id,
         kind=kind,
@@ -212,7 +216,7 @@ def tenant_compliance(db: Session, tenant_id: str, period: str) -> Compliance:
         return matching[0] if matching else None
 
     fees = []
-    for kind in BillKind:
+    for kind in COMPLIANCE_KINDS:
         bill = latest(kind)
         fees.append(FeeState(kind=kind, status=bill_status(bill) if bill else BillStatus.UNPAID, bill=bill))
     return Compliance(period=period, fees=fees)

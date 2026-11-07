@@ -9,6 +9,7 @@ import { BuildingFormPage } from "./admin/BuildingFormPage";
 import { BuildingsPage } from "./admin/BuildingsPage";
 import { SignaturePage } from "./admin/SignaturePage";
 import { TenantsPage } from "./admin/TenantsPage";
+import { AdminSettingsPage } from "./admin/AdminSettingsPage";
 import { RequireAuth } from "./auth/RequireAuth";
 import { TopBar } from "./components";
 import { LandingPage } from "./landing/LandingPage";
@@ -78,6 +79,7 @@ export function App() {
           <Route path="/admin/buildings/new" element={<BuildingFormPage />} />
           <Route path="/admin/buildings/:id" element={<BuildingFormPage />} />
           <Route path="/admin/tenants" element={<TenantsPage />} />
+          <Route path="/admin/settings" element={<AdminSettingsPage />} />
           <Route path="/admin/agreements" element={<AgreementsPage />} />
           <Route path="/admin/agreements/:agreementId" element={<AdminAgreementPage />} />
           <Route path="/admin/signature" element={<SignaturePage />} />

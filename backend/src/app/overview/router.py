@@ -38,6 +38,7 @@ KIND_WORDS = {
     BillKind.BOOKING_DEPOSIT: "booking deposit",
     BillKind.RENTING_DEPOSIT: "renting deposit",
     BillKind.SANITATION: "sanitation fee",
+    BillKind.LATE_FEE: "late fee",
 }
 ACTIVITY_LIMIT = 6
 RECENT_TENANTS = 5
