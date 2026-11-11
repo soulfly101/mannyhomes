@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { FormError } from "@/components/ui/sign-in";
 import { formatCedis, formatMonth, timeAgo } from "../format";
 import { sectionClass } from "../landing/parts";
+import { emptyClass, Panel, panelClass, selectClass } from "./dashboardParts";
+import { PaymentStatusPanel } from "./PaymentStatusPanel";
 
 type Stage = { key: string; label: string; count: number };
 type Overview = {
@@ -26,8 +28,6 @@ type Overview = {
   recent_tenants: { id: string; name: string; email: string; status: string; tone: "success" | "warning" | "neutral" }[];
   activity: { kind: "payment" | "allocation" | "agreement" | "enquiry"; text: string; at: string }[];
 };
-
-const panelClass = "rounded-xl border border-border bg-card p-5 shadow-sm md:p-6";
 
 function Stat({ label, value, icon: Icon, children }: { label: string; value: string; icon: LucideIcon; children: ReactNode }) {
   return (
@@ -217,20 +217,7 @@ const ACTIVITY_ICON: Record<Overview["activity"][number]["kind"], LucideIcon> = 
   enquiry: Mail,
 };
 
-function Panel({ title, action, children, className = "" }: { title: string; action?: ReactNode; children: ReactNode; className?: string }) {
-  return (
-    <section aria-label={title} className={`${panelClass} ${className}`}>
-      <div className="flex min-h-11 flex-wrap items-center justify-between gap-2">
-        <h2 className="text-lg font-bold tracking-tight">{title}</h2>
-        {action}
-      </div>
-      {children}
-    </section>
-  );
-}
-
 const quietLink = "inline-flex min-h-11 items-center text-sm font-medium text-muted-foreground hover:text-foreground";
-const emptyClass = "mt-4 rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground";
 
 /** The admin's home (/admin): every number here is real, from the system's own records. */
 export function AdminDashboardPage() {
@@ -292,6 +279,10 @@ export function AdminDashboardPage() {
             </Reveal>
           </dl>
 
+          <Reveal>
+            <PaymentStatusPanel />
+          </Reveal>
+
           <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
             <Reveal>
               <Panel
@@ -300,7 +291,7 @@ export function AdminDashboardPage() {
                 action={
                   <label className="text-sm text-muted-foreground">
                     <span className="sr-only">Time range</span>
-                    <select value={months} onChange={(e) => setMonths(Number(e.target.value))} className="min-h-11 rounded-xl border border-border bg-secondary px-3 text-sm font-medium text-foreground">
+                    <select value={months} onChange={(e) => setMonths(Number(e.target.value))} className={selectClass}>
                       <option value={3}>Last 3 months</option>
                       <option value={6}>Last 6 months</option>
                       <option value={12}>Last 12 months</option>
