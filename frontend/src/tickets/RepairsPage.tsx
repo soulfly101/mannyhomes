@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { ArrowLeft } from "lucide-react";
 import { ApiError, apiFetch } from "../api";
 import { Reveal } from "../components/Reveal";
@@ -7,8 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { FormError, InputWrapper } from "@/components/ui/sign-in";
 import { cn } from "@/lib/utils";
 import { formatDate } from "../format";
-import { buttonClass, sectionClass } from "../landing/parts";
+import { buttonClass, outlineButtonClass, sectionClass } from "../landing/parts";
 import { SitePage } from "../landing/SitePage";
+import { openTenantChat } from "../chat/MessagesPage";
 import { CATEGORIES, CATEGORY_LABEL, isOpen, TENANT_STATUS, type Ticket, type TicketCategory } from "./tickets";
 
 /** How often the page checks for status changes while a report is still open. */
@@ -117,6 +118,15 @@ function ReportForm({ onSent }: { onSent: (t: Ticket) => void }) {
 
 function TicketRow({ ticket }: { ticket: Ticket }) {
   const status = TENANT_STATUS[ticket.status];
+  const navigate = useNavigate();
+  const [chatError, setChatError] = useState("");
+  const chat = async () => {
+    try {
+      navigate(`/messages/${(await openTenantChat(ticket.id)).id}`);
+    } catch (e) {
+      setChatError(e instanceof ApiError ? e.message : "Couldn't open the chat. Try again.");
+    }
+  };
   return (
     <li className="border-t border-border py-4 first:border-t-0 first:pt-0 last:pb-0">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -127,6 +137,14 @@ function TicketRow({ ticket }: { ticket: Ticket }) {
       <p className="mt-1 text-sm text-muted-foreground">
         Reported {formatDate(ticket.created_at)} · Room {ticket.room_number}, {ticket.building}
       </p>
+      <button type="button" onClick={() => void chat()} aria-label={`Chat about this: ${CATEGORY_LABEL[ticket.category]}, reported ${formatDate(ticket.created_at)}`} className={`${outlineButtonClass} mt-3`}>
+        Chat about this
+      </button>
+      {chatError && (
+        <div className="mt-2">
+          <FormError>{chatError}</FormError>
+        </div>
+      )}
     </li>
   );
 }

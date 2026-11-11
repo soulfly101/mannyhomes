@@ -11,6 +11,8 @@ import { SignaturePage } from "./admin/SignaturePage";
 import { TenantsPage } from "./admin/TenantsPage";
 import { AdminSettingsPage } from "./admin/AdminSettingsPage";
 import { TicketsPage } from "./admin/TicketsPage";
+import { AdminConversationPage, AdminMessagesPage } from "./admin/MessagesPage";
+import { MessagesPage, TenantConversationPage } from "./chat/MessagesPage";
 import { RepairsPage } from "./tickets/RepairsPage";
 import { RequireAuth } from "./auth/RequireAuth";
 import { TopBar } from "./components";
@@ -31,7 +33,7 @@ import { StatusPage } from "./pages/StatusPage";
 
 // These pages have their own header: the home page hero, the public site pages (SiteHeader), the admin sidebar and the two-column auth pages.
 const NO_TOP_BAR = ["/", "/login", "/register", "/onboarding"];
-const SITE_PAGES = ["/residences", "/book/", "/bookings", "/dashboard", "/agreements", "/bills", "/repairs", "/admin"];
+const SITE_PAGES = ["/residences", "/book/", "/bookings", "/dashboard", "/agreements", "/bills", "/repairs", "/messages", "/admin"];
 const usesTopBar = (path: string) => !NO_TOP_BAR.includes(path) && !SITE_PAGES.some((p) => path.startsWith(p));
 
 export function App() {
@@ -57,6 +59,8 @@ export function App() {
         <Route path="/bills/:billId/pay" element={<RequireAuth roles={["tenant"]}><BillPayPage /></RequireAuth>} />
         <Route path="/dashboard" element={<RequireAuth roles={["tenant"]}><TenantDashboardPage /></RequireAuth>} />
         <Route path="/repairs" element={<RequireAuth roles={["tenant"]}><RepairsPage /></RequireAuth>} />
+        <Route path="/messages" element={<RequireAuth roles={["tenant"]}><MessagesPage /></RequireAuth>} />
+        <Route path="/messages/:conversationId" element={<RequireAuth roles={["tenant"]}><TenantConversationPage /></RequireAuth>} />
         <Route path="/bookings" element={<RequireAuth roles={["tenant"]}><BookingsPage /></RequireAuth>} />
         <Route path="/bookings/:bookingId" element={<RequireAuth roles={["tenant"]}><BookingStatusPage /></RequireAuth>} />
         <Route path="/status" element={<StatusPage />} />
@@ -83,6 +87,8 @@ export function App() {
           <Route path="/admin/buildings/:id" element={<BuildingFormPage />} />
           <Route path="/admin/tenants" element={<TenantsPage />} />
           <Route path="/admin/tickets" element={<TicketsPage />} />
+          <Route path="/admin/messages" element={<AdminMessagesPage />} />
+          <Route path="/admin/messages/:conversationId" element={<AdminConversationPage />} />
           <Route path="/admin/settings" element={<AdminSettingsPage />} />
           <Route path="/admin/agreements" element={<AgreementsPage />} />
           <Route path="/admin/agreements/:agreementId" element={<AdminAgreementPage />} />

@@ -95,6 +95,12 @@ Every admin page sits in `AdminLayout` (`frontend/src/admin/AdminLayout.tsx`): a
 ### Switches (`@/components/ui/switch`)
 For settings that are on or off. The thumb slides across, and the words ON and OFF sit beside it so colour never says it alone. `/admin/settings` holds the admin's settings.
 
+### Count badges (`@/components/ui/count-badge`)
+A small number on a menu item, e.g. unread messages: pops in, hidden at 0, and labelled for screen readers ("3 unread messages").
+
+### Chat (`frontend/src/chat/`)
+Messages are rounded bubbles: your own on the right in the accent colour, the other side's on the left in the secondary colour, each with who and when underneath. New ones fade up into place. Enter sends; Shift+Enter starts a new line.
+
 ### Badges (`@/components/ui/badge`)
 Small solid status label with a `tone` (`success`, `warning`, `danger`, `neutral`), used for availability ("3 available" / "Fully booked") and payment states. The tone mapping in the Status pills table below applies.
 
