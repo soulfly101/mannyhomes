@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import pytest
@@ -6,10 +7,13 @@ from alembic.config import Config
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from app.auth.ratelimit import login_limiter
-from app.config import get_settings
-from app.db import get_engine, get_session
-from app.main import app
+# The background worker would use its own connection, outside each test's rolled-back transaction.
+os.environ["RUN_BACKGROUND_JOBS"] = "false"
+
+from app.auth.ratelimit import login_limiter  # noqa: E402
+from app.config import get_settings  # noqa: E402
+from app.db import get_engine, get_session  # noqa: E402
+from app.main import app  # noqa: E402
 
 ALEMBIC_INI = Path(__file__).resolve().parents[1] / "alembic.ini"
 needs_db = pytest.mark.skipif(

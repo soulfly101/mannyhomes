@@ -497,3 +497,63 @@ class MoveOutDeduction(Base):
     bill_id: Mapped[int | None] = mapped_column(ForeignKey("bills.id"))
 
     move_out: Mapped[MoveOut] = relationship(back_populates="deductions")
+
+
+class SmsKind(StrEnum):
+    TICKET = "ticket"
+    BILL_NEW = "bill_new"
+    BILL_DUE = "bill_due"
+    PAYMENT = "payment"
+    ALLOCATION = "allocation"
+    BROADCAST = "broadcast"
+
+
+class SmsStatus(StrEnum):
+    QUEUED = "queued"
+    SENT = "sent"
+    FAILED = "failed"
+    # Not sent: no phone number, or texts aren't set up.
+    SKIPPED = "skipped"
+
+
+class SmsBroadcast(Base):
+    """A text the admin sent to all tenants with a room, or to one building's (#27)."""
+
+    __tablename__ = "sms_broadcasts"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    # As typed, with placeholders like {{Tenant Name}} still in it.
+    template: Mapped[str] = mapped_column(String(400))
+    building_id: Mapped[str | None] = mapped_column(ForeignKey("buildings.id", ondelete="SET NULL"))
+    # Copied, so the history still reads properly if the building is renamed or deleted.
+    audience: Mapped[str] = mapped_column(String(120))
+    sent_by_id: Mapped[str | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    created_at: Mapped[datetime] = mapped_column(_PRECISE, default=utcnow)
+
+    sent_by: Mapped[User | None] = relationship()
+    messages: Mapped[list[SmsMessage]] = relationship(back_populates="broadcast")
+
+
+class SmsMessage(Base):
+    """One text to one person. Queued in the same transaction as what caused it, then sent by the worker."""
+
+    __tablename__ = "sms_messages"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    user_id: Mapped[str | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), index=True)
+    phone: Mapped[str | None] = mapped_column(String(16))
+    kind: Mapped[SmsKind] = mapped_column(_str_enum(SmsKind, "sms_kind"))
+    body: Mapped[str] = mapped_column(String(400))
+    # Stops the same reminder going twice, e.g. "bill_due:42". None for texts that may repeat.
+    dedupe_key: Mapped[str | None] = mapped_column(String(80), unique=True)
+    broadcast_id: Mapped[str | None] = mapped_column(ForeignKey("sms_broadcasts.id"), index=True)
+    status: Mapped[SmsStatus] = mapped_column(
+        _str_enum(SmsStatus, "sms_status"), default=SmsStatus.QUEUED, index=True
+    )
+    attempts: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    error: Mapped[str | None] = mapped_column(String(200))
+    created_at: Mapped[datetime] = mapped_column(_PRECISE, default=utcnow, index=True)
+    sent_at: Mapped[datetime | None] = mapped_column(DateTime)
+
+    user: Mapped[User | None] = relationship()
+    broadcast: Mapped[SmsBroadcast | None] = relationship(back_populates="messages")

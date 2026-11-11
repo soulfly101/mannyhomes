@@ -13,6 +13,7 @@ from ..db import utcnow
 from ..models import Tenancy, Ticket, TicketCategory, TicketStatus, User
 from ..sanitation.penalties import tickets_frozen
 from ..sanitation.service import ensure_sanitation_bills
+from ..sms.texts import ticket_status_changed
 
 FROZEN = (
     "New reports are paused until your overdue sanitation bills are paid. "
@@ -72,4 +73,5 @@ def set_status(db: Session, ticket: Ticket, status: TicketStatus) -> None:
     if ticket.status != status:
         ticket.status = status
         ticket.updated_at = utcnow()
+        ticket_status_changed(db, ticket)
         db.commit()

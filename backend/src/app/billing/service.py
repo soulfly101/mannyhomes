@@ -20,6 +20,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from ..db import utcnow
 from ..models import Bill, BillKind, Payment, PaymentMethod, PaymentStatus, RoomType, User
+from ..sms.texts import payment_received
 
 PERIOD = re.compile(r"^\d{4}-(0[1-9]|1[0-2])$")
 # Bills that are for a particular month: one of each per tenant per month.
@@ -144,6 +145,8 @@ def record_payment(
     )
     db.add(payment)
     db.flush()
+    if status == PaymentStatus.SUCCESS:
+        payment_received(db, payment)
     return payment
 
 
@@ -161,6 +164,8 @@ def mark_payment(db: Session, reference: str, status: PaymentStatus) -> Payment:
         payment.paid_at = utcnow()
     payment.status = status
     db.flush()
+    if status == PaymentStatus.SUCCESS:
+        payment_received(db, payment)
     return payment
 
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet } from "react-router";
-import { Building2, ExternalLink, MessageSquare, FileSignature, KeyRound, LayoutDashboard, Moon, PenLine, Settings, Sun, Users, Wrench, type LucideIcon } from "lucide-react";
+import { Building2, ExternalLink, MessageSquare, FileSignature, KeyRound, LayoutDashboard, Moon, PenLine, Send, Settings, Sun, Users, Wrench, type LucideIcon } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { UserInitials } from "../components/UserInitials";
 import { useUnread } from "../chat/chat";
@@ -15,6 +15,7 @@ const SECTIONS: { to: string; label: string; icon: LucideIcon }[] = [
   { to: "/admin/tenants", label: "Tenants", icon: Users },
   { to: "/admin/tickets", label: "Tickets", icon: Wrench },
   { to: "/admin/messages", label: "Messages", icon: MessageSquare },
+  { to: "/admin/texts", label: "Texts", icon: Send },
   { to: "/admin/agreements", label: "Agreements", icon: FileSignature },
   { to: "/admin/signature", label: "Signature", icon: PenLine },
   { to: "/admin/settings", label: "Settings", icon: Settings },

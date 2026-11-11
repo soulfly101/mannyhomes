@@ -39,6 +39,8 @@ services:
       MOOLRE_ACCOUNT_NUMBER: ${MOOLRE_ACCOUNT_NUMBER:-}
       MOOLRE_BASE_URL: ${MOOLRE_BASE_URL:-https://api.moolre.com}
       MOOLRE_CALLBACK_SECRET: ${MOOLRE_CALLBACK_SECRET:-}
+      MOOLRE_SMS_VAS_KEY: ${MOOLRE_SMS_VAS_KEY:-}
+      MOOLRE_SMS_SENDER_ID: ${MOOLRE_SMS_SENDER_ID:-}
       PAYSTACK_SECRET_KEY: ${PAYSTACK_SECRET_KEY:-}
       # Reload on code changes even where file events don't reach containers (e.g. Colima).
       WATCHFILES_FORCE_POLLING: "true"

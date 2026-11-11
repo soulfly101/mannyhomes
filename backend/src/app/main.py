@@ -1,3 +1,6 @@
+import asyncio
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, Request
@@ -8,6 +11,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
+from . import jobs
 from .agreements.router import admin_router as agreements_admin_router
 from .agreements.router import router as agreements_router
 from .allocations.router import router as allocations_router
@@ -30,6 +34,7 @@ from .moveouts.router import router as move_outs_router
 from .overview.router import router as overview_router
 from .sanitation.router import router as tenancies_router
 from .sanitation.router import settings_router
+from .sms.router import router as sms_router
 from .tickets.router import admin_router as tickets_admin_router
 from .tickets.router import router as tickets_router
 
@@ -37,7 +42,22 @@ CSRF_HEADER = "X-Requested-With"
 CSRF_VALUE = "altheo"
 SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
 
-app = FastAPI(title="Altheo Homes API")
+
+@asynccontextmanager
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    """Starts the background worker (texts, monthly bills), unless switched off, and stops it on shutdown."""
+    settings = get_settings()
+    if not (settings.run_background_jobs and settings.database_url):
+        yield
+        return
+    stop = asyncio.Event()
+    worker = asyncio.create_task(jobs.run(stop))
+    yield
+    stop.set()
+    await worker
+
+
+app = FastAPI(title="Altheo Homes API", lifespan=lifespan)
 
 
 @app.middleware("http")
@@ -103,6 +123,7 @@ app.include_router(move_outs_router, prefix="/api/admin")
 app.include_router(tenancies_router, prefix="/api/admin/tenancies")
 app.include_router(move_outs_me_router, prefix="/api/me/move-outs")
 app.include_router(settings_router, prefix="/api/admin/settings")
+app.include_router(sms_router, prefix="/api/admin/sms")
 app.include_router(tickets_router, prefix="/api/tickets")
 app.include_router(tickets_admin_router, prefix="/api/admin/tickets")
 app.include_router(chat_router, prefix="/api/chat")

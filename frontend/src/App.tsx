@@ -9,6 +9,7 @@ import { BuildingFormPage } from "./admin/BuildingFormPage";
 import { BuildingsPage } from "./admin/BuildingsPage";
 import { SignaturePage } from "./admin/SignaturePage";
 import { TenantsPage } from "./admin/TenantsPage";
+import { TextsPage } from "./admin/TextsPage";
 import { MoveOutPage } from "./admin/MoveOutPage";
 import { AdminSettingsPage } from "./admin/AdminSettingsPage";
 import { TicketsPage } from "./admin/TicketsPage";
@@ -92,6 +93,7 @@ export function App() {
           <Route path="/admin/messages" element={<AdminMessagesPage />} />
           <Route path="/admin/messages/:conversationId" element={<AdminConversationPage />} />
           <Route path="/admin/settings" element={<AdminSettingsPage />} />
+          <Route path="/admin/texts" element={<TextsPage />} />
           <Route path="/admin/agreements" element={<AgreementsPage />} />
           <Route path="/admin/agreements/:agreementId" element={<AdminAgreementPage />} />
           <Route path="/admin/signature" element={<SignaturePage />} />
