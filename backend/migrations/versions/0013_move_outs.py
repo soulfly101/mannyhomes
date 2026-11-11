@@ -30,7 +30,9 @@ def upgrade() -> None:
         sa.Column("refunded_at", sa.DateTime, nullable=True),
         sa.Column("refund_method", sa.String(24), nullable=True),
         sa.Column("refund_reference", sa.String(100), nullable=True),
-        sa.Column("created_by_id", sa.String(36), sa.ForeignKey("users.id", ondelete="SET NULL"), nullable=True),
+        sa.Column(
+            "created_by_id", sa.String(36), sa.ForeignKey("users.id", ondelete="SET NULL"), nullable=True
+        ),
         sa.Column("created_at", sa.DateTime, nullable=False),
     )
     op.create_table(
