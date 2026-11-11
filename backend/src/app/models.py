@@ -408,3 +408,42 @@ class Ticket(Base):
     updated_at: Mapped[datetime] = mapped_column(_PRECISE, default=utcnow)
 
     tenant: Mapped[User] = relationship()
+
+
+class Conversation(Base):
+    """A chat between a tenant and the admins (#22) about one topic: general, or one repair report.
+
+    Any admin can answer, so the admins share one read marker. Read markers are the last message id seen.
+    """
+
+    __tablename__ = "conversations"
+    __table_args__ = (UniqueConstraint("tenant_id", "topic", name="uq_conversations_tenant_topic"),)
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    ticket_id: Mapped[str | None] = mapped_column(ForeignKey("tickets.id"))
+    # "general", or "ticket:<id>": one conversation per tenant per topic.
+    topic: Mapped[str] = mapped_column(String(60))
+    tenant_read_id: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    admin_read_id: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    created_at: Mapped[datetime] = mapped_column(_PRECISE, default=utcnow)
+    last_message_at: Mapped[datetime | None] = mapped_column(_PRECISE, index=True)
+
+    tenant: Mapped[User] = relationship()
+    ticket: Mapped[Ticket | None] = relationship()
+
+
+class Message(Base):
+    """One chat message. Shown as plain text, never HTML."""
+
+    __tablename__ = "messages"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    conversation_id: Mapped[str] = mapped_column(ForeignKey("conversations.id"))
+    sender_id: Mapped[str] = mapped_column(ForeignKey("users.id"))
+    # Which side sent it, kept even if the sender's role later changes.
+    from_admin: Mapped[bool] = mapped_column(Boolean)
+    body: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(_PRECISE, default=utcnow)
+
+    sender: Mapped[User] = relationship()

@@ -17,6 +17,8 @@ from .billing.router import admin_router as billing_admin_router
 from .billing.router import router as billing_router
 from .bookings.router import router as bookings_router
 from .bookings.router import webhook_router
+from .chat.router import admin_router as chat_admin_router
+from .chat.router import router as chat_router
 from .config import get_settings
 from .contact.router import admin_router as contact_admin_router
 from .contact.router import router as contact_router
@@ -99,6 +101,8 @@ app.include_router(tenancies_router, prefix="/api/admin/tenancies")
 app.include_router(settings_router, prefix="/api/admin/settings")
 app.include_router(tickets_router, prefix="/api/tickets")
 app.include_router(tickets_admin_router, prefix="/api/admin/tickets")
+app.include_router(chat_router, prefix="/api/chat")
+app.include_router(chat_admin_router, prefix="/api/admin/chat")
 app.include_router(bookings_router, prefix="/api/bookings")
 app.include_router(webhook_router, prefix="/api/webhooks")
 

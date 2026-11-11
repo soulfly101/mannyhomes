@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import { ApiError, apiFetch } from "../api";
 import { Reveal } from "../components/Reveal";
 import { FormError } from "@/components/ui/sign-in";
 import { cn } from "@/lib/utils";
 import { formatDate } from "../format";
-import { sectionClass } from "../landing/parts";
+import { outlineButtonClass, sectionClass } from "../landing/parts";
+import { openAdminChat } from "./MessagesPage";
 import { ADMIN_STATUS, CATEGORY_LABEL, STATUSES, type Ticket, type TicketStatus } from "../tickets/tickets";
 
-type AdminTicket = Ticket & { tenant_name: string; tenant_phone: string | null };
+type AdminTicket = Ticket & { tenant_id: string; tenant_name: string; tenant_phone: string | null };
 
 const chipClass = "min-h-11 rounded-full border px-4 text-sm font-semibold transition duration-200 hover:shadow-sm motion-safe:hover:-translate-y-0.5";
 
@@ -23,6 +25,15 @@ function TicketCard({ ticket, onSaved }: { ticket: AdminTicket; onSaved: (t: Adm
       setError(e instanceof ApiError ? e.message : "That didn't save. Try again.");
     } finally {
       setBusy(false);
+    }
+  };
+  const navigate = useNavigate();
+  const chat = async () => {
+    setError("");
+    try {
+      navigate(`/admin/messages/${(await openAdminChat(ticket.tenant_id, ticket.id)).id}`);
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "Couldn't open the chat. Try again.");
     }
   };
   const selectId = `status-${ticket.id}`;
@@ -60,6 +71,9 @@ function TicketCard({ ticket, onSaved }: { ticket: AdminTicket; onSaved: (t: Adm
         <span className="text-muted-foreground"> · Reported {formatDate(ticket.created_at)}</span>
       </p>
       <p className="mt-2 whitespace-pre-line break-words text-sm">{ticket.description}</p>
+      <button type="button" onClick={() => void chat()} aria-label={`Chat with ${ticket.tenant_name} about this report`} className={`${outlineButtonClass} mt-3`}>
+        Chat with tenant
+      </button>
       {error && (
         <div className="mt-3">
           <FormError>{error}</FormError>

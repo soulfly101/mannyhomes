@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet } from "react-router";
-import { Building2, ExternalLink, FileSignature, KeyRound, LayoutDashboard, Moon, PenLine, Settings, Sun, Users, Wrench, type LucideIcon } from "lucide-react";
+import { Building2, ExternalLink, MessageSquare, FileSignature, KeyRound, LayoutDashboard, Moon, PenLine, Settings, Sun, Users, Wrench, type LucideIcon } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { UserInitials } from "../components/UserInitials";
+import { useUnread } from "../chat/chat";
+import { CountBadge } from "@/components/ui/count-badge";
 import { cn } from "@/lib/utils";
 import { BRAND } from "../landing/content";
 
@@ -12,6 +14,7 @@ const SECTIONS: { to: string; label: string; icon: LucideIcon }[] = [
   { to: "/admin/allocations", label: "Allocations", icon: KeyRound },
   { to: "/admin/tenants", label: "Tenants", icon: Users },
   { to: "/admin/tickets", label: "Tickets", icon: Wrench },
+  { to: "/admin/messages", label: "Messages", icon: MessageSquare },
   { to: "/admin/agreements", label: "Agreements", icon: FileSignature },
   { to: "/admin/signature", label: "Signature", icon: PenLine },
   { to: "/admin/settings", label: "Settings", icon: Settings },
@@ -52,6 +55,7 @@ export function AdminLayout() {
   const { user, logout } = useAuth();
   const [busy, setBusy] = useState(false);
   const { theme, toggle } = useAdminTheme();
+  const unread = useUnread("/api/admin/chat/unread");
 
   const onLogout = async () => {
     setBusy(true);
@@ -74,6 +78,7 @@ export function AdminLayout() {
             <NavLink key={to} to={to} end={to === "/admin"} className={({ isActive }) => cn(linkClass, isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary hover:text-foreground")}>
               <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
               {label}
+              {to === "/admin/messages" && <CountBadge count={unread} label={["unread message", "unread messages"]} className="ml-auto bg-accent text-foreground" />}
             </NavLink>
           ))}
           <Link to="/" className={cn(linkClass, "text-muted-foreground hover:bg-secondary hover:text-foreground md:mt-auto")}>

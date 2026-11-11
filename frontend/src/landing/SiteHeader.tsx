@@ -3,12 +3,15 @@ import { Link } from "react-router";
 import { Menu, X } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { UserInitials } from "../components/UserInitials";
+import { useUnread } from "../chat/chat";
+import { CountBadge } from "@/components/ui/count-badge";
 import { cn } from "@/lib/utils";
 import { BRAND, NAV_LINKS } from "./content";
 import { buttonClass, navLinkClass } from "./parts";
 
 function AccountLinks({ onNavigate }: { onNavigate?: () => void }) {
   const { user, logout } = useAuth();
+  const unread = useUnread(user?.role === "tenant" ? "/api/chat/unread" : null);
   if (user === undefined) return null;
   if (!user) {
     return (
@@ -44,6 +47,10 @@ function AccountLinks({ onNavigate }: { onNavigate?: () => void }) {
           </Link>
           <Link to="/repairs" onClick={onNavigate} className={cn(navLinkClass, "text-sm font-medium")}>
             Repairs
+          </Link>
+          <Link to="/messages" onClick={onNavigate} className={cn(navLinkClass, "inline-flex items-center gap-1.5 text-sm font-medium")}>
+            Messages
+            <CountBadge count={unread} label={["unread message", "unread messages"]} className="bg-white text-ink" />
           </Link>
         </>
       )}

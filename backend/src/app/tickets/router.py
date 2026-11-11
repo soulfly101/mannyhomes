@@ -19,6 +19,11 @@ router = APIRouter(tags=["tickets"])
 admin_router = APIRouter(tags=["admin: tickets"], dependencies=[Depends(require_role(Role.ADMIN))])
 
 MIN_DESCRIPTION = 10
+CATEGORY_WORDS = {
+    TicketCategory.PLUMBING: "Plumbing",
+    TicketCategory.ELECTRICAL: "Electrical",
+    TicketCategory.GENERAL: "General",
+}
 MAX_DESCRIPTION = 2000
 
 
@@ -83,12 +88,18 @@ def create_ticket(data: TicketIn, tenant: Tenant, db: DB) -> TicketOut:
 
 
 class AdminTicketOut(TicketOut):
+    tenant_id: str
     tenant_name: str
     tenant_phone: str | None
 
     @classmethod
     def of(cls, t: Ticket) -> AdminTicketOut:
-        return cls(**TicketOut.of(t).model_dump(), tenant_name=t.tenant.name, tenant_phone=t.tenant.phone)
+        return cls(
+            **TicketOut.of(t).model_dump(),
+            tenant_id=t.tenant_id,
+            tenant_name=t.tenant.name,
+            tenant_phone=t.tenant.phone,
+        )
 
 
 @admin_router.get("")
