@@ -34,6 +34,24 @@ const empty = overview({
   activity: [],
 });
 
+const noPayments = {
+  "GET /api/admin/overview/payments": {
+    body: {
+      period: "2026-11",
+      fee: "all",
+      building_id: null,
+      groups: [
+        { key: "paid", label: "Fully paid", count: 0, owed: 0 },
+        { key: "partial", label: "Still owes something", count: 0, owed: 0 },
+        { key: "unpaid", label: "Nothing paid", count: 0, owed: 0 },
+      ],
+      tenants: [],
+      not_billed: 0,
+      buildings: [],
+    },
+  },
+};
+
 const renderApp = (path = "/admin") =>
   render(
     <MemoryRouter initialEntries={[path]}>
@@ -49,7 +67,7 @@ beforeEach(() => {
 });
 
 test("the figures come from the API, with the change from last month in words", async () => {
-  mockApi({ ...asAdmin, "GET /api/admin/overview": { body: overview() } });
+  mockApi({ ...asAdmin, ...noPayments, "GET /api/admin/overview": { body: overview() } });
   renderApp();
   expect(await screen.findByRole("heading", { level: 1, name: "Dashboard" })).toBeInTheDocument();
   await screen.findByText("Active tenants");
@@ -65,20 +83,20 @@ test("the figures come from the API, with the change from last month in words", 
 
 test("a fall from last month shows with a minus", async () => {
   const figures = { ...overview().figures, collected_this_month: 500, collected_last_month: 1000 };
-  mockApi({ ...asAdmin, "GET /api/admin/overview": { body: overview({ figures }) } });
+  mockApi({ ...asAdmin, ...noPayments, "GET /api/admin/overview": { body: overview({ figures }) } });
   renderApp();
   expect(await screen.findByText("-50% from last month")).toBeInTheDocument();
 });
 
 test("no change from last month isn't shown as good or bad", async () => {
   const figures = { ...overview().figures, collected_this_month: 1000, collected_last_month: 1000 };
-  mockApi({ ...asAdmin, "GET /api/admin/overview": { body: overview({ figures }) } });
+  mockApi({ ...asAdmin, ...noPayments, "GET /api/admin/overview": { body: overview({ figures }) } });
   renderApp();
   expect(await screen.findByText("Same as last month")).toBeInTheDocument();
 });
 
 test("the chart has a table for screen readers and a tooltip on hover", async () => {
-  mockApi({ ...asAdmin, "GET /api/admin/overview": { body: overview() } });
+  mockApi({ ...asAdmin, ...noPayments, "GET /api/admin/overview": { body: overview() } });
   renderApp();
   const chart = await screen.findByRole("img", { name: "Money collected per month" });
   const table = within(screen.getByRole("table", { name: "Money collected per month" }));
@@ -91,7 +109,7 @@ test("the chart has a table for screen readers and a tooltip on hover", async ()
 });
 
 test("changing the range asks for that many months", async () => {
-  const { calls } = mockApi({ ...asAdmin, "GET /api/admin/overview": { body: overview() } });
+  const { calls } = mockApi({ ...asAdmin, ...noPayments, "GET /api/admin/overview": { body: overview() } });
   renderApp();
   await userEvent.selectOptions(await screen.findByLabelText("Time range"), "12");
   await waitFor(() => expect((global.fetch as jest.Mock).mock.calls.some(([u]) => String(u).includes("months=12"))).toBe(true));
@@ -99,7 +117,7 @@ test("changing the range asks for that many months", async () => {
 });
 
 test("the ring labels every stage with its count, so colour is never alone", async () => {
-  mockApi({ ...asAdmin, "GET /api/admin/overview": { body: overview() } });
+  mockApi({ ...asAdmin, ...noPayments, "GET /api/admin/overview": { body: overview() } });
   const { container } = renderApp();
   const stages = within(await screen.findByRole("list", { name: "Bookings by stage" }));
   expect(stages.getByText("Waiting to sign").closest("li")).toHaveTextContent("2 (50%)");
@@ -111,7 +129,7 @@ test("the ring labels every stage with its count, so colour is never alone", asy
 });
 
 test("recent tenants show initials, not stock photos, and activity shows when", async () => {
-  mockApi({ ...asAdmin, "GET /api/admin/overview": { body: overview() } });
+  mockApi({ ...asAdmin, ...noPayments, "GET /api/admin/overview": { body: overview() } });
   renderApp();
   const tenants = within(await screen.findByRole("region", { name: "Recent tenants" }));
   expect(tenants.getByRole("img", { name: "Ama Mensah" })).toHaveTextContent("AM");
@@ -122,7 +140,7 @@ test("recent tenants show initials, not stock photos, and activity shows when", 
 });
 
 test("with nothing yet it says so, rather than showing empty charts or made-up figures", async () => {
-  mockApi({ ...asAdmin, "GET /api/admin/overview": { body: empty } });
+  mockApi({ ...asAdmin, ...noPayments, "GET /api/admin/overview": { body: empty } });
   renderApp();
   expect(await screen.findByText(/No payments in this period yet/)).toBeInTheDocument();
   expect(screen.getByText(/No bookings yet/)).toBeInTheDocument();
@@ -133,13 +151,13 @@ test("with nothing yet it says so, rather than showing empty charts or made-up f
 });
 
 test("problems loading are shown", async () => {
-  mockApi({ ...asAdmin, "GET /api/admin/overview": { status: 500, body: { detail: "Something broke." } } });
+  mockApi({ ...asAdmin, ...noPayments, "GET /api/admin/overview": { status: 500, body: { detail: "Something broke." } } });
   renderApp();
   expect(await screen.findByText("Something broke.")).toBeInTheDocument();
 });
 
 test("the sidebar has the dashboard, marked only on its own page", async () => {
-  mockApi({ ...asAdmin, "GET /api/admin/overview": { body: overview() }, "GET /api/admin/buildings": { body: [] } });
+  mockApi({ ...asAdmin, ...noPayments, "GET /api/admin/overview": { body: overview() }, "GET /api/admin/buildings": { body: [] } });
   const { unmount } = renderApp();
   const nav = within(await screen.findByRole("navigation", { name: "Admin" }));
   expect(nav.getByRole("link", { name: "Dashboard" })).toHaveAttribute("aria-current", "page");
@@ -150,7 +168,7 @@ test("the sidebar has the dashboard, marked only on its own page", async () => {
 });
 
 describe("dark and light", () => {
-  const body = { ...asAdmin, "GET /api/admin/overview": { body: overview() } };
+  const body = { ...asAdmin, ...noPayments, "GET /api/admin/overview": { body: overview() } };
 
   test("it starts dark, and the toggle switches and remembers", async () => {
     mockApi(body);

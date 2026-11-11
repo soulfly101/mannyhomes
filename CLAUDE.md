@@ -65,6 +65,7 @@ Database changes go through **Alembic** migrations in `backend/migrations/versio
 
 ## Admin dashboard
 - `/admin` (`frontend/src/admin/AdminDashboardPage.tsx`) reads `GET /api/admin/overview?months=` (`backend/src/app/overview/`). Every number comes from real records; with nothing yet it says so rather than showing sample figures. Admins land there after logging in with no `next`.
+- Its "Who has paid" panel (#20, `overview/payments.py`, `GET /api/admin/overview/payments?period=&fee=&building_id=`) groups tenants with a room that month as Paid / Partly paid / Nothing paid for one fee or all three (late fees excluded, like compliance). Sanitation counts only tenants billed that month.
 - The admin area has a dark/light toggle (`AdminLayout`): dark at first, remembered per browser, and removed on leaving the admin area, so public pages keep following the device. It sets `data-theme` on `<html>`; `globals.css` and `tokens.css` each hold the dark colours twice, which must stay identical (a test checks this).
 
 ## Tenancy agreements

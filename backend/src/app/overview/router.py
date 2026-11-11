@@ -4,13 +4,13 @@ from collections import Counter
 from datetime import date, datetime
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from ..auth.deps import require_role
-from ..billing.service import balance
+from ..billing.service import PERIOD, balance, current_period
 from ..bookings.service import holds_by_room
 from ..db import get_session, utcnow
 from ..models import (
@@ -29,6 +29,7 @@ from ..models import (
     User,
 )
 from ..sanitation.service import ensure_sanitation_bills
+from .payments import Fee, PaymentStatusOut, payment_status
 
 DB = Annotated[Session, Depends(get_session)]
 
@@ -226,3 +227,17 @@ def overview(db: DB, months: Annotated[int, Query(ge=1, le=12)] = 6) -> Overview
         ],
         activity=_activity(db),
     )
+
+
+@router.get("/overview/payments")
+def payments_by_status(
+    db: DB,
+    period: str | None = None,
+    fee: Fee = "all",
+    building_id: str | None = None,
+) -> PaymentStatusOut:
+    """Tenants grouped by whether they've paid, for the dashboard's filtered chart (#20)."""
+    period = period or current_period()
+    if not PERIOD.match(period):
+        raise HTTPException(422, "Give the month like 2026-11.")
+    return payment_status(db, period=period, fee=fee, building_id=building_id or None)
