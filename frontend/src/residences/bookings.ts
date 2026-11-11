@@ -1,6 +1,6 @@
 export type Booking = {
   id: string;
-  status: "pending_payment" | "awaiting_allocation" | "allocated" | "cancelled";
+  status: "pending_payment" | "awaiting_allocation" | "allocated" | "cancelled" | "moved_out";
   room_type_id: string | null;
   room: string;
   building: string;
@@ -39,4 +39,5 @@ export const BOOKING_LABEL: Record<Booking["status"], { text: string; tone: "suc
   awaiting_allocation: { text: "Awaiting room allocation", tone: "success" },
   allocated: { text: "Room allocated", tone: "success" },
   cancelled: { text: "Cancelled", tone: "neutral" },
+  moved_out: { text: "Moved out", tone: "neutral" },
 };

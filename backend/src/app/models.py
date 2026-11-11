@@ -169,6 +169,8 @@ class PaymentMethod(StrEnum):
     MOOLRE_MOMO = "moolre_momo"
     CASH = "cash"
     BANK = "bank"
+    # Taken from the tenant's deposits at move-out (#26). Not new money: the deposit was counted when paid.
+    DEPOSIT = "deposit"
 
 
 class PaymentStatus(StrEnum):
@@ -264,6 +266,8 @@ class BookingStatus(StrEnum):
     AWAITING_ALLOCATION = "awaiting_allocation"
     ALLOCATED = "allocated"
     CANCELLED = "cancelled"
+    # The tenant has left the room (#26); they may book again.
+    MOVED_OUT = "moved_out"
 
 
 class Booking(Base):
@@ -447,3 +451,49 @@ class Message(Base):
     created_at: Mapped[datetime] = mapped_column(_PRECISE, default=utcnow)
 
     sender: Mapped[User] = relationship()
+
+
+class MoveOut(Base):
+    """A tenant leaving their room (#26): what their deposits came to, what was kept back, and the refund.
+
+    The amounts are worked out and stored when the admin confirms, so later changes never alter them.
+    """
+
+    __tablename__ = "move_outs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    tenancy_id: Mapped[str] = mapped_column(ForeignKey("tenancies.id"), unique=True)
+    tenant_id: Mapped[str] = mapped_column(ForeignKey("users.id"), index=True)
+    moved_out_on: Mapped[date] = mapped_column(Date)
+    # Booking and renting deposits actually paid, at the time of move-out.
+    deposits_held: Mapped[int] = mapped_column(Integer)
+    deductions_total: Mapped[int] = mapped_column(Integer)
+    refund_due: Mapped[int] = mapped_column(Integer)
+    note: Mapped[str | None] = mapped_column(String(500))
+    # Set when the admin has paid the refund back (by hand: cash, bank or Mobile Money).
+    refunded_at: Mapped[datetime | None] = mapped_column(DateTime)
+    refund_method: Mapped[str | None] = mapped_column(String(24))
+    refund_reference: Mapped[str | None] = mapped_column(String(100))
+    created_by_id: Mapped[str | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+    tenancy: Mapped[Tenancy] = relationship()
+    tenant: Mapped[User] = relationship(foreign_keys=[tenant_id])
+    deductions: Mapped[list[MoveOutDeduction]] = relationship(
+        back_populates="move_out", order_by="MoveOutDeduction.id", cascade="all, delete-orphan"
+    )
+
+
+class MoveOutDeduction(Base):
+    """Money kept back from the deposits: damage, or arrears on one of the tenant's unpaid bills."""
+
+    __tablename__ = "move_out_deductions"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    move_out_id: Mapped[str] = mapped_column(ForeignKey("move_outs.id"), index=True)
+    reason: Mapped[str] = mapped_column(String(200))
+    amount: Mapped[int] = mapped_column(Integer)
+    # The bill this settles, for arrears. None for damage and anything else.
+    bill_id: Mapped[int | None] = mapped_column(ForeignKey("bills.id"))
+
+    move_out: Mapped[MoveOut] = relationship(back_populates="deductions")

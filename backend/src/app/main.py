@@ -25,6 +25,8 @@ from .contact.router import router as contact_router
 from .db import get_session
 from .inventory.router import router as inventory_router
 from .listings.router import router as listings_router
+from .moveouts.router import me_router as move_outs_me_router
+from .moveouts.router import router as move_outs_router
 from .overview.router import router as overview_router
 from .sanitation.router import router as tenancies_router
 from .sanitation.router import settings_router
@@ -97,7 +99,9 @@ app.include_router(agreements_admin_router, prefix="/api/admin")
 app.include_router(billing_admin_router, prefix="/api/admin")
 app.include_router(overview_router, prefix="/api/admin")
 app.include_router(allocations_router, prefix="/api/admin/allocations")
+app.include_router(move_outs_router, prefix="/api/admin")
 app.include_router(tenancies_router, prefix="/api/admin/tenancies")
+app.include_router(move_outs_me_router, prefix="/api/me/move-outs")
 app.include_router(settings_router, prefix="/api/admin/settings")
 app.include_router(tickets_router, prefix="/api/tickets")
 app.include_router(tickets_admin_router, prefix="/api/admin/tickets")

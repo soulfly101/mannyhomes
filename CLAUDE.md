@@ -60,7 +60,8 @@ Database changes go through **Alembic** migrations in `backend/migrations/versio
 ## Allocation and tenancies
 - `/admin/allocations` is the queue of paid bookings (longest wait first); `/admin/allocations/:bookingId` assigns the room (`backend/src/app/allocations/`, `GET`/`POST /api/admin/allocations…`).
 - `allocate()` does it all in one transaction: `quantity_available` −1, a renting deposit bill (due in 7 days), a `tenancies` row with rent and sanitation **copied**, booking status `allocated`.
-- The room number is typed by the admin; one active tenancy per room in a building, ignoring case. A tenancy with `ended_at` set (move-out, #26) frees the room, and #26 must also add 1 back to `quantity_available`.
+- The room number is typed by the admin; one active tenancy per room in a building, ignoring case. A tenancy with `ended_at` set (move-out, #26) frees the room.
+- Move-out (#26, `app/moveouts/`): `/admin/tenants/:tenancyId/move-out` (`GET`/`POST /api/admin/tenancies/{id}/move-out`). One transaction: deductions (damage, or arrears paid from the deposit with payment method `deposit`, which revenue figures leave out) come off the deposits actually paid, unpaid deposit parts and sanitation bills for months starting after the move-out day are stopped (`close_bill`), the tenancy ends, the booking becomes `moved_out` (they may book again) and `quantity_available` +1. Refunds are paid by hand and recorded at `/admin/tenants` (`POST /api/admin/move-outs/{id}/refund`); tenants see theirs on `/dashboard` (`GET /api/me/move-outs`). Refused while a payment is pending.
 - Allocation is refused, with the reason shown to the admin, if the room type has no renting deposit set, has no rooms left, or was deleted.
 
 ## Admin dashboard
