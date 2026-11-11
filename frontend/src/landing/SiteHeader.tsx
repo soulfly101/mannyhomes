@@ -42,6 +42,9 @@ function AccountLinks({ onNavigate }: { onNavigate?: () => void }) {
           <Link to="/bookings" onClick={onNavigate} className={cn(navLinkClass, "text-sm font-medium")}>
             My bookings
           </Link>
+          <Link to="/repairs" onClick={onNavigate} className={cn(navLinkClass, "text-sm font-medium")}>
+            Repairs
+          </Link>
         </>
       )}
       <UserInitials name={user.name} className="bg-white text-ink" />
