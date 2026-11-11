@@ -172,6 +172,19 @@ def void_bill(db: Session, bill: Bill) -> None:
     db.flush()
 
 
+def close_bill(db: Session, bill: Bill) -> None:
+    """Stops a bill at what has been paid, when the rest is no longer owed (e.g. at move-out, #26).
+
+    Nothing paid: it's cancelled. Something paid: its amount comes down to that, so it reads as Paid.
+    """
+    paid = paid_amount(bill)
+    if paid == 0:
+        void_bill(db, bill)
+    elif paid < bill.amount:
+        bill.amount = paid
+        db.flush()
+
+
 def bills_query():
     """Live (not cancelled) bills with what's needed to show them, newest first."""
     return (

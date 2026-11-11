@@ -75,7 +75,7 @@ export function BookingStatusPage() {
           {error && <FormError>{error}</FormError>}
           {booking && (
             <div className="mt-2 flex flex-col gap-6">
-              {booking.status !== "cancelled" && <BookingSteps current={booking.status === "pending_payment" ? 2 : 3} />}
+              {booking.status !== "cancelled" && booking.status !== "moved_out" && <BookingSteps current={booking.status === "pending_payment" ? 2 : 3} />}
               <Headline booking={booking} waiting={waiting} />
               <dl className="grid grid-cols-[auto_1fr] gap-x-10 gap-y-3 rounded-xl border border-border bg-card p-6 shadow-sm text-sm">
                 <dt className="text-muted-foreground">Residence</dt>
@@ -148,7 +148,7 @@ export function BookingStatusPage() {
                   </button>
                 </div>
               )}
-              {(booking.status === "awaiting_allocation" || booking.status === "allocated") && (
+              {(booking.status === "awaiting_allocation" || booking.status === "allocated" || booking.status === "moved_out") && (
                 <div>
                   <Link to="/dashboard" className={buttonClass}>
                     Go to my dashboard
@@ -192,6 +192,16 @@ function Headline({ booking, waiting }: { booking: Booking; waiting: boolean }) 
         {title("Booking confirmed")}
         <p className="mt-3 text-muted-foreground">
           We've received your {formatCedis(booking.deposit)} deposit. Our team will now allocate your room and let you know which one is yours.
+        </p>
+      </div>
+    );
+  }
+  if (booking.status === "moved_out") {
+    return (
+      <div role="status">
+        {title("You've moved out")}
+        <p className="mt-3 text-muted-foreground">
+          Your time {booking.tenancy ? `in room ${booking.tenancy.room_number} ` : ""}at {booking.building} has ended. Your dashboard shows your deposit refund.
         </p>
       </div>
     );

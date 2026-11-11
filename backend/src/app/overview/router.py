@@ -22,6 +22,7 @@ from ..models import (
     Building,
     ContactMessage,
     Payment,
+    PaymentMethod,
     PaymentStatus,
     Role,
     RoomType,
@@ -117,7 +118,11 @@ def _activity(db: Session) -> list[Activity]:
         select(Payment, Bill.kind, User.name)
         .join(Payment.bill)
         .join(Bill.tenant)
-        .where(Payment.status == PaymentStatus.SUCCESS, Payment.paid_at.is_not(None))
+        .where(
+            Payment.status == PaymentStatus.SUCCESS,
+            Payment.paid_at.is_not(None),
+            Payment.method != PaymentMethod.DEPOSIT,
+        )
         .order_by(Payment.paid_at.desc())
         .limit(ACTIVITY_LIMIT)
     ).all()
@@ -161,7 +166,10 @@ def overview(db: DB, months: Annotated[int, Query(ge=1, le=12)] = 6) -> Overview
     by_month: Counter[str] = Counter()
     for amount, paid_at in db.execute(
         select(Payment.amount, Payment.paid_at).where(
-            Payment.status == PaymentStatus.SUCCESS, Payment.paid_at >= since
+            Payment.status == PaymentStatus.SUCCESS,
+            Payment.paid_at >= since,
+            # Taken from a deposit at move-out: that money was counted when the deposit was paid.
+            Payment.method != PaymentMethod.DEPOSIT,
         )
     ).all():
         by_month[paid_at.strftime("%Y-%m")] += amount

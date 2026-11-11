@@ -13,6 +13,8 @@ import { BillRow, currentSanitationBills, type TenantBill } from "./bills";
 import { BookingSteps } from "./BookingSteps";
 import type { Booking } from "./bookings";
 import { photoFor } from "./data";
+import { MovedOutCard } from "../moveouts/MovedOutCard";
+import type { MoveOut } from "../moveouts/moveouts";
 
 /** How often to check for an allocation while waiting. It also checks when the tenant comes back to the tab. */
 export const DASHBOARD_POLL_MS = 10000;
@@ -225,13 +227,15 @@ function FinishBooking({ booking }: { booking: Booking }) {
   );
 }
 
-function NoBooking({ name }: { name: string }) {
+function NoBooking({ name, returning }: { name: string; returning: boolean }) {
   return (
     <>
       <h1 id="dashboard-title" className="text-4xl font-bold tracking-tight md:text-5xl">
-        Welcome, {name}
+        Welcome{returning ? " back" : ""}, {name}
       </h1>
-      <p className="mt-3 max-w-2xl text-muted-foreground">You haven't booked a home yet. Your booking and your room will appear here once you do.</p>
+      <p className="mt-3 max-w-2xl text-muted-foreground">
+        {returning ? "Looking for a new home? You can book again whenever you're ready." : "You haven't booked a home yet. Your booking and your room will appear here once you do."}
+      </p>
       <Link to="/residences" className={`${buttonClass} mt-6`}>
         Find a place you'll love
       </Link>
@@ -268,6 +272,14 @@ export function TenantDashboardPage() {
   }, [load]);
 
   const booking = bookings ? currentBooking(bookings) : null;
+  const movedOut = bookings?.some((b) => b.status === "moved_out") ?? false;
+  const [moveOuts, setMoveOuts] = useState<MoveOut[]>([]);
+  useEffect(() => {
+    if (!movedOut) return;
+    apiFetch<MoveOut[]>("/api/me/move-outs")
+      .then(setMoveOuts)
+      .catch(() => setMoveOuts([]));
+  }, [movedOut]);
   const waiting = booking?.status === "awaiting_allocation";
 
   useEffect(() => {
@@ -291,7 +303,8 @@ export function TenantDashboardPage() {
       <section aria-labelledby="dashboard-title" className={`${sectionClass} py-12 md:py-16`}>
         {error && <FormError>{error}</FormError>}
         {!bookings && !error && <p className="text-muted-foreground">Loading your dashboard…</p>}
-        {bookings && !booking && <NoBooking name={user?.name.split(" ")[0] ?? "there"} />}
+        {bookings && !booking && <NoBooking name={user?.name.split(" ")[0] ?? "there"} returning={movedOut} />}
+        {bookings && !booking && moveOuts[0] && <MovedOutCard moveOut={moveOuts[0]} />}
         {booking?.status === "pending_payment" && <FinishBooking booking={booking} />}
         {booking?.status === "awaiting_allocation" && <AwaitingRoom booking={booking} />}
         {booking?.status === "allocated" && booking.tenancy && <ActiveTenancy booking={booking} justAllocated={justAllocated} />}

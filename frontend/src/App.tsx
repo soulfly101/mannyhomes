@@ -9,6 +9,7 @@ import { BuildingFormPage } from "./admin/BuildingFormPage";
 import { BuildingsPage } from "./admin/BuildingsPage";
 import { SignaturePage } from "./admin/SignaturePage";
 import { TenantsPage } from "./admin/TenantsPage";
+import { MoveOutPage } from "./admin/MoveOutPage";
 import { AdminSettingsPage } from "./admin/AdminSettingsPage";
 import { TicketsPage } from "./admin/TicketsPage";
 import { AdminConversationPage, AdminMessagesPage } from "./admin/MessagesPage";
@@ -86,6 +87,7 @@ export function App() {
           <Route path="/admin/buildings/new" element={<BuildingFormPage />} />
           <Route path="/admin/buildings/:id" element={<BuildingFormPage />} />
           <Route path="/admin/tenants" element={<TenantsPage />} />
+          <Route path="/admin/tenants/:tenancyId/move-out" element={<MoveOutPage />} />
           <Route path="/admin/tickets" element={<TicketsPage />} />
           <Route path="/admin/messages" element={<AdminMessagesPage />} />
           <Route path="/admin/messages/:conversationId" element={<AdminConversationPage />} />

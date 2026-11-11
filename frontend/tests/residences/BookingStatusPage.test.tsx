@@ -148,3 +148,12 @@ test("a booking waiting for the SMS code asks for it, and the code sends the pro
   expect(calls.find((c) => c.key === "POST /api/bookings/bk1/otp")!.body).toEqual({ code: "1234" });
   expect(screen.queryByLabelText("SMS code")).not.toBeInTheDocument();
 });
+
+test("a booking whose tenant has moved out says so and points to the dashboard", async () => {
+  mockApi({ ...base, "GET /api/bookings/bk1": { body: booking({ status: "moved_out", bill_status: "paid" }) } });
+  renderStatus();
+  expect(await screen.findByRole("heading", { name: "You've moved out" })).toBeInTheDocument();
+  expect(screen.getByText("Moved out")).toHaveAttribute("data-tone", "neutral");
+  expect(screen.getByRole("link", { name: "Go to my dashboard" })).toHaveAttribute("href", "/dashboard");
+  expect(screen.queryByRole("list", { name: "Booking steps" })).not.toBeInTheDocument();
+});
