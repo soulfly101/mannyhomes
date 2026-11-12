@@ -28,8 +28,15 @@ class Settings(BaseSettings):
     moolre_base_url: str = "https://api.moolre.com"
     # Moolre puts this in each callback. Empty means callbacks are refused and pages ask Moolre instead.
     moolre_callback_secret: str | None = None
+    # Texts (#27) go through Moolre's SMS service when both are set: its SMS "VAS key" (not the payments
+    # key) and a sender name approved at app.moolre.com (max 11 letters/digits, e.g. ALTHEO).
+    moolre_sms_vas_key: str | None = None
+    moolre_sms_sender_id: str | None = None
     # The backup provider, used when Moolre isn't set up (sk_test_… locally). Empty means Paystack is off.
     paystack_secret_key: str | None = None
+
+    # The worker that sends queued texts and makes monthly bills on time. Tests switch it off.
+    run_background_jobs: bool = True
 
     session_cookie_name: str = "altheo_session"
     session_cookie_secure: bool = False

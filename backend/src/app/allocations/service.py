@@ -13,6 +13,7 @@ from ..agreements.service import create_agreement
 from ..billing.service import create_bill
 from ..db import utcnow
 from ..models import Bill, BillKind, Booking, BookingStatus, Building, RoomType, Tenancy, User
+from ..sms.texts import room_allocated
 
 RENTING_DEPOSIT_DUE = timedelta(days=7)
 
@@ -132,5 +133,6 @@ def allocate(db: Session, booking_id: str, room_number: str, admin: User) -> Ten
     db.flush()
     create_agreement(db, tenancy, tenant_name=booking.tenant.name, admin=admin)
     booking.status = BookingStatus.ALLOCATED
+    room_allocated(db, tenancy)
     db.commit()
     return tenancy

@@ -19,6 +19,7 @@ from sqlalchemy.orm import Session, selectinload
 from ..billing.service import BillingError, balance, create_bill, current_period, paid_amount
 from ..db import utcnow
 from ..models import Agreement, Bill, BillKind, PaymentStatus, RoomType, Tenancy
+from ..sms.texts import sanitation_bill_created
 from .penalties import apply_late_fees, cancel_late_fees_no_longer_owed
 
 MAX_MOVE_IN_AHEAD = timedelta(days=365)
@@ -94,7 +95,7 @@ def ensure_sanitation_bills(db: Session, *, tenant_id: str | None = None, today:
                 continue
             try:
                 with db.begin_nested():
-                    create_bill(
+                    bill = create_bill(
                         db,
                         tenant=t.tenant,
                         kind=BillKind.SANITATION,
@@ -104,6 +105,9 @@ def ensure_sanitation_bills(db: Session, *, tenant_id: str | None = None, today:
                         period=period,
                         room_type=db.get(RoomType, t.room_type_id) if t.room_type_id else None,
                     )
+                    # Only this month's bill is news; catching up on earlier months isn't texted.
+                    if period == current_period(today):
+                        sanitation_bill_created(db, bill)
                 created = True
             except IntegrityError, BillingError:
                 continue  # someone looking at the same moment created it first
