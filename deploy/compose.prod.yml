@@ -1,0 +1,71 @@
+# Production: the backend and MySQL on the Oracle server (#28). No source mounts, no hot reload.
+# Run from the repo root on the server:
+#   docker compose -f deploy/compose.prod.yml --env-file deploy/.env up -d --build
+# Settings and secrets come from deploy/.env, which lives on the server only (see deploy/README.md).
+name: altheo
+
+services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-altheo}
+      MYSQL_USER: ${MYSQL_USER:-altheo}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in deploy/.env}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Set MYSQL_ROOT_PASSWORD in deploy/.env}
+    # Not published: only the backend reaches it, over the compose network.
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u$${MYSQL_USER} -p$${MYSQL_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  backend:
+    build: ../backend
+    image: altheo-backend
+    restart: unless-stopped
+    # Migrations run on every start, before the app takes requests.
+    command: >-
+      sh -c "alembic upgrade head &&
+      uvicorn app.main:app --host 0.0.0.0 --port 8000 --app-dir src --proxy-headers --forwarded-allow-ips='*'"
+    environment:
+      APP_ENV: production
+      DATABASE_URL: mysql+pymysql://${MYSQL_USER:-altheo}:${MYSQL_PASSWORD}@db:3306/${MYSQL_DATABASE:-altheo}
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in deploy/.env}
+      CORS_ORIGINS: ${CORS_ORIGINS:-}
+      FRONTEND_URL: ${FRONTEND_URL:-}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-true}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI:-}
+      MOOLRE_USERNAME: ${MOOLRE_USERNAME:-}
+      MOOLRE_PUBLIC_KEY: ${MOOLRE_PUBLIC_KEY:-}
+      MOOLRE_ACCOUNT_NUMBER: ${MOOLRE_ACCOUNT_NUMBER:-}
+      MOOLRE_BASE_URL: ${MOOLRE_BASE_URL:-https://api.moolre.com}
+      MOOLRE_CALLBACK_SECRET: ${MOOLRE_CALLBACK_SECRET:-}
+      MOOLRE_SMS_VAS_KEY: ${MOOLRE_SMS_VAS_KEY:-}
+      MOOLRE_SMS_SENDER_ID: ${MOOLRE_SMS_SENDER_ID:-}
+      PAYSTACK_SECRET_KEY: ${PAYSTACK_SECRET_KEY:-}
+    # Only reachable on the server itself until HTTPS (#29) puts Caddy in front.
+    ports:
+      - "127.0.0.1:8000:8000"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health/db', timeout=5)"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  # Docker keeps this across restarts, rebuilds and redeploys. `docker compose down -v` would delete it.
+  mysql-data:
