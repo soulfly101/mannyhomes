@@ -28,7 +28,7 @@ make down
 ```
 Without Docker: `cd backend && uv run pytest`, `cd frontend && npm test`.
 
-**Production** (#28): the backend and MySQL run on the Oracle server (`ssh -i ~/.ssh/altheo_oracle opc@89.168.66.187`, repo in `/srv/altheo`) with `deploy/compose.prod.yml`, behind Caddy at `https://89-168-66-187.sslip.io` (#29), with nightly backups to Oracle Object Storage recorded in `backup_runs` and shown on `/admin` (#30, `deploy/backup/`); secrets live only in the server's git-ignored `deploy/.env`. Steps, updating and things never to do (e.g. `down -v`) are in [deploy/README.md](deploy/README.md).
+**Production** (#28): the backend and MySQL run on the Oracle server (`ssh -i ~/.ssh/altheo_oracle opc@89.168.66.187`, repo in `/srv/altheo`) with `deploy/compose.prod.yml`, behind Caddy at `https://89-168-66-187.sslip.io` (#29), with nightly backups to Oracle Object Storage recorded in `backup_runs` and shown on `/admin` (#30, `deploy/backup/`), deployed automatically after the tests pass on `main` (#31, `.github/workflows/deploy.yml` → `deploy/deploy.sh` via the restricted `deploy` SSH user); secrets live only in the server's git-ignored `deploy/.env`. Steps, updating and things never to do (e.g. `down -v`) are in [deploy/README.md](deploy/README.md).
 
 Database changes go through **Alembic** migrations in `backend/migrations/versions/` (they run automatically when the backend starts; `make migrate` runs them by hand). Never change tables any other way. `make create-admin` creates an admin account.
 

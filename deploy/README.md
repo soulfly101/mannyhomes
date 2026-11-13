@@ -2,8 +2,8 @@
 
 The backend and MySQL run on the Oracle Always Free server (`altheo-server`, Arm, Oracle Linux 9) with
 Docker Compose, using [`compose.prod.yml`](compose.prod.yml), with Caddy in front for HTTPS (#29) and nightly
-backups to Oracle Object Storage (#30). Automatic deploys (#31) and the website on Cloudflare Pages (#32) build
-on this.
+backups to Oracle Object Storage (#30). Every merge to `main` that passes the tests is deployed automatically
+(#31). The website on Cloudflare Pages (#32) builds on this.
 
 The API is at **https://89-168-66-187.sslip.io/api/health**. sslip.io is a free name that points back at the
 IP inside it, so there's nothing to register; switch `API_HOST` to a real domain once there is one.
@@ -139,9 +139,43 @@ REPLACE_LIVE_DATABASE=yes deploy/backup/restore.sh <backup> altheo
 docker compose -f deploy/compose.prod.yml --env-file deploy/.env start backend   # runs any newer migrations
 ```
 
-## Updating to the latest `main`
+## Automatic deploys (#31)
 
-Until automatic deploys (#31) exist:
+When the **Tests** workflow passes on `main`, the **Deploy** workflow ([`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml))
+builds the backend image on an Arm runner and streams it over SSH to the `deploy` user, which can only run
+[`deploy.sh`](deploy.sh). That script:
+
+1. refuses anything that isn't a commit on `main`, or is older than what's running;
+2. loads the image and checks the new version can start, before touching anything;
+3. backs up the database;
+4. moves the checkout to that commit and starts the new backend (migrations run as it starts), restarting
+   Caddy and the backup job too if their files changed;
+5. waits for the backend's health check. If it fails, it puts the previous image and files back, so the old
+   version runs on, and the workflow goes red.
+
+A deploy is one-way for the database: if a new migration ran before the health check failed, the rollback
+keeps the newer tables (migrations here only add things, so the old version still works). Restore a backup
+if one ever has to be undone.
+
+Run it by hand: GitHub → Actions → Deploy → **Run workflow** (deploys the current `main`).
+
+### Setting up (done once)
+
+1. Make a key pair for GitHub only: `ssh-keygen -t ed25519 -N "" -C github-deploy -f deploy_key`.
+2. Store the **private** half as the repository secret `DEPLOY_SSH_KEY`:
+   `gh secret set DEPLOY_SSH_KEY < deploy_key`, then delete both files from your computer.
+3. On the server, install the **public** half for the restricted user:
+
+   ```sh
+   sudo /srv/altheo/deploy/setup-deploy-user.sh 'ssh-ed25519 AAAA... github-deploy'
+   ```
+
+   The key can only run `deploy.sh` with a commit id: no shell, no copying files. Running the script again
+   replaces the key (e.g. if it ever leaks: make a new one, rerun, update the secret).
+
+## Updating by hand
+
+Normally the Deploy workflow does this. If GitHub Actions is down:
 
 ```sh
 cd /srv/altheo
