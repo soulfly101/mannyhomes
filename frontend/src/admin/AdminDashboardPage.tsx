@@ -9,6 +9,7 @@ import { FormError } from "@/components/ui/sign-in";
 import { formatCedis, formatMonth, timeAgo } from "../format";
 import { sectionClass } from "../landing/parts";
 import { emptyClass, Panel, panelClass, selectClass } from "./dashboardParts";
+import { BackupStatusLine, type BackupStatus } from "./BackupStatusLine";
 import { PaymentStatusPanel } from "./PaymentStatusPanel";
 
 type Stage = { key: string; label: string; count: number };
@@ -27,6 +28,7 @@ type Overview = {
   stages: Stage[];
   recent_tenants: { id: string; name: string; email: string; status: string; tone: "success" | "warning" | "neutral" }[];
   activity: { kind: "payment" | "allocation" | "agreement" | "enquiry"; text: string; at: string }[];
+  backup?: BackupStatus | null;
 };
 
 function Stat({ label, value, icon: Icon, children }: { label: string; value: string; icon: LucideIcon; children: ReactNode }) {
@@ -278,6 +280,8 @@ export function AdminDashboardPage() {
               </Stat>
             </Reveal>
           </dl>
+
+          {data.backup && <BackupStatusLine status={data.backup} />}
 
           <Reveal>
             <PaymentStatusPanel />

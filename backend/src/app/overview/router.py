@@ -10,6 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from ..auth.deps import require_role
+from ..backups.service import BackupStatus, backup_status
 from ..billing.service import PERIOD, balance, current_period
 from ..bookings.service import holds_by_room
 from ..db import get_session, utcnow
@@ -89,6 +90,8 @@ class Overview(BaseModel):
     stages: list[Stage]
     recent_tenants: list[RecentTenant]
     activity: list[Activity]
+    # Nightly database backups (#30); None where they aren't expected (development).
+    backup: BackupStatus | None = None
 
 
 def _month_starts(today: date, months: int) -> list[date]:
@@ -234,6 +237,7 @@ def overview(db: DB, months: Annotated[int, Query(ge=1, le=12)] = 6) -> Overview
             for t in tenants
         ],
         activity=_activity(db),
+        backup=backup_status(db),
     )
 
 

@@ -223,3 +223,40 @@ test("time and month words", () => {
   expect(formatMonth("2026-11")).toBe("Nov");
   expect(formatMonth("2026-11", true)).toBe("Nov 2026");
 });
+
+describe("database backups", () => {
+  const backupLine = () => screen.findByRole("region", { name: "Database backups" });
+
+  test("working backups show as a quiet line with when and how big the last copy was", async () => {
+    const backup = { state: "ok", message: "The database is backed up every night and copied off the server.", last_success_at: recent, last_size_bytes: 3 * 1024 * 1024 };
+    mockApi({ ...asAdmin, ...noPayments, "GET /api/admin/overview": { body: overview({ backup }) } });
+    renderApp();
+    const line = within(await backupLine());
+    expect(line.getByText("Working")).toBeInTheDocument();
+    expect(line.getByText("Last copied off the server: 2 hours ago (3.0 MB).")).toBeInTheDocument();
+  });
+
+  test("a problem says what's wrong and how old the last good copy is", async () => {
+    const backup = { state: "warning", message: "Last night's database backup failed (upload failed). Check the server.", last_success_at: recent, last_size_bytes: 2048 };
+    mockApi({ ...asAdmin, ...noPayments, "GET /api/admin/overview": { body: overview({ backup }) } });
+    renderApp();
+    const line = within(await backupLine());
+    expect(line.getByText("Needs attention")).toBeInTheDocument();
+    expect(line.getByText(/failed \(upload failed\)/)).toBeInTheDocument();
+    expect(line.getByText("Last copied off the server: 2 hours ago (2 KB).")).toBeInTheDocument();
+  });
+
+  test("before any copy has left the server, it says so", async () => {
+    const backup = { state: "warning", message: "No database backup has run yet. The first one runs tonight at 02:00.", last_success_at: null, last_size_bytes: null };
+    mockApi({ ...asAdmin, ...noPayments, "GET /api/admin/overview": { body: overview({ backup }) } });
+    renderApp();
+    expect(within(await backupLine()).getByText("No backup has been copied off the server yet.")).toBeInTheDocument();
+  });
+
+  test("nothing is shown where backups aren't set up (development)", async () => {
+    mockApi({ ...asAdmin, ...noPayments, "GET /api/admin/overview": { body: overview({ backup: null }) } });
+    renderApp();
+    await screen.findByText("Active tenants");
+    expect(screen.queryByRole("region", { name: "Database backups" })).not.toBeInTheDocument();
+  });
+});
