@@ -56,6 +56,7 @@ main() {
   git merge -q --ff-only "$sha"
   docker tag "altheo-backend:$sha" altheo-backend:latest
   compose up -d --no-build
+  refresh_mounted_files "$previous" "$sha"
 
   if healthy; then
     # Keep this version and the previous one; drop older images.
@@ -73,6 +74,7 @@ main() {
     docker tag altheo-backend:previous altheo-backend:latest
   fi
   compose up -d --no-build
+  refresh_mounted_files "$sha" "$previous"
   if healthy; then log "rolled back; the previous version is running"; else log "ROLLBACK ALSO UNHEALTHY: check the server"; fi
   exit 1
 }
@@ -80,6 +82,15 @@ main() {
 log() { echo "$(date -u '+%Y-%m-%d %H:%M:%S') deploy: $*"; }
 fail() { log "refused: $*" >&2; exit 2; }
 compose() { docker compose -f deploy/compose.prod.yml --env-file deploy/.env "$@"; }
+
+# Caddy and the backup job read files from this checkout (Caddyfile, backup/). Git replaces a changed file
+# rather than editing it, and a container keeps seeing the old one, so restart them when those files change.
+refresh_mounted_files() {
+  if [ -n "$(git diff --name-only "$1" "$2" -- deploy/Caddyfile deploy/backup)" ]; then
+    log "Caddy or backup files changed; restarting them"
+    compose up -d --no-build --force-recreate caddy backup
+  fi
+}
 
 # Waits for the backend container's own health check (it checks the database too).
 healthy() {

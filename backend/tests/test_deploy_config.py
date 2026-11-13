@@ -303,6 +303,7 @@ case "$1" in
   merge-base)
     if [ "$4" = origin/main ]; then exit "${FAKE_OFF_MAIN:-0}"; else exit "${FAKE_OLDER:-1}"; fi ;;
   rev-parse) echo "$FAKE_PREVIOUS" ;;
+  diff) [ -z "${FAKE_DIFF:-}" ] || echo "$FAKE_DIFF" ;;
 esac
 exit 0
 """
@@ -327,6 +328,8 @@ def deploy(tmp_path):
     log.write_text("")
 
     def run(sha=NEW, **env):
+        log.write_text("")
+        Path(f"{log}.n").unlink(missing_ok=True)
         result = subprocess.run(
             ["sh", str(DEPLOY / "deploy.sh"), sha],
             input="image bytes",
@@ -396,6 +399,14 @@ def test_a_healthy_deploy_backs_up_switches_and_keeps_the_previous_image(deploy)
     # Older images go; this one and the previous one stay.
     assert f"docker rmi -f altheo-backend:{'c' * 40}" in calls
     assert not any(f"rmi -f altheo-backend:{NEW}" in c for c in calls)
+
+
+def test_caddy_and_the_backup_job_restart_only_when_their_files_change(deploy):
+    _, calls = deploy()
+    assert not any("--force-recreate" in c for c in calls)
+    result, calls = deploy(FAKE_DIFF="deploy/Caddyfile")
+    assert result.returncode == 0
+    assert any(c.endswith("up -d --no-build --force-recreate caddy backup") for c in calls)
 
 
 def test_a_failed_health_check_puts_the_previous_version_back(deploy):
