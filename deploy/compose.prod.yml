@@ -84,9 +84,29 @@ services:
       backend:
         condition: service_healthy
 
+  # Nightly database backups (#30), copied to Oracle Object Storage. See deploy/README.md.
+  backup:
+    image: mysql:8.4
+    restart: unless-stopped
+    entrypoint: ["sh", "/backup/backup.sh"]
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-altheo}
+      MYSQL_USER: ${MYSQL_USER:-altheo}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?Set MYSQL_PASSWORD in deploy/.env}
+      DB_HOST: db
+      BACKUP_UPLOAD_URL: ${BACKUP_UPLOAD_URL:-}
+    volumes:
+      - ./backup:/backup:ro,z
+      - backups:/backups
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   # Docker keeps these across restarts, rebuilds and redeploys. `docker compose down -v` would delete them.
   mysql-data:
   # Caddy's certificates. Keeping them avoids asking Let's Encrypt again on every restart.
   caddy-data:
   caddy-config:
+  # The newest few backups, kept on the server for a quick restore.
+  backups:

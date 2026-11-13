@@ -3,6 +3,7 @@ from enum import StrEnum
 from uuid import uuid4
 
 from sqlalchemy import (
+    BigInteger,
     Boolean,
     Date,
     DateTime,
@@ -557,3 +558,20 @@ class SmsMessage(Base):
 
     user: Mapped[User | None] = relationship()
     broadcast: Mapped[SmsBroadcast | None] = relationship(back_populates="messages")
+
+
+class BackupRun(Base):
+    """One nightly database backup (#30), written by deploy/backup/backup.sh rather than by the app.
+
+    status is "ok" (copied off the server), "local_only" (no Object Storage link set yet) or "failed".
+    """
+
+    __tablename__ = "backup_runs"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    started_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    finished_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, index=True)
+    status: Mapped[str] = mapped_column(String(20))
+    file: Mapped[str | None] = mapped_column(String(120))
+    size_bytes: Mapped[int | None] = mapped_column(BigInteger)
+    error: Mapped[str | None] = mapped_column(String(200))
