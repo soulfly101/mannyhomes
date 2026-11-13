@@ -95,7 +95,7 @@ def test_the_example_lists_every_variable_the_compose_file_uses():
     assert used <= example
     # The example itself holds no secrets.
     for line in (DEPLOY / ".env.example").read_text().splitlines():
-        if line.startswith(("MYSQL_PASSWORD", "MYSQL_ROOT_PASSWORD", "SECRET_KEY")):
+        if line.startswith(("MYSQL_PASSWORD", "MYSQL_ROOT_PASSWORD", "SECRET_KEY", "PROXY_SECRET")):
             assert line.endswith("=")
 
 
@@ -106,9 +106,9 @@ def test_make_env_writes_private_random_secrets_once(tmp_path):
     script = tmp_path / "make-env.sh"
     subprocess.run(["sh", str(script)], check=True, capture_output=True)
     env = dict(line.split("=", 1) for line in (tmp_path / ".env").read_text().splitlines() if "=" in line)
-    secrets = [env["MYSQL_PASSWORD"], env["MYSQL_ROOT_PASSWORD"], env["SECRET_KEY"]]
-    assert [len(s) for s in secrets] == [32, 32, 64]
-    assert len(set(secrets)) == 3
+    secrets = [env["MYSQL_PASSWORD"], env["MYSQL_ROOT_PASSWORD"], env["SECRET_KEY"], env["PROXY_SECRET"]]
+    assert [len(s) for s in secrets] == [32, 32, 64, 48]
+    assert len(set(secrets)) == 4
     assert stat.S_IMODE((tmp_path / ".env").stat().st_mode) == 0o600
     # A second run would change the MySQL password and lock the app out of its own data.
     again = subprocess.run(["sh", str(script)], capture_output=True, text=True)
@@ -118,6 +118,11 @@ def test_make_env_writes_private_random_secrets_once(tmp_path):
         dict(line.split("=", 1) for line in (tmp_path / ".env").read_text().splitlines() if "=" in line)
         == env
     )
+
+
+def test_the_backend_gets_the_website_proxy_secret(compose):
+    # The website's Cloudflare function (#32) proves itself with it before saying who the visitor is.
+    assert compose["services"]["backend"]["environment"]["PROXY_SECRET"] == "${PROXY_SECRET:-}"
 
 
 # --- Nightly backups (#30) ---------------------------------------------------------------------------
