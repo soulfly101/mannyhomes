@@ -3,7 +3,7 @@
 The backend and MySQL run on the Oracle Always Free server (`altheo-server`, Arm, Oracle Linux 9) with
 Docker Compose, using [`compose.prod.yml`](compose.prod.yml), with Caddy in front for HTTPS (#29) and nightly
 backups to Oracle Object Storage (#30). Every merge to `main` that passes the tests is deployed automatically
-(#31). The website on Cloudflare Pages (#32) builds on this.
+(#31). The website itself is on Cloudflare Pages (#32), see below.
 
 The API is at **https://89-168-66-187.sslip.io/api/health**. sslip.io is a free name that points back at the
 IP inside it, so there's nothing to register; switch `API_HOST` to a real domain once there is one.
@@ -172,6 +172,57 @@ Run it by hand: GitHub → Actions → Deploy → **Run workflow** (deploys the 
 
    The key can only run `deploy.sh` with a commit id: no shell, no copying files. Running the script again
    replaces the key (e.g. if it ever leaks: make a new one, rerun, update the secret).
+
+## The website on Cloudflare Pages (#32)
+
+The React app in `frontend/` is hosted for free on Cloudflare Pages, which builds it itself from GitHub:
+every merge to `main` updates the live site, and every pull request gets its own preview address.
+
+The site calls `/api/...` on its own address, and a small Cloudflare function
+([`frontend/functions/api/[[path]].ts`](../frontend/functions/api/%5B%5Bpath%5D%5D.ts)) passes those calls on
+to this server. That keeps the login cookie on the website's own address: a cookie set by the API's
+address would count as a third-party cookie, which Safari (every iPhone) refuses. The function also tells
+the backend each visitor's real address, proven with `PROXY_SECRET`, so login limits and agreement
+signatures don't all see Cloudflare's address. Payment webhooks still go straight to the API's address.
+
+Cloudflare's free plan allows 100,000 function calls a day. Only `/api/*` counts, not pages or photos. Each
+open chat asks for new messages every 3 seconds, so this is plenty for now. Once there's a domain (#33), the
+API can move to `api.<domain>`, and the site can call it directly.
+
+### Setting up (done once)
+
+1. **Server:** `deploy/.env` needs a `PROXY_SECRET`. Newer files get one from `make-env.sh`; to add one:
+
+   ```sh
+   cd /srv/altheo && grep -q '^PROXY_SECRET=.' deploy/.env || echo "PROXY_SECRET=$(openssl rand -hex 32)" >> deploy/.env
+   ```
+
+2. **Cloudflare** (dash.cloudflare.com → Workers & Pages → Create → Pages → *Connect to Git*), pick the
+   GitHub repository, then:
+   - Project name: `altheo-homes` (the site becomes `https://altheo-homes.pages.dev`)
+   - Production branch: `main`
+   - Framework preset: *None*. Build command: `npm run build`. Build output directory: `dist`
+   - Root directory: `frontend`
+   - Environment variables (Production): `API_ORIGIN` = `https://89-168-66-187.sslip.io`, and
+     `PROXY_SECRET` = the value from the server, as type *Secret*. To see it, run
+     `grep ^PROXY_SECRET= /srv/altheo/deploy/.env` on the server yourself. Don't paste it anywhere else.
+   - Environment variables (Preview): `API_ORIGIN` only. Previews use the live API and its real data, so
+     use them for looking, not for testing payments.
+
+   Node 22 comes from `frontend/.node-version`.
+
+3. **Server:** point the backend at the site in `deploy/.env`, then restart it:
+
+   ```sh
+   FRONTEND_URL=https://altheo-homes.pages.dev
+   CORS_ORIGINS=https://altheo-homes.pages.dev
+   GOOGLE_REDIRECT_URI=https://altheo-homes.pages.dev/api/auth/google/callback   # only with Google sign-in
+   ```
+
+4. **Check:** `https://altheo-homes.pages.dev/status` shows *API OK* and *Database OK*.
+
+If the site says "The website isn't connected to the server yet", `API_ORIGIN` is missing in Cloudflare
+(after adding it, retry the deployment). If it says "The server can't be reached", the server or Caddy is down.
 
 ## Updating by hand
 

@@ -13,5 +13,6 @@ sed \
   -e "s|^MYSQL_PASSWORD=.*|MYSQL_PASSWORD=$(secret 32)|" \
   -e "s|^MYSQL_ROOT_PASSWORD=.*|MYSQL_ROOT_PASSWORD=$(secret 32)|" \
   -e "s|^SECRET_KEY=.*|SECRET_KEY=$(secret 64)|" \
+  -e "s|^PROXY_SECRET=.*|PROXY_SECRET=$(secret 48)|" \
   .env.example > .env
 echo "Wrote deploy/.env (readable by you only). Add payment and text keys there when you have them."

@@ -32,6 +32,7 @@ from .listings.router import router as listings_router
 from .moveouts.router import me_router as move_outs_me_router
 from .moveouts.router import router as move_outs_router
 from .overview.router import router as overview_router
+from .proxy import ProxyClientIP
 from .sanitation.router import router as tenancies_router
 from .sanitation.router import settings_router
 from .sms.router import router as sms_router
@@ -77,6 +78,7 @@ async def require_csrf_header(request: Request, call_next):
     return await call_next(request)
 
 
+app.add_middleware(ProxyClientIP)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=get_settings().cors_origin_list,

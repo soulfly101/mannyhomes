@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:5173"
     # Where the React app lives; Google sign-in sends people back here.
     frontend_url: str = "http://localhost:5173"
+    # Shared with the website's Cloudflare function (#32), which forwards API calls and says who the visitor
+    # is. Only a request carrying it may set the visitor's address. Empty means that header is ignored.
+    proxy_secret: str | None = None
     # Signs short-lived values like the Google sign-in state. Use a long random value in production.
     secret_key: str = "dev-only-insecure-secret-change-me"
 
