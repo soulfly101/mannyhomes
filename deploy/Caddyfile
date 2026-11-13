@@ -1,0 +1,34 @@
+# HTTPS in front of the backend (#29). Caddy gets and renews the certificate by itself and sends plain
+# HTTP on port 80 to HTTPS. API_HOST comes from deploy/.env (an sslip.io name until there's a domain).
+{
+	servers {
+		# HTTP/1.1 and HTTP/2 only: HTTP/3 would need UDP 443 opened as well.
+		protocols h1 h2
+	}
+}
+
+{$API_HOST} {
+	encode gzip
+
+	# Only the API is served here; the website itself goes on Cloudflare Pages (#32). This also keeps
+	# FastAPI's /docs page off the internet.
+	handle /api/* {
+		# Caddy replaces any X-Forwarded-For the visitor sends with their real address, which the
+		# backend (uvicorn --proxy-headers) uses for login limits and agreement signatures.
+		reverse_proxy backend:8000
+	}
+	handle {
+		respond "Not found" 404
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		-Server
+	}
+
+	log {
+		output stdout
+		format console
+	}
+}

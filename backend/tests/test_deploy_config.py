@@ -47,6 +47,32 @@ def test_the_backend_is_only_reachable_from_the_server_itself(compose):
     assert compose["services"]["backend"]["ports"] == ["127.0.0.1:8000:8000"]
 
 
+def test_only_caddy_faces_the_internet(compose):
+    services = compose["services"].items()
+    published = {name: service["ports"] for name, service in services if "ports" in service}
+    assert published == {"backend": ["127.0.0.1:8000:8000"], "caddy": ["80:80", "443:443"]}
+
+
+def test_caddy_keeps_its_certificates_and_needs_a_host(compose):
+    caddy = compose["services"]["caddy"]
+    assert "caddy-data:/data" in caddy["volumes"]
+    assert "caddy-data" in compose["volumes"]
+    assert caddy["depends_on"]["backend"]["condition"] == "service_healthy"
+    assert "${API_HOST:?" in (DEPLOY / "compose.prod.yml").read_text()
+
+
+def test_caddy_serves_only_the_api():
+    text = (DEPLOY / "Caddyfile").read_text()
+    assert "{$API_HOST} {" in text
+    assert "handle /api/* {" in text
+    assert "reverse_proxy backend:8000" in text
+    # Everything else (e.g. FastAPI's /docs) gets a 404, and the proxy is the only route to the backend.
+    assert 'respond "Not found" 404' in text
+    assert text.count("reverse_proxy") == 1
+    # Caddy must not trust X-Forwarded-For from visitors, or anyone could fake their address.
+    assert "trusted_proxies" not in text
+
+
 def test_secrets_must_be_set_and_none_are_written_in(compose):
     text = (DEPLOY / "compose.prod.yml").read_text()
     for name in ("MYSQL_PASSWORD", "MYSQL_ROOT_PASSWORD", "SECRET_KEY"):
