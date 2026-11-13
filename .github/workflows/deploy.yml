@@ -1,0 +1,74 @@
+name: Deploy
+
+# Deploys the backend to the Oracle server (#31) after the Tests workflow passes on main. It builds the image
+# on an Arm runner (the server is Arm) and streams it over SSH to the restricted `deploy` user, which can only
+# run deploy/deploy.sh: that checks the new version, backs up the database, switches over (migrations run as
+# the backend starts) and goes back to the previous version if the health check fails. See deploy/README.md.
+
+on:
+  workflow_run:
+    workflows: [Tests]
+    types: [completed]
+    branches: [main]
+  # Re-deploy the current main by hand (Actions → Deploy → Run workflow).
+  workflow_dispatch:
+
+# One deploy at a time, in order; a newer merge waits rather than cancelling one halfway.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy backend
+    # Only after a successful test run of a push to main (never a pull request), or by hand on main.
+    if: >-
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push') ||
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
+    runs-on: ubuntu-24.04-arm
+    environment: production
+    timeout-minutes: 30
+    env:
+      SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+      HOST: 89.168.66.187
+      # The server's SSH host key, so the deploy can't be sent to an impostor.
+      HOST_KEY: ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFTxbhCK0gmOo+FI1WOw9UDO/UUdFOWoiC3Wom01RnRt
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.SHA }}
+
+      - name: Build the backend image (linux/arm64)
+        run: |
+          docker build --pull -t "altheo-backend:$SHA" backend
+          docker image inspect -f '{{.Architecture}}' "altheo-backend:$SHA" | grep -qx arm64
+          docker save "altheo-backend:$SHA" | gzip -1 > image.tar.gz
+          ls -lh image.tar.gz
+
+      - name: Deploy to the server
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s %s\n' "$HOST" "$HOST_KEY" > ~/.ssh/known_hosts
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+            -o ServerAliveInterval=30 "deploy@$HOST" "$SHA" < image.tar.gz
+
+      - name: Check the API from outside
+        run: |
+          for i in $(seq 1 10); do
+            if curl -fsS https://89-168-66-187.sslip.io/api/health/db; then exit 0; fi
+            sleep 6
+          done
+          exit 1
+
+      - name: Remove the key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
