@@ -1,6 +1,15 @@
 # HTTPS in front of the backend (#29). Caddy gets and renews the certificate by itself and sends plain
 # HTTP on port 80 to HTTPS. API_HOST comes from deploy/.env (an sslip.io name until there's a domain).
 {
+	# Error messages (e.g. the backend being down) go to Caddy's default log, with the request's headers.
+	# Like the request log below, leave out the website's shared secret (#32).
+	log default {
+		output stdout
+		format filter {
+			wrap console
+			request>headers>X-Altheo-Proxy-Key delete
+		}
+	}
 	servers {
 		# HTTP/1.1 and HTTP/2 only: HTTP/3 would need UDP 443 opened as well.
 		protocols h1 h2
@@ -29,6 +38,11 @@
 
 	log {
 		output stdout
-		format console
+		# Request headers are logged. Leave out the website's shared secret (#32); Caddy already hides
+		# cookies and Authorization by itself.
+		format filter {
+			wrap console
+			request>headers>X-Altheo-Proxy-Key delete
+		}
 	}
 }
