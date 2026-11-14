@@ -61,6 +61,14 @@ def test_caddy_keeps_its_certificates_and_needs_a_host(compose):
     assert "${API_HOST:?" in (DEPLOY / "compose.prod.yml").read_text()
 
 
+def test_caddy_never_logs_the_website_secret():
+    # Caddy logs request headers; the Cloudflare function's PROXY_SECRET (#32) arrives in one of them.
+    text = (DEPLOY / "Caddyfile").read_text()
+    # Both the request log and the default log (where errors, e.g. the backend being down, go).
+    assert len(re.findall(r"format filter \{[^}]*request>headers>X-Altheo-Proxy-Key delete", text)) == 2
+    assert re.search(r"log default \{\s*output stdout\s*format filter", text)
+
+
 def test_caddy_serves_only_the_api():
     text = (DEPLOY / "Caddyfile").read_text()
     assert "{$API_HOST} {" in text
