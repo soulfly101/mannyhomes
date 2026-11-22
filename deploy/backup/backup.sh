@@ -50,9 +50,10 @@ backup_once() {
   mkdir -p "$DIR"
   log "dumping the database to $name"
 
-  # --single-transaction gives a consistent copy without stopping the app.
+  # --single-transaction gives a consistent copy without stopping the app. --hex-blob writes binary
+  # columns (uploaded photos) as hex, so nothing in them can be mangled on the way back in.
   { mysqldump --defaults-extra-file="$CNF" --single-transaction --no-tablespaces --routines --triggers \
-      --set-gtid-purged=OFF "$MYSQL_DATABASE" || echo failed > "$part.err"; } | gzip -9 > "$part"
+      --hex-blob --set-gtid-purged=OFF "$MYSQL_DATABASE" || echo failed > "$part.err"; } | gzip -9 > "$part"
   # mysqldump ends a complete dump with "-- Dump completed"; reading it back also checks the gzip.
   if [ -e "$part.err" ] || ! gzip -dc "$part" | tail -n 1 | grep -q '^-- Dump completed'; then
     rm -f "$part" "$part.err"

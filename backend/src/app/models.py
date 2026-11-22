@@ -16,7 +16,7 @@ from sqlalchemy import (
     false,
 )
 from sqlalchemy.dialects.mysql import DATETIME as MYSQL_DATETIME
-from sqlalchemy.dialects.mysql import MEDIUMTEXT
+from sqlalchemy.dialects.mysql import MEDIUMBLOB, MEDIUMTEXT
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .db import Base, utcnow
@@ -575,3 +575,25 @@ class BackupRun(Base):
     file: Mapped[str | None] = mapped_column(String(120))
     size_bytes: Mapped[int | None] = mapped_column(BigInteger)
     error: Mapped[str | None] = mapped_column(String(200))
+
+
+class Photo(Base):
+    """A photo the admin uploaded for a building, or for one of its room types when room_type_id is set.
+
+    Stored re-encoded as JPEG in two sizes (the upload itself and its hidden data, like GPS, are dropped).
+    Kept in the database so the nightly backups include them. position orders each set; 0 is the cover.
+    """
+
+    __tablename__ = "photos"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    building_id: Mapped[str] = mapped_column(ForeignKey("buildings.id", ondelete="CASCADE"), index=True)
+    room_type_id: Mapped[str | None] = mapped_column(
+        ForeignKey("room_types.id", ondelete="CASCADE"), index=True
+    )
+    position: Mapped[int] = mapped_column(Integer, default=0)
+    width: Mapped[int] = mapped_column(Integer)
+    height: Mapped[int] = mapped_column(Integer)
+    large: Mapped[bytes] = mapped_column(MEDIUMBLOB, deferred=True)
+    thumb: Mapped[bytes] = mapped_column(MEDIUMBLOB, deferred=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)

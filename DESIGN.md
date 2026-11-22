@@ -92,6 +92,9 @@ Menu links to home page sections use `/#section` so they work from any page. **A
 ### Admin area
 Every admin page sits in `AdminLayout` (`frontend/src/admin/AdminLayout.tsx`): a sidebar with icons on wide screens, a bar with a row of sections on phones. Add new admin sections to its `SECTIONS` list. `/admin` is the dashboard: stat cards, money collected per month, bookings by stage, recent tenants and recent activity. The sidebar has a **dark/light toggle**; the admin area starts dark. `/admin/allocations` (queue) links to one page per booking, `/admin/allocations/:id`, which says what saving will do before it's saved. Anything blocking an allocation is shown instead of the form, with what to do about it.
 
+### Photos and galleries (#38)
+Room and building photos are the admin's own uploads (`/admin/buildings/:id/photos`), served from `/api/photos/{id}/thumb.jpg` (640 px, for cards) and `large.jpg` (1600 px, for room pages); use `coverFor()` and `photoUrl()` from `frontend/src/residences/data.ts`, which fall back to the stock photo when there are none. A room page shows `<RoomGallery>`: the big photo in a `photoPop` frame, and below it, when there are several, a row of small thumbnails (buttons, 44 px tall or more, the current one outlined in `primary`). Photos people uploaded get descriptive alt text ("2 bedroom at Manny Building, photo 1 of 3"); stock and thumbnail images stay `alt=""`.
+
 ### Switches (`@/components/ui/switch`)
 For settings that are on or off. The thumb slides across, and the words ON and OFF sit beside it so colour never says it alone. `/admin/settings` holds the admin's settings.
 

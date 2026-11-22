@@ -6,7 +6,7 @@ from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, object_session
 
 from ..auth.deps import require_role
 from ..auth.schemas import normalise_phone
@@ -24,6 +24,7 @@ from ..payments.gateway import (
     valid_moolre_secret,
     valid_paystack_signature,
 )
+from ..photos.router import cover_photo_id
 from .service import (
     BookingError,
     bookings_query,
@@ -71,6 +72,8 @@ class BookingOut(BaseModel):
     status: BookingStatus
     room_type_id: str | None
     room: str
+    # The room's cover photo id (#38), if the admin has uploaded any; /api/photos/{id}/large.jpg.
+    photo: str | None = None
     building: str
     location: str
     deposit: int
@@ -90,6 +93,7 @@ class BookingOut(BaseModel):
             status=b.status,
             room_type_id=b.room_type_id,
             room=b.room_name,
+            photo=cover_photo_id(db, b.room_type_id) if (db := object_session(b)) else None,
             building=b.building_name,
             location=b.location,
             deposit=b.bill.amount,

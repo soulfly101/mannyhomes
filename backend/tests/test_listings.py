@@ -144,6 +144,7 @@ def test_room_details_for_visitors_hide_prices(client, inventory):
         "rent": None,
         "sanitation_fee": None,
         "booking_deposit": None,
+        "photos": [],
     }
     assert body["building"]["name"] == "Manny Building"
     assert body["building"]["location"] == "Oyarifa"

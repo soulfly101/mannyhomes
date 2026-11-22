@@ -22,6 +22,16 @@ test("lists every room type with its building, each linking to its own page", as
   expect(screen.getByRole("navigation", { name: "Main" })).toBeInTheDocument();
 });
 
+test("each card shows its room's cover photo, or the stock photo until there is one", async () => {
+  const data = listings(false);
+  data.buildings[0].room_types[1].photos = ["cover2", "more"];
+  mockApi({ ...loggedOut, ...googleOff, "GET /api/listings": { body: data } });
+  renderPage();
+  await screen.findByRole("heading", { level: 2, name: "2 bedroom" });
+  expect(roomLink("2 bedroom").querySelector("img")).toHaveAttribute("src", "/api/photos/cover2/thumb.jpg");
+  expect(roomLink("1 bedroom").querySelector("img")?.getAttribute("src")).toMatch(/^\/photos\//);
+});
+
 test("visitors see availability but no prices, with a way to log in", async () => {
   mockApi({ ...loggedOut, ...googleOff, "GET /api/listings": { body: listings(false) } });
   renderPage();

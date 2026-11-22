@@ -215,6 +215,7 @@ def test_a_backup_is_dumped_checked_copied_off_and_recorded(backup):
     assert subprocess.run(["gzip", "-t", str(out / files[0])]).returncode == 0
     dump_args = read("dump")
     assert "--single-transaction" in dump_args
+    assert "--hex-blob" in dump_args  # photos (#38) are binary
     # The password is in a private options file, never on the command line.
     assert "s3cretpw" not in dump_args + read("mysql") + read("curl")
     curl = read("curl")
