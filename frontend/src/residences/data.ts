@@ -16,7 +16,16 @@ export type Residence = {
   bookingDeposit: number | null;
   building: string;
   location: string;
+  /** Uploaded photo ids, the room type's first and then its building's. */
+  photos: string[];
 };
+
+/** Where an uploaded photo is served: "thumb" (640 px) for cards, "large" (1600 px) for room pages. */
+export const photoUrl = (id: string, size: "thumb" | "large" = "large") => `/api/photos/${encodeURIComponent(id)}/${size}.jpg`;
+
+/** A residence's cover: its first uploaded photo, or the stock photo for its name until there are any. */
+export const coverFor = (r: Pick<Residence, "name" | "photos">, size: "thumb" | "large" = "thumb") =>
+  r.photos[0] ? photoUrl(r.photos[0], size) : photoFor(r.name);
 
 export const photoFor = (name: string) => RESIDENCES.photos[name.toLowerCase()] ?? RESIDENCES.fallback;
 export const availability = (n: number) => (n === 0 ? "Fully booked" : `${n} available`);
@@ -33,6 +42,7 @@ export const toResidences = (d: ListingsResponse): Residence[] =>
       bookingDeposit: rt.booking_deposit,
       building: b.name,
       location: b.location,
+      photos: rt.photos ?? [],
     })),
   );
 
@@ -46,6 +56,7 @@ export const fromRoomListing = ({ room, building }: RoomListing): Residence => (
   bookingDeposit: room.booking_deposit,
   building: building.name,
   location: building.location,
+  photos: room.photos ?? [],
 });
 
 /** Every listed room type (for the contact form's "Residence of interest" and the landing preview). */

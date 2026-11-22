@@ -54,6 +54,13 @@ test("once allocated it's the Tenant Dashboard with building, location, room typ
   expect(screen.getByRole("link", { name: "View booking details" })).toHaveAttribute("href", "/bookings/bk1");
 });
 
+test("the dashboard shows the room's uploaded cover photo when there is one", async () => {
+  mockApi({ ...base, "GET /api/bookings": { body: [{ ...allocated, photo: "cover2" }] } });
+  const { container } = renderDashboard();
+  await screen.findByRole("heading", { level: 1, name: "Tenant Dashboard" });
+  expect(container.querySelector('img[src="/api/photos/cover2/large.jpg"]')).not.toBeNull();
+});
+
 test("after allocation the next step is signing, and paying isn't offered yet", async () => {
   mockApi({ ...base, "GET /api/bookings": { body: [allocated] } });
   renderDashboard();

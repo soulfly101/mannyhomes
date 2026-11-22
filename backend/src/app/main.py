@@ -32,6 +32,8 @@ from .listings.router import router as listings_router
 from .moveouts.router import me_router as move_outs_me_router
 from .moveouts.router import router as move_outs_router
 from .overview.router import router as overview_router
+from .photos.router import admin_router as photos_admin_router
+from .photos.router import router as photos_router
 from .proxy import ProxyClientIP
 from .sanitation.router import router as tenancies_router
 from .sanitation.router import settings_router
@@ -111,6 +113,8 @@ async def friendly_validation_errors(_: Request, exc: RequestValidationError) ->
 
 app.include_router(auth_router, prefix="/api/auth")
 app.include_router(inventory_router, prefix="/api/admin/buildings")
+app.include_router(photos_admin_router, prefix="/api/admin/buildings")
+app.include_router(photos_router, prefix="/api/photos")
 app.include_router(listings_router, prefix="/api/listings")
 app.include_router(contact_router, prefix="/api/contact")
 app.include_router(contact_admin_router, prefix="/api/admin/contact")

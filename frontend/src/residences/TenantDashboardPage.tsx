@@ -12,7 +12,7 @@ import { SitePage } from "../landing/SitePage";
 import { BillRow, currentSanitationBills, type TenantBill } from "./bills";
 import { BookingSteps } from "./BookingSteps";
 import type { Booking } from "./bookings";
-import { photoFor } from "./data";
+import { photoFor, photoUrl } from "./data";
 import { MovedOutCard } from "../moveouts/MovedOutCard";
 import type { MoveOut } from "../moveouts/moveouts";
 
@@ -153,7 +153,7 @@ function ActiveTenancy({ booking, justAllocated }: { booking: Booking; justAlloc
       <div className="mt-8 grid items-start gap-6 lg:grid-cols-[1fr_1.2fr]">
         <Reveal from="left">
           <div className={`${photoPop} aspect-[4/3]`}>
-            <img src={photoFor(booking.room)} alt="" className={photoZoom} />
+            <img src={booking.photo ? photoUrl(booking.photo) : photoFor(booking.room)} alt="" className={photoZoom} />
           </div>
         </Reveal>
         <div className="flex flex-col gap-6">

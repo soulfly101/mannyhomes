@@ -12,6 +12,7 @@ from ..auth.deps import optional_user
 from ..bookings.service import holds_by_room
 from ..db import get_session
 from ..models import Building, RoomType, User
+from ..photos.router import photo_ids_by_owner
 
 router = APIRouter(tags=["listings"])
 
@@ -29,6 +30,9 @@ class ListingRoomType(BaseModel):
     sanitation_fee: int | None
     # Paid when booking (#14); 0 when the admin hasn't set it yet. None for visitors.
     booking_deposit: int | None
+    # Photo ids, this room type's first and then its building's; the first is the cover. Served at
+    # /api/photos/{id}/large.jpg and /thumb.jpg. Empty until the admin uploads some.
+    photos: list[str] = []
 
 
 class Listing(BaseModel):
@@ -39,6 +43,8 @@ class Listing(BaseModel):
     total_available: int
     fully_booked: bool
     room_types: list[ListingRoomType]
+    # The building's own photos (not its room types').
+    photos: list[str] = []
 
 
 class Filters(BaseModel):
@@ -52,7 +58,10 @@ class ListingsOut(BaseModel):
     prices_visible: bool
 
 
-def _room(rt: RoomType, show_prices: bool, holds: Counter[str]) -> ListingRoomType:
+Photos = dict[tuple[str, str | None], list[str]]
+
+
+def _room(rt: RoomType, show_prices: bool, holds: Counter[str], photos: Photos) -> ListingRoomType:
     return ListingRoomType(
         id=rt.id,
         name=rt.name,
@@ -62,12 +71,15 @@ def _room(rt: RoomType, show_prices: bool, holds: Counter[str]) -> ListingRoomTy
         rent=rt.rent if show_prices else None,
         sanitation_fee=rt.sanitation_fee if show_prices else None,
         booking_deposit=rt.booking_deposit if show_prices else None,
+        photos=photos.get((rt.building_id, rt.id), []) + photos.get((rt.building_id, None), []),
     )
 
 
-def _listing(b: Building, show_prices: bool, holds: Counter[str], room_type: str | None = None) -> Listing:
+def _listing(
+    b: Building, show_prices: bool, holds: Counter[str], photos: Photos, room_type: str | None = None
+) -> Listing:
     rooms = [
-        _room(rt, show_prices, holds)
+        _room(rt, show_prices, holds, photos)
         for rt in b.room_types
         if room_type is None or rt.name.casefold() == room_type.casefold()
     ]
@@ -80,6 +92,7 @@ def _listing(b: Building, show_prices: bool, holds: Counter[str], room_type: str
         total_available=total,
         fully_booked=total == 0,
         room_types=rooms,
+        photos=photos.get((b.id, None), []),
     )
 
 
@@ -105,8 +118,9 @@ def list_listings(
     location = (location or "").strip() or None
     room_type = (room_type or "").strip() or None
     holds = holds_by_room(db, viewer=viewer)
+    photos = photo_ids_by_owner(db, [b.id for b in buildings])
     matches = [
-        _listing(b, show_prices, holds, room_type)
+        _listing(b, show_prices, holds, photos, room_type)
         for b in buildings
         if (location is None or b.location.casefold() == location.casefold())
     ]
@@ -125,7 +139,8 @@ def get_listing(building_id: str, db: DB, viewer: Viewer) -> Listing:
     )
     if building is None:
         raise HTTPException(status_code=404, detail="That building isn't listed.")
-    return _listing(building, viewer is not None, holds_by_room(db, viewer=viewer))
+    photos = photo_ids_by_owner(db, [building.id])
+    return _listing(building, viewer is not None, holds_by_room(db, viewer=viewer), photos)
 
 
 class ListingBuilding(BaseModel):
@@ -157,7 +172,7 @@ def get_room_listing(room_type_id: str, db: DB, viewer: Viewer) -> RoomListing:
     b = rt.building
     show_prices = viewer is not None
     return RoomListing(
-        room=_room(rt, show_prices, holds_by_room(db, viewer=viewer)),
+        room=_room(rt, show_prices, holds_by_room(db, viewer=viewer), photo_ids_by_owner(db, [b.id])),
         building=ListingBuilding(id=b.id, name=b.name, location=b.location, description=b.description),
         prices_visible=show_prices,
     )

@@ -17,12 +17,13 @@ type Handler = (body: unknown) => Reply;
 
 /** Fakes our API. Keys are "METHOD /path"; unknown calls fail the test loudly. */
 export function mockApi(routes: Record<string, Reply | Handler>) {
-  const calls: { key: string; body: unknown; headers: Record<string, string> }[] = [];
+  const calls: { key: string; body: unknown; headers: Record<string, string>; search: string }[] = [];
   const fetchMock = jest.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = new URL(String(input), "http://localhost");
     const key = `${init?.method ?? "GET"} ${url.pathname}`;
-    const body = init?.body ? JSON.parse(String(init.body)) : undefined;
-    calls.push({ key, body, headers: (init?.headers ?? {}) as Record<string, string> });
+    // JSON bodies are parsed; anything else (e.g. an uploaded file) is passed on as it is.
+    const body = typeof init?.body === "string" ? JSON.parse(init.body) : (init?.body ?? undefined);
+    calls.push({ key, body, headers: (init?.headers ?? {}) as Record<string, string>, search: url.search });
     const route = routes[key];
     if (!route) throw new Error(`Unexpected API call: ${key}`);
     const reply = typeof route === "function" ? route(body) : route;

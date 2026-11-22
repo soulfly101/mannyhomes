@@ -88,3 +88,33 @@ test("no booking deposit line until the admin sets one", async () => {
   await screen.findByText("GH₵ 2,000 / month");
   expect(screen.queryByText("Booking deposit")).not.toBeInTheDocument();
 });
+
+test("shows the uploaded photos, and the small ones switch the big one", async () => {
+  const listing = roomListing(false);
+  listing.room.photos = ["inside", "outside"];
+  mockApi({ ...loggedOut, ...googleOff, "GET /api/listings": { body: listings(false) }, "GET /api/listings/rooms/r2": { body: listing } });
+  renderDetails();
+  const big = await screen.findByRole("img", { name: "2 bedroom at Manny Building, photo 1 of 2" });
+  expect(big).toHaveAttribute("src", "/api/photos/inside/large.jpg");
+  const more = screen.getByRole("list", { name: "More photos" });
+  expect(within(more).getByRole("button", { name: "Show photo 1 of 2" })).toHaveAttribute("aria-current", "true");
+
+  await userEvent.click(within(more).getByRole("button", { name: "Show photo 2 of 2" }));
+  expect(screen.getByRole("img", { name: "2 bedroom at Manny Building, photo 2 of 2" })).toHaveAttribute("src", "/api/photos/outside/large.jpg");
+});
+
+test("one photo needs no small ones, and with none the stock photo is shown", async () => {
+  const one = roomListing(false);
+  one.room.photos = ["inside"];
+  mockApi({ ...loggedOut, ...googleOff, "GET /api/listings": { body: listings(false) }, "GET /api/listings/rooms/r2": { body: one } });
+  const { unmount } = renderDetails();
+  expect(await screen.findByRole("img", { name: "2 bedroom at Manny Building, photo 1 of 1" })).toBeInTheDocument();
+  expect(screen.queryByRole("list", { name: "More photos" })).not.toBeInTheDocument();
+  unmount();
+
+  mockApi({ ...loggedOut, ...googleOff, "GET /api/listings": { body: listings(false) }, "GET /api/listings/rooms/r2": { body: roomListing(false) } });
+  const { container } = renderDetails();
+  await screen.findByRole("heading", { level: 1, name: "2 bedroom" });
+  expect(container.querySelector('img[src^="/photos/"]')).not.toBeNull();
+  expect(container.querySelector('img[src^="/api/photos/"]')).toBeNull();
+});

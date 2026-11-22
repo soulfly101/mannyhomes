@@ -29,6 +29,7 @@ test("lists buildings with prices and availability", async () => {
   expect(within(rows[1]).getByText("3 available")).toHaveClass("pill-ok");
   expect(within(rows[2]).getByText("Fully booked")).toHaveClass("pill-danger");
   expect(within(manny).getByRole("link", { name: "Edit" })).toHaveAttribute("href", "/admin/buildings/b1");
+  expect(within(manny).getByRole("link", { name: "Photos" })).toHaveAttribute("href", "/admin/buildings/b1/photos");
 
   const hidden = screen.getByRole("article", { name: "Apartment B" });
   expect(within(hidden).getByText("Hidden from tenants")).toBeInTheDocument();

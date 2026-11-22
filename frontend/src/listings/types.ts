@@ -8,6 +8,8 @@ export type ListingRoomType = {
   sanitation_fee: number | null;
   /** Paid when booking; 0 when not set yet; null for visitors. */
   booking_deposit: number | null;
+  /** Photo ids: this room type's first, then its building's. The first is the cover; empty until uploaded. */
+  photos?: string[];
 };
 
 export type Listing = {
@@ -18,6 +20,8 @@ export type Listing = {
   total_available: number;
   fully_booked: boolean;
   room_types: ListingRoomType[];
+  /** The building's own photos. */
+  photos?: string[];
 };
 
 export type ListingsResponse = {

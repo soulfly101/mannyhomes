@@ -1,12 +1,14 @@
+import { useState } from "react";
 import { Link, useParams } from "react-router";
 import { ArrowLeft, BedDouble, MapPin } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 import { Reveal } from "../components/Reveal";
 import { Badge } from "@/components/ui/badge";
 import { formatCedis } from "../format";
+import { cn } from "@/lib/utils";
 import { Eyebrow, buttonClass, outlineButtonClass, photoPop, photoZoom, sectionClass } from "../landing/parts";
 import { SitePage, useEnquiry } from "../landing/SitePage";
-import { availability, photoFor, useRoom, type Residence } from "./data";
+import { availability, photoFor, photoUrl, useRoom, type Residence } from "./data";
 import { RoomStatus } from "./RoomStatus";
 
 /** Rent, fees and availability, shown to logged-in users only (prices are hidden from visitors). */
@@ -39,6 +41,47 @@ export function RoomFacts({ r }: { r: Residence }) {
   );
 }
 
+/** The room's photos: a big one, and small ones to switch between when there are several (#38). */
+export function RoomGallery({ r }: { r: Residence }) {
+  const [shown, setShown] = useState(0);
+  if (r.photos.length === 0) {
+    return (
+      <div className={`${photoPop} aspect-[4/3]`}>
+        <img src={photoFor(r.name)} alt="" className={photoZoom} />
+      </div>
+    );
+  }
+  const current = Math.min(shown, r.photos.length - 1);
+  const label = (i: number) => `${r.name} at ${r.building}, photo ${i + 1} of ${r.photos.length}`;
+  return (
+    <div className="flex flex-col gap-3">
+      <div className={`${photoPop} aspect-[4/3]`}>
+        <img src={photoUrl(r.photos[current])} alt={label(current)} className={photoZoom} />
+      </div>
+      {r.photos.length > 1 && (
+        <ul aria-label="More photos" className="flex gap-2 overflow-x-auto pb-1">
+          {r.photos.map((id, i) => (
+            <li key={id} className="shrink-0">
+              <button
+                type="button"
+                onClick={() => setShown(i)}
+                aria-label={`Show photo ${i + 1} of ${r.photos.length}`}
+                aria-current={i === current || undefined}
+                className={cn(
+                  "block h-16 w-24 overflow-hidden rounded-lg border-2 transition-transform duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  i === current ? "border-primary" : "border-transparent opacity-80 hover:opacity-100",
+                )}
+              >
+                <img src={photoUrl(id, "thumb")} alt="" loading="lazy" className="h-full w-full object-cover" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 /** One room type (/residences/:roomTypeId): photo, details, and the way to book or enquire. */
 export function ResidenceDetailsPage() {
   const { roomTypeId } = useParams();
@@ -58,9 +101,7 @@ export function ResidenceDetailsPage() {
           <div className="mt-6 grid items-start gap-10 lg:grid-cols-[1.5fr_1fr]">
             <div className="flex flex-col gap-6">
               <Reveal from="left">
-                <div className={`${photoPop} aspect-[4/3]`}>
-                  <img src={photoFor(state.residence.name)} alt="" className={photoZoom} />
-                </div>
+                <RoomGallery r={state.residence} />
               </Reveal>
               <div>
                 <Eyebrow>

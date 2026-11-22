@@ -155,6 +155,11 @@ export function BuildingFormPage() {
         ← Buildings
       </Link>
       <h1>{editing ? `Edit ${form.name || "building"}` : "Add a building"}</h1>
+      {editing && (
+        <p>
+          <Link to={`/admin/buildings/${id}/photos`}>Photos of this building and its room types</Link>
+        </p>
+      )}
       {banner && <Banner>{banner}</Banner>}
       <form onSubmit={onSubmit} noValidate className="form-stack">
         <Card as="section" aria-labelledby="building-details">

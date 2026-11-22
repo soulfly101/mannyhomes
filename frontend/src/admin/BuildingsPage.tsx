@@ -63,6 +63,9 @@ function BuildingCard({ building, onDeleted }: { building: Building; onDeleted: 
           <Link className="btn btn-secondary" to={`/admin/buildings/${building.id}`}>
             Edit
           </Link>
+          <Link className="btn btn-secondary" to={`/admin/buildings/${building.id}/photos`}>
+            Photos
+          </Link>
           <Button variant="ghost" onClick={() => setConfirming(true)}>
             Delete
           </Button>

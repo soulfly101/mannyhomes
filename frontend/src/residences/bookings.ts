@@ -3,6 +3,8 @@ export type Booking = {
   status: "pending_payment" | "awaiting_allocation" | "allocated" | "cancelled" | "moved_out";
   room_type_id: string | null;
   room: string;
+  /** The room's cover photo id, once the admin has uploaded photos. */
+  photo?: string | null;
   building: string;
   location: string;
   deposit: number;
