@@ -26,7 +26,7 @@ function Skyline() {
 
 export function Footer({ residences, enquiry }: { residences: Residence[]; enquiry: Residence | null }) {
   return (
-    <footer id="contact" aria-labelledby="contact-title" className="scroll-mt-24 border-t border-border bg-card">
+    <footer id="contact" aria-labelledby="contact-title" className="glass-panel glass-stage scroll-mt-24 rounded-none border-x-0 border-b-0">
       <div className={`${sectionClass} grid gap-12 py-16 lg:grid-cols-[1fr_1fr_1.6fr]`}>
         <nav aria-label="Footer">
           <ul className="flex flex-col">

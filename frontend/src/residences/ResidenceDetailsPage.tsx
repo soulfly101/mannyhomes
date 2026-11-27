@@ -8,7 +8,7 @@ import { formatCedis } from "../format";
 import { cn } from "@/lib/utils";
 import { Eyebrow, buttonClass, outlineButtonClass, photoPop, photoZoom, sectionClass } from "../landing/parts";
 import { SitePage, useEnquiry } from "../landing/SitePage";
-import { availability, photoFor, photoUrl, useRoom, type Residence } from "./data";
+import { availability, coverFor, photoFor, photoUrl, useRoom, type Residence } from "./data";
 import { RoomStatus } from "./RoomStatus";
 
 /** Rent, fees and availability, shown to logged-in users only (prices are hidden from visitors). */
@@ -90,10 +90,10 @@ export function ResidenceDetailsPage() {
   const { enquiry, enquire } = useEnquiry();
 
   return (
-    <SitePage enquiry={enquiry}>
+    <SitePage enquiry={enquiry} photo={state.status === "ready" ? coverFor(state.residence, "large") : undefined}>
       <RoomStatus state={state} />
       {state.status === "ready" && (
-        <section aria-labelledby="residence-title" className={`${sectionClass} py-12 md:py-16`}>
+        <section aria-labelledby="residence-title" className={`${sectionClass} py-6 md:py-8`}>
           <Link to="/residences" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             All residences
@@ -123,7 +123,7 @@ export function ResidenceDetailsPage() {
                 {state.residence.description && <p className="mt-4 text-muted-foreground">{state.residence.description}</p>}
               </div>
             </div>
-            <aside aria-label="Price and booking" className="flex flex-col gap-6 rounded-xl border border-border bg-card p-6 shadow-sm lg:sticky lg:top-28">
+            <aside aria-label="Price and booking" className="glass-panel flex flex-col gap-6 p-6 lg:sticky lg:top-28">
               <RoomFacts r={state.residence} />
               <BookActions r={state.residence} canBook={!user || user.role === "tenant"} loggedIn={Boolean(user)} onEnquire={() => enquire(state.residence)} />
             </aside>

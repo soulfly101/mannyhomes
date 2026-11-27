@@ -98,7 +98,7 @@ export function SiteNav({ label = "Main", menuId = "mobile-menu" }: { label?: st
         </button>
       </nav>
       {open && (
-        <div id={menuId} className="mx-4 mb-4 flex max-h-[75dvh] flex-col gap-4 overflow-y-auto rounded-xl bg-ink p-5 lg:hidden">
+        <div id={menuId} className="glass-panel glass-ink mx-4 mb-4 flex max-h-[75dvh] flex-col gap-4 overflow-y-auto p-5 lg:hidden">
           {NAV_LINKS.map((n) => (
             <Link key={n.href} to={n.href} onClick={() => setOpen(false)} className="flex min-h-11 items-center text-base font-medium text-white">
               {n.label}
@@ -113,10 +113,13 @@ export function SiteNav({ label = "Main", menuId = "mobile-menu" }: { label?: st
   );
 }
 
-/** Header for every page except the home page (whose hero has the menu over the video): stays at the top while scrolling. */
+/**
+ * Header for every page except the home page (whose hero has the menu over the video): a dark glass bar that stays
+ * at the top while scrolling, with the page showing softly through it (DESIGN.md → Glass).
+ */
 export function SiteHeader() {
   return (
-    <header id="top" className="sticky top-0 z-50 bg-ink text-white shadow-sm print:hidden">
+    <header id="top" className="glass-rail glass-ink sticky top-0 z-50 rounded-none border-x-0 border-t-0 print:hidden">
       <SiteNav />
     </header>
   );
@@ -134,7 +137,7 @@ export function StickyHomeHeader() {
   }, []);
   if (!show) return null;
   return (
-    <div className="fixed inset-x-0 top-0 z-50 bg-ink text-white shadow-sm motion-safe:animate-in motion-safe:slide-in-from-top">
+    <div className="glass-rail glass-ink fixed inset-x-0 top-0 z-50 rounded-none border-x-0 border-t-0 motion-safe:animate-in motion-safe:slide-in-from-top">
       <SiteNav label="Main, while scrolling" menuId="mobile-menu-sticky" />
     </div>
   );

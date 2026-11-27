@@ -1,13 +1,16 @@
+import { useScenePhoto } from "../residences/scenePhoto";
 import { useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { ApiError } from "../api";
 import { useAuth } from "../auth/AuthContext";
 import { safeNext } from "../auth/safeNext";
 import { AuthField, AuthSplitLayout, FormError, SubmitButton } from "@/components/ui/sign-in";
-import { AUTH_PHOTO, AuthBrand } from "./AuthBrand";
+import { AuthBrand } from "./AuthBrand";
 
 /** Asks people who signed up with Google for the phone number we need for MoMo and SMS. */
 export function OnboardingPage() {
+  // The owner's own building photo once uploaded, else the stock one (DESIGN.md → Glass).
+  const photo = useScenePhoto();
   const { user, updateMe } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -36,7 +39,7 @@ export function OnboardingPage() {
   };
 
   return (
-    <AuthSplitLayout heroImageSrc={AUTH_PHOTO}>
+    <AuthSplitLayout heroImageSrc={photo}>
       <div className="flex flex-col gap-6">
         <div className="animate-element">
           <AuthBrand />

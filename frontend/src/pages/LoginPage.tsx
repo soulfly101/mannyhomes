@@ -1,10 +1,11 @@
+import { useScenePhoto } from "../residences/scenePhoto";
 import { useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { ApiError } from "../api";
 import { useAuth } from "../auth/AuthContext";
 import { safeNext } from "../auth/safeNext";
 import { SignInPage } from "@/components/ui/sign-in";
-import { AUTH_PHOTO, AuthBrand, startGoogleSignIn } from "./AuthBrand";
+import { AuthBrand, startGoogleSignIn } from "./AuthBrand";
 
 const GOOGLE_ERRORS: Record<string, string> = {
   google: "Google sign-in didn't work. Try again, or log in with your email.",
@@ -12,6 +13,8 @@ const GOOGLE_ERRORS: Record<string, string> = {
 };
 
 export function LoginPage() {
+  // The owner's own building photo once uploaded, else the stock one (DESIGN.md → Glass).
+  const photo = useScenePhoto();
   const { login, googleEnabled } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -45,7 +48,7 @@ export function LoginPage() {
   return (
     <SignInPage
       brand={<AuthBrand />}
-      heroImageSrc={AUTH_PHOTO}
+      heroImageSrc={photo}
       error={error}
       busy={busy}
       onSignIn={onSignIn}
