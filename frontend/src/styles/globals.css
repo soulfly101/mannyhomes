@@ -38,7 +38,7 @@
   /* Liquid glass (see the glass layer below). Surfaces stay opaque enough for AA text over any photo,
      because glass always sits on a tinted scene. */
   --glass-surface: rgba(255, 252, 247, 0.72);
-  --glass-surface-strong: rgba(255, 252, 247, 0.88);
+  --glass-surface-strong: rgba(255, 252, 247, 0.9);
   --glass-border: rgba(255, 255, 255, 0.7);
   --glass-gloss: rgba(255, 255, 255, 0.55);
   --glass-shadow: 0 10px 30px rgba(42, 33, 27, 0.12);
@@ -76,7 +76,7 @@
     --chart-3: #9a7eea;
     --chart-4: #ab8810;
     --glass-surface: rgba(36, 29, 24, 0.64);
-    --glass-surface-strong: rgba(36, 29, 24, 0.82);
+    --glass-surface-strong: rgba(36, 29, 24, 0.9);
     --glass-border: rgba(255, 240, 225, 0.14);
     --glass-gloss: rgba(255, 240, 225, 0.1);
     --glass-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
@@ -113,7 +113,7 @@
   --chart-3: #9a7eea;
   --chart-4: #ab8810;
   --glass-surface: rgba(36, 29, 24, 0.64);
-  --glass-surface-strong: rgba(36, 29, 24, 0.82);
+  --glass-surface-strong: rgba(36, 29, 24, 0.9);
   --glass-border: rgba(255, 240, 225, 0.14);
   --glass-gloss: rgba(255, 240, 225, 0.1);
   --glass-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
@@ -324,6 +324,13 @@
   }
   /* A page's content sits on one big frosted stage, so all its text is readable over any part of the photo.
      Glass on the stage is more opaque so it stands out, and doesn't blur again (cheaper on phones). */
+  /* Dark glass for white text: the site menu and the home page's headline over the video. */
+  .glass-ink {
+    --glass-surface: rgba(26, 21, 18, 0.66);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-gloss: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+  }
   .glass-stage :is(.glass-panel, .glass-rail, .glass-chip) {
     --glass-surface: var(--glass-surface-strong);
     -webkit-backdrop-filter: none;
@@ -336,6 +343,9 @@
   .glass-rail,
   .glass-chip {
     background: var(--card);
+  }
+  .glass-ink {
+    background: #2a211b;
   }
 }
 @media (prefers-reduced-transparency: reduce) {
@@ -350,6 +360,9 @@
     background: var(--background);
     opacity: 0.85;
   }
+  .glass-ink {
+    background: #2a211b;
+  }
 }
 @media print {
   .glass-panel,
@@ -363,6 +376,9 @@
   .glass-scene-photo,
   .glass-scene-tint {
     display: none;
+  }
+  .glass-ink {
+    color: #000000;
   }
 }
 @media (forced-colors: active) {
