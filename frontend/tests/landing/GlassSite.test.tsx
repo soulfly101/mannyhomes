@@ -116,3 +116,11 @@ test("the status page shows its card over the building photo", () => {
   expect(screen.getByRole("region", { name: "System status" })).toHaveClass("glass-panel");
   expect(document.querySelector(".glass-scene-photo")).not.toBeNull();
 });
+
+test("the home hero stays above the pinned building photo behind the sections", async () => {
+  mockApi({ ...loggedOut, ...googleOff, "GET /api/listings": { body: listings(false) } });
+  renderAt("/", <Route path="/" element={<LandingPage />} />);
+  const hero = await screen.findByRole("heading", { level: 1, name: "Your next chapter starts here." });
+  // The sections' photo is position: fixed, so without its own layer the hero would be painted under it.
+  expect(hero.closest("header")).toHaveClass("relative", "z-10");
+});
