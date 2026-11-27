@@ -57,15 +57,29 @@ test("scroll reveal uses translate, comes in from the sides, and is off for redu
   expect(reduced).toMatch(/opacity: 1;\s*translate: none;\s*transition: none;/);
 });
 
-test("the look stays flat and sans-serif: no serif font, gradients, glow or glass in the source", () => {
+test("sans-serif only, and glass and gradients only from the shared glass layer (DESIGN.md → Glass)", () => {
   const offenders = sourceFiles(SRC).flatMap((file) =>
     readFileSync(file, "utf8")
       .split("\n")
-      .filter((line) => /font-serif|Cormorant|bg-gradient|bg-linear|backdrop-blur/.test(line))
+      .filter((line) => /font-serif|Cormorant|bg-gradient|bg-linear|bg-radial|backdrop-blur|backdrop-filter/.test(line))
       .map((line) => `${file}: ${line.trim()}`),
   );
   expect(offenders).toEqual([]);
-  expect(globals + components).not.toMatch(/linear-gradient|radial-gradient|backdrop-filter:\s*blur/);
+  const start = globals.indexOf("/* glass:start");
+  const end = globals.indexOf("/* glass:end */");
+  expect(start).toBeGreaterThan(0);
+  expect(end).toBeGreaterThan(start);
+  const outside = globals.slice(0, start) + globals.slice(end) + components;
+  expect(outside).not.toMatch(/linear-gradient|radial-gradient|backdrop-filter/);
+});
+
+test("every glass surface falls back to a solid one", () => {
+  const layer = globals.slice(globals.indexOf("/* glass:start"), globals.indexOf("/* glass:end */"));
+  for (const query of ["@supports not ((backdrop-filter: blur(1px))", "@media (prefers-reduced-transparency: reduce)", "@media print", "@media (forced-colors: active)"]) {
+    const block = layer.slice(layer.indexOf(query));
+    expect(layer).toContain(query);
+    expect(block).toMatch(/\.glass-panel,\s*\.glass-rail,\s*\.glass-chip\s*\{[^}]*background: (var\(--card\)|#ffffff|Canvas);/);
+  }
 });
 
 test("the older stylesheet's variables never override the theme's", () => {

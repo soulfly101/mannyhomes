@@ -70,7 +70,7 @@ export function AdminSettingsPage() {
         </div>
       )}
       {saved && (
-        <form onSubmit={save} noValidate className="mt-8 flex max-w-2xl flex-col gap-5 rounded-xl border border-border bg-card p-6 shadow-sm">
+        <form onSubmit={save} noValidate className="mt-8 flex max-w-2xl flex-col gap-5 glass-panel p-6">
           <Switch label="Enable Sanitation Bill Penalties" checked={enabled} onChange={setEnabled} />
           {enabled && (
             <>

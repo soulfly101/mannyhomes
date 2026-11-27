@@ -174,7 +174,7 @@ function PhotoSet({
   };
 
   return (
-    <section aria-label={title} className="flex flex-col gap-4 rounded-xl border border-border bg-card p-6 shadow-sm">
+    <section aria-label={title} className="flex flex-col gap-4 glass-panel p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold tracking-tight">{title}</h2>

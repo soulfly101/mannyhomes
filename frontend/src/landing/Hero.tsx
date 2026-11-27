@@ -4,9 +4,7 @@ import { cn } from "@/lib/utils";
 import { HERO } from "./content";
 import { Eyebrow, buttonClass } from "./parts";
 import { SiteNav } from "./SiteHeader";
-
-const prefersReducedMotion = () =>
-  typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+import { prefersReducedMotion } from "@/lib/motion";
 
 /** Full-width hero: the owner's building video (or photo) under a solid overlay, with the site menu on top. */
 export function Hero() {

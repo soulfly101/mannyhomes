@@ -20,7 +20,7 @@ export function TopBar() {
 
   return (
     <header className="wrap topbar-wrap">
-      <div className="glass topbar">
+      <div className="glass-panel topbar">
         <Link to="/" className="topbar-logo">
           Altheo Homes
         </Link>

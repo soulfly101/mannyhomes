@@ -35,7 +35,7 @@ export function AgreementsPage() {
         <ul className="mt-8 grid gap-4" aria-label="Agreements">
           {agreements.map((a, i) => (
             <Reveal as="li" key={a.id} delay={Math.min(i, 5) * 60}>
-              <Link to={`/admin/agreements/${a.id}`} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-5 text-foreground shadow-sm transition duration-200 hover:shadow-md motion-safe:hover:-translate-y-0.5">
+              <Link to={`/admin/agreements/${a.id}`} className="flex flex-wrap items-center justify-between gap-3 glass-panel p-5 text-foreground transition duration-200 hover:shadow-md motion-safe:hover:-translate-y-0.5">
                 <span className="min-w-0">
                   <span className="block text-xl font-bold tracking-tight">{a.tenant_name}</span>
                   <span className="block text-sm text-muted-foreground">

@@ -65,7 +65,7 @@ function TenancyCard({ tenancy, onSaved }: { tenancy: Tenancy; onSaved: (t: Tena
   };
 
   return (
-    <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+    <div className="glass-panel p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="text-xl font-bold tracking-tight">{tenancy.tenant_name}</h2>
@@ -126,7 +126,7 @@ function MovedOutCard({ moveOut: m, onSaved }: { moveOut: MoveOut; onSaved: (m: 
   };
 
   return (
-    <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+    <div className="glass-panel p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="text-lg font-bold tracking-tight">{m.tenant_name}</h3>

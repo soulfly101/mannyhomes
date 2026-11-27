@@ -38,7 +38,7 @@ function TicketCard({ ticket, onSaved }: { ticket: AdminTicket; onSaved: (t: Adm
   };
   const selectId = `status-${ticket.id}`;
   return (
-    <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
+    <div className="glass-panel p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="text-xl font-bold tracking-tight">{ticket.tenant_name}</h2>

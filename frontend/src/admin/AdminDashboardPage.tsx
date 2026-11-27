@@ -1,10 +1,14 @@
-import { useEffect, useMemo, useState, type PointerEvent, type ReactNode } from "react";
-import { Link } from "react-router";
-import { BedDouble, Clock, FileSignature, KeyRound, Mail, Users, Wallet, type LucideIcon } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent, type ReactNode } from "react";
+import { Link, useSearchParams } from "react-router";
+import { BedDouble, Building2, Clock, Command, FileSignature, KeyRound, LayoutDashboard, Mail, MessageSquare, Send, Users, Wallet, Wrench, X, type LucideIcon } from "lucide-react";
 import { ApiError, apiFetch } from "../api";
 import { Reveal } from "../components/Reveal";
 import { UserInitials } from "../components/UserInitials";
 import { Badge } from "@/components/ui/badge";
+import { AnimatedNumber } from "@/components/ui/animated-number";
+import { GlassDock, dockPanelId, dockTabId, type DockView } from "@/components/ui/glass-dock";
+import { GlassPanel } from "@/components/ui/glass-panel";
+import { useViewTransition } from "@/lib/motion";
 import { FormError } from "@/components/ui/sign-in";
 import { formatCedis, formatMonth, timeAgo } from "../format";
 import { sectionClass } from "../landing/parts";
@@ -31,7 +35,7 @@ type Overview = {
   backup?: BackupStatus | null;
 };
 
-function Stat({ label, value, icon: Icon, children }: { label: string; value: string; icon: LucideIcon; children: ReactNode }) {
+function Stat({ label, value, icon: Icon, children }: { label: string; value: ReactNode; icon: LucideIcon; children: ReactNode }) {
   return (
     <div className={`${panelClass} flex h-full items-start justify-between gap-3`}>
       <div className="min-w-0">
@@ -39,7 +43,7 @@ function Stat({ label, value, icon: Icon, children }: { label: string; value: st
         <dd className="mt-1 text-3xl font-bold tabular-nums tracking-tight">{value}</dd>
         <div className="mt-1 text-sm text-muted-foreground">{children}</div>
       </div>
-      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-accent text-primary">
+      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary">
         <Icon className="h-5 w-5" aria-hidden="true" />
       </span>
     </div>
@@ -119,7 +123,7 @@ function RevenueChart({ data }: { data: Overview["revenue"] }) {
       {point && hover !== null && (
         <div
           role="status"
-          className="pointer-events-none absolute top-2 -translate-x-1/2 whitespace-nowrap rounded-lg border border-border bg-popover px-3 py-2 text-sm shadow-md"
+          className="glass-panel glass-strong pointer-events-none absolute top-2 -translate-x-1/2 whitespace-nowrap rounded-lg px-3 py-2 text-sm"
           style={{ left: `${Math.min(84, Math.max(16, (x(hover) / W) * 100))}%` }}
         >
           <span className="block text-muted-foreground">{formatMonth(point.month, true)}</span>
@@ -161,7 +165,7 @@ function BookingsRing({ stages }: { stages: Stage[] }) {
   return (
     <div className="mt-4 flex flex-col items-center gap-6 sm:flex-row sm:justify-center sm:gap-10">
       <svg viewBox="0 0 200 200" className="h-48 w-48 shrink-0" role="img" aria-label={`Bookings by stage, ${total} in total`}>
-        <circle cx="100" cy="100" r={R} fill="none" stroke="var(--secondary)" strokeWidth={STROKE} />
+        <circle cx="100" cy="100" r={R} fill="none" stroke="var(--border)" strokeWidth={STROKE} />
         <g transform="rotate(-90 100 100)">
           {stages.map((s, i) => {
             const length = (s.count / (total || 1)) * CIRCLE;
@@ -221,11 +225,84 @@ const ACTIVITY_ICON: Record<Overview["activity"][number]["kind"], LucideIcon> = 
 
 const quietLink = "inline-flex min-h-11 items-center text-sm font-medium text-muted-foreground hover:text-foreground";
 
-/** The admin's home (/admin): every number here is real, from the system's own records. */
+type View = "overview" | "money" | "people";
+
+const VIEWS: (DockView<View> & { description: string })[] = [
+  { id: "overview", label: "Overview", icon: LayoutDashboard, description: "Tenants, rooms and bookings at a glance." },
+  { id: "money", label: "Money", icon: Wallet, description: "What came in, and who has paid this month." },
+  { id: "people", label: "Tenants & activity", icon: Users, description: "Who signed up, and what happened lately." },
+];
+const isView = (v: string | null): v is View => VIEWS.some((x) => x.id === v);
+
+/** Where the admin most often goes next. Real pages only. */
+const QUICK_ACTIONS: { to: string; label: string; hint: string; icon: LucideIcon }[] = [
+  { to: "/admin/allocations", label: "Allocate rooms", hint: "Paid bookings waiting for a room", icon: KeyRound },
+  { to: "/admin/tickets", label: "Repair reports", hint: "See and update tenants' reports", icon: Wrench },
+  { to: "/admin/messages", label: "Messages", hint: "Chat with tenants", icon: MessageSquare },
+  { to: "/admin/buildings", label: "Buildings and photos", hint: "Rooms, prices and photos", icon: Building2 },
+  { to: "/admin/texts", label: "Send a text", hint: "Text one tenant or everyone", icon: Send },
+];
+
+/** A small list of shortcuts over the page (⌘K or Ctrl+K). Escape or a click outside closes it. */
+function QuickActions({ close }: { close: () => void }) {
+  const first = useRef<HTMLAnchorElement>(null);
+  useEffect(() => {
+    first.current?.focus();
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [close]);
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-start justify-center bg-overlay px-4 pt-[12vh]" onClick={close}>
+      <GlassPanel
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="quick-actions-title"
+        strong
+        className="w-full max-w-md p-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between gap-2">
+          <h2 id="quick-actions-title" className="text-lg font-bold tracking-tight">
+            Quick actions
+          </h2>
+          <button type="button" onClick={close} aria-label="Close quick actions" className="grid h-11 w-11 place-items-center rounded-full hover:bg-foreground/10">
+            <X className="h-5 w-5" aria-hidden="true" />
+          </button>
+        </div>
+        <ul className="mt-2 flex flex-col gap-1">
+          {QUICK_ACTIONS.map(({ to, label, hint, icon: Icon }, i) => (
+            <li key={to}>
+              <Link ref={i === 0 ? first : undefined} to={to} className="flex min-h-11 items-center gap-3 rounded-xl px-3 py-2 hover:bg-foreground/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary/15 text-primary">
+                  <Icon className="h-4 w-4" aria-hidden="true" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block font-semibold">{label}</span>
+                  <span className="block text-sm text-muted-foreground">{hint}</span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </GlassPanel>
+    </div>
+  );
+}
+
+/**
+ * The admin's home (/admin), a glass workspace (DESIGN.md → Glass): a dock switches between three views, and
+ * ⌘K/Ctrl+K opens quick actions. Every number here is real, from the system's own records.
+ */
 export function AdminDashboardPage() {
   const [months, setMonths] = useState(6);
   const [data, setData] = useState<Overview | null>(null);
   const [error, setError] = useState("");
+  const [params, setParams] = useSearchParams();
+  const view: View = isView(params.get("view")) ? (params.get("view") as View) : "overview";
+  const [quick, setQuick] = useState(false);
+  const stage = useRef<HTMLDivElement>(null);
+  useViewTransition(stage, view);
 
   useEffect(() => {
     let current = true;
@@ -241,57 +318,82 @@ export function AdminDashboardPage() {
     };
   }, [months]);
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setQuick((open) => !open);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const select = (next: View) => setParams(next === "overview" ? {} : { view: next }, { replace: true });
   const hasRevenue = useMemo(() => data?.revenue.some((m) => m.amount > 0) ?? false, [data]);
   const hasBookings = (data?.stages.reduce((n, s) => n + s.count, 0) ?? 0) > 0;
+  const current = VIEWS.find((v) => v.id === view)!;
 
   return (
     <main className={`${sectionClass} py-8 md:py-10`}>
-      <h1 className="text-4xl font-bold tracking-tight md:text-5xl">Dashboard</h1>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-4xl font-bold tracking-tight md:text-5xl">Dashboard</h1>
+          <p className="mt-1 text-foreground">{current.description}</p>
+        </div>
+        <button type="button" onClick={() => setQuick(true)} className="glass-chip inline-flex min-h-11 items-center gap-2 px-4 text-sm font-semibold" aria-keyshortcuts="Meta+K Control+K">
+          <Command className="h-4 w-4" aria-hidden="true" />
+          Quick actions
+        </button>
+      </div>
+      <GlassDock label="Dashboard views" views={VIEWS} active={view} onSelect={select} className="mt-6" />
+      {quick && <QuickActions close={() => setQuick(false)} />}
       {error && (
         <div className="mt-6">
           <FormError>{error}</FormError>
         </div>
       )}
-      {!data && !error && <p className="mt-6 text-muted-foreground">Loading the dashboard…</p>}
+      {!data && !error && <p className="mt-6 text-foreground">Loading the dashboard…</p>}
       {data && (
-        <div className="mt-6 flex flex-col gap-5">
-          <dl className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-            <Reveal>
-              <Stat label="Active tenants" value={String(data.figures.active_tenants)} icon={Users}>
-                {data.figures.waiting_to_sign} waiting to sign
-              </Stat>
-            </Reveal>
-            <Reveal delay={60}>
-              <Stat label="Rooms available" value={String(data.figures.rooms_available)} icon={BedDouble}>
-                Across {data.figures.buildings} {data.figures.buildings === 1 ? "building" : "buildings"}
-              </Stat>
-            </Reveal>
-            <Reveal delay={120}>
-              <Stat label="Waiting for a room" value={String(data.figures.waiting_for_room)} icon={Clock}>
-                <Link to="/admin/allocations" className="font-medium text-primary underline-offset-4 hover:underline">
-                  Open the queue
-                </Link>
-              </Stat>
-            </Reveal>
-            <Reveal delay={180}>
-              <Stat label="Collected this month" value={formatCedis(data.figures.collected_this_month)} icon={Wallet}>
-                <Change now={data.figures.collected_this_month} before={data.figures.collected_last_month} />
-                <span className="block">{formatCedis(data.figures.still_owed)} still owed</span>
-              </Stat>
-            </Reveal>
-          </dl>
+        <div ref={stage} id={dockPanelId(view)} role="tabpanel" aria-labelledby={dockTabId(view)} className="mt-6 flex flex-col gap-5">
+          {view === "overview" && (
+            <>
+              <dl className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+                <Reveal>
+                  <Stat label="Active tenants" value={<AnimatedNumber value={data.figures.active_tenants} />} icon={Users}>
+                    {data.figures.waiting_to_sign} waiting to sign
+                  </Stat>
+                </Reveal>
+                <Reveal delay={60}>
+                  <Stat label="Rooms available" value={<AnimatedNumber value={data.figures.rooms_available} />} icon={BedDouble}>
+                    Across {data.figures.buildings} {data.figures.buildings === 1 ? "building" : "buildings"}
+                  </Stat>
+                </Reveal>
+                <Reveal delay={120}>
+                  <Stat label="Waiting for a room" value={<AnimatedNumber value={data.figures.waiting_for_room} />} icon={Clock}>
+                    <Link to="/admin/allocations" className="font-medium text-primary underline-offset-4 hover:underline">
+                      Open the queue
+                    </Link>
+                  </Stat>
+                </Reveal>
+                <Reveal delay={180}>
+                  <Stat label="Collected this month" value={<AnimatedNumber value={data.figures.collected_this_month} format={formatCedis} />} icon={Wallet}>
+                    <Change now={data.figures.collected_this_month} before={data.figures.collected_last_month} />
+                    <span className="block">{formatCedis(data.figures.still_owed)} still owed</span>
+                  </Stat>
+                </Reveal>
+              </dl>
+              {data.backup && <BackupStatusLine status={data.backup} />}
+              <Panel title="Bookings by stage">
+                {hasBookings ? <BookingsRing stages={data.stages} /> : <p className={emptyClass}>No bookings yet. They'll appear here as tenants book.</p>}
+              </Panel>
+            </>
+          )}
 
-          {data.backup && <BackupStatusLine status={data.backup} />}
-
-          <Reveal>
-            <PaymentStatusPanel />
-          </Reveal>
-
-          <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-            <Reveal>
+          {view === "money" && (
+            <>
               <Panel
                 title="Money collected"
-                className="h-full"
                 action={
                   <label className="text-sm text-muted-foreground">
                     <span className="sr-only">Time range</span>
@@ -305,24 +407,20 @@ export function AdminDashboardPage() {
               >
                 {hasRevenue ? <RevenueChart data={data.revenue} /> : <p className={emptyClass}>No payments in this period yet. The chart appears once money comes in.</p>}
               </Panel>
-            </Reveal>
-            <Reveal delay={80}>
-              <Panel title="Bookings by stage" className="h-full">
-                {hasBookings ? <BookingsRing stages={data.stages} /> : <p className={emptyClass}>No bookings yet. They'll appear here as tenants book.</p>}
-              </Panel>
-            </Reveal>
-          </div>
+              <PaymentStatusPanel />
+            </>
+          )}
 
-          <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-            <Reveal>
+          {view === "people" && (
+            <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
               <Panel title="Recent tenants" className="h-full">
                 {data.recent_tenants.length === 0 ? (
                   <p className={emptyClass}>No tenants have signed up yet.</p>
                 ) : (
-                  <ul className="mt-2 flex flex-col divide-y divide-border">
+                  <ul className="mt-2 flex flex-col divide-y divide-foreground/10">
                     {data.recent_tenants.map((t) => (
                       <li key={t.id} className="flex items-center gap-3 py-3">
-                        <UserInitials name={t.name} className="bg-accent text-foreground" />
+                        <UserInitials name={t.name} className="bg-primary/15 text-foreground" />
                         <div className="min-w-0 flex-1">
                           <p className="truncate font-semibold">{t.name}</p>
                           <p className="truncate text-sm text-muted-foreground">{t.email}</p>
@@ -333,8 +431,6 @@ export function AdminDashboardPage() {
                   </ul>
                 )}
               </Panel>
-            </Reveal>
-            <Reveal delay={80}>
               <Panel title="Recent activity" className="h-full" action={<Link to="/admin/agreements" className={quietLink}>View agreements</Link>}>
                 {data.activity.length === 0 ? (
                   <p className={emptyClass}>Nothing yet. Payments, allocations, signatures and enquiries will show up here.</p>
@@ -344,7 +440,7 @@ export function AdminDashboardPage() {
                       const Icon = ACTIVITY_ICON[a.kind];
                       return (
                         <li key={`${a.kind}-${a.at}-${i}`} className="flex items-start gap-3">
-                          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent text-primary">
+                          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
                             <Icon className="h-4 w-4" aria-hidden="true" />
                           </span>
                           <div className="min-w-0">
@@ -357,8 +453,8 @@ export function AdminDashboardPage() {
                   </ul>
                 )}
               </Panel>
-            </Reveal>
-          </div>
+            </div>
+          )}
         </div>
       )}
     </main>
