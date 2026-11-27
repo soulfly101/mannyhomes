@@ -1,6 +1,8 @@
 // Based on the 21st.dev SignInPage component, adapted for Altheo Homes:
-// the site accent instead of violet, no blur or glass, labelled inputs, error/busy states,
-// optional Google and reset links, and a shared two-column layout used by sign-up too.
+// the site accent instead of violet, the shared glass instead of its own blur, labelled inputs, error/busy
+// states, optional Google and reset links, and a shared layout (form on glass over a photo) used by sign-up too.
+import { GlassPanel } from "@/components/ui/glass-panel";
+import { GlassScene } from "@/components/ui/glass-scene";
 import { useId, useState, type FormEvent, type InputHTMLAttributes, type ReactNode } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -166,7 +168,7 @@ export const TextLink = ({ onClick, children }: { onClick?: () => void; children
 );
 
 const TestimonialCard = ({ testimonial, delay }: { testimonial: Testimonial; delay: string }) => (
-  <div className={`animate-testimonial ${delay} flex w-64 items-start gap-3 rounded-2xl border border-border bg-card p-5 shadow-sm`}>
+  <div className={`glass-panel animate-testimonial ${delay} flex w-64 items-start gap-3 p-5`}>
     <img src={testimonial.avatarSrc} className="h-10 w-10 rounded-xl object-cover" alt="" />
     <div className="text-sm leading-snug">
       <p className="font-medium">{testimonial.name}</p>
@@ -176,7 +178,10 @@ const TestimonialCard = ({ testimonial, delay }: { testimonial: Testimonial; del
   </div>
 );
 
-/** Two columns: form on the left, photo on the right (photo hidden on phones). Used by sign in, sign up and onboarding. */
+/**
+ * The photo fills the screen and the form sits on a glass panel over it (DESIGN.md → Glass). Used by sign in, sign
+ * up and onboarding. Without a photo it's the form on the plain background.
+ */
 export function AuthSplitLayout({
   children,
   heroImageSrc,
@@ -186,35 +191,33 @@ export function AuthSplitLayout({
   heroImageSrc?: string;
   testimonials?: Testimonial[];
 }) {
+  const form = (
+    <GlassPanel strong className="w-full max-w-md p-6 sm:p-8">
+      {children}
+    </GlassPanel>
+  );
+  if (!heroImageSrc) {
+    return <div className="flex min-h-[100dvh] w-full items-center justify-center bg-background p-4 font-geist text-foreground sm:p-8">{form}</div>;
+  }
   return (
-    <div className="flex min-h-[100dvh] w-full flex-col bg-background font-geist text-foreground md:flex-row">
-      <section className="flex flex-1 items-center justify-center p-6 sm:p-8">
-        <div className="w-full max-w-md">{children}</div>
-      </section>
-      {heroImageSrc && (
-        <section className="relative hidden flex-1 overflow-hidden p-4 md:block" aria-hidden="true">
-          <div
-            className="animate-slide-right animate-delay-300 absolute inset-4 rounded-3xl bg-cover bg-center"
-            style={{ backgroundImage: `url(${heroImageSrc})` }}
-          ></div>
-          {testimonials.length > 0 && (
-            <div className="absolute bottom-8 left-1/2 flex w-full -translate-x-1/2 justify-center gap-4 px-8">
-              <TestimonialCard testimonial={testimonials[0]} delay="animate-delay-1000" />
-              {testimonials[1] && (
-                <div className="hidden xl:flex">
-                  <TestimonialCard testimonial={testimonials[1]} delay="animate-delay-1200" />
-                </div>
-              )}
-              {testimonials[2] && (
-                <div className="hidden 2xl:flex">
-                  <TestimonialCard testimonial={testimonials[2]} delay="animate-delay-1400" />
-                </div>
-              )}
+    <GlassScene photo={heroImageSrc} className="flex min-h-[100dvh] w-full items-center justify-center p-4 font-geist text-foreground sm:p-8 md:justify-start md:px-[8vw]">
+      {form}
+      {testimonials.length > 0 && (
+        <div className="absolute bottom-8 right-8 hidden gap-4 md:flex" aria-hidden="true">
+          <TestimonialCard testimonial={testimonials[0]} delay="animate-delay-1000" />
+          {testimonials[1] && (
+            <div className="hidden xl:flex">
+              <TestimonialCard testimonial={testimonials[1]} delay="animate-delay-1200" />
             </div>
           )}
-        </section>
+          {testimonials[2] && (
+            <div className="hidden 2xl:flex">
+              <TestimonialCard testimonial={testimonials[2]} delay="animate-delay-1400" />
+            </div>
+          )}
+        </div>
       )}
-    </div>
+    </GlassScene>
   );
 }
 

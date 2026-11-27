@@ -9,6 +9,10 @@ import { Hero } from "../../src/landing/Hero";
 import { SiteHeader } from "../../src/landing/SiteHeader";
 import { ResidenceCard } from "../../src/residences/ResidenceCard";
 import { ResidenceDetailsPage } from "../../src/residences/ResidenceDetailsPage";
+import { ResidencesPage } from "../../src/residences/ResidencesPage";
+import { LandingPage } from "../../src/landing/LandingPage";
+import { LoginPage } from "../../src/pages/LoginPage";
+import { StatusPage } from "../../src/pages/StatusPage";
 import { resetScenePhoto } from "../../src/residences/scenePhoto";
 import type { Residence } from "../../src/residences/data";
 import { googleOff, loggedOut, mockApi, renderAt } from "../helpers";
@@ -79,4 +83,36 @@ test("the call to action is a glass panel over the lounge photo, still leading t
   expect(heading.closest(".glass-panel")).not.toBeNull();
   expect(container.querySelector(".glass-scene-photo")).toHaveAttribute("src", CALL_TO_ACTION.photo);
   expect(screen.getByRole("link", { name: CALL_TO_ACTION.button })).toHaveAttribute("href", "#contact");
+});
+
+test("every other public page sits on a frosted stage over the building photo, footer included", async () => {
+  mockApi({ ...loggedOut, ...googleOff, "GET /api/listings": { body: listings(false) } });
+  const { container } = renderAt("/residences", <Route path="/residences" element={<ResidencesPage />} />);
+  const heading = await screen.findByRole("heading", { level: 1 });
+  expect(heading.closest(".glass-stage")).not.toBeNull();
+  expect(container.querySelector(".glass-scene-fixed > .glass-scene-photo")).toHaveAttribute("src", "/photos/hero.jpg");
+  expect(container.querySelector("footer")).toHaveClass("glass-panel", "glass-stage");
+});
+
+test("log in is a glass form over the building photo", async () => {
+  mockApi({ ...loggedOut, ...googleOff, "GET /api/listings": { body: listings(false) } });
+  renderAt("/login", <Route path="/login" element={<LoginPage />} />);
+  const heading = await screen.findByRole("heading", { level: 1 });
+  expect(heading.closest(".glass-panel")).toHaveClass("glass-strong");
+  expect(document.querySelector(".glass-scene-photo")).toHaveAttribute("src", "/photos/hero.jpg");
+});
+
+test("the home page's sections each sit on their own glass pane", async () => {
+  mockApi({ ...loggedOut, ...googleOff, "GET /api/listings": { body: listings(false) } });
+  renderAt("/", <Route path="/" element={<LandingPage />} />);
+  for (const id of ["experience-title", "facilities-title", "gallery-title"]) {
+    await waitFor(() => expect(document.getElementById(id)?.closest(".glass-stage")).not.toBeNull());
+  }
+});
+
+test("the status page shows its card over the building photo", () => {
+  mockApi({ ...loggedOut, ...googleOff, "GET /api/listings": { body: listings(false) }, "GET /api/health": { body: { status: "ok" } }, "GET /api/health/db": { body: { database: "ok" } } });
+  renderAt("/status", <Route path="/status" element={<StatusPage />} />);
+  expect(screen.getByRole("region", { name: "System status" })).toHaveClass("glass-panel");
+  expect(document.querySelector(".glass-scene-photo")).not.toBeNull();
 });

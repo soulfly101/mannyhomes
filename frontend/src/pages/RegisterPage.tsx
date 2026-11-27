@@ -1,10 +1,11 @@
+import { useScenePhoto } from "../residences/scenePhoto";
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { ApiError } from "../api";
 import { useAuth } from "../auth/AuthContext";
 import { safeNext } from "../auth/safeNext";
 import { SignUpPage, type SignUpErrors, type SignUpValues } from "@/components/ui/sign-up";
-import { AUTH_PHOTO, AuthBrand, startGoogleSignIn } from "./AuthBrand";
+import { AuthBrand, startGoogleSignIn } from "./AuthBrand";
 
 /** Quick checks before sending; the server checks everything again. */
 function validate(v: SignUpValues): SignUpErrors {
@@ -19,6 +20,8 @@ function validate(v: SignUpValues): SignUpErrors {
 }
 
 export function RegisterPage() {
+  // The owner's own building photo once uploaded, else the stock one (DESIGN.md → Glass).
+  const photo = useScenePhoto();
   const { register, googleEnabled } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -50,7 +53,7 @@ export function RegisterPage() {
   return (
     <SignUpPage
       brand={<AuthBrand />}
-      heroImageSrc={AUTH_PHOTO}
+      heroImageSrc={photo}
       error={error}
       fieldErrors={fieldErrors}
       busy={busy}

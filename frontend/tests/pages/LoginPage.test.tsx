@@ -80,9 +80,9 @@ test("Continue with Google is shown when set up and starts Google sign-in", asyn
 });
 
 test("hides Continue with Google when it isn't set up", async () => {
-  const { fetchMock } = mockApi({ ...loggedOut, ...googleOff });
+  const { calls } = mockApi({ ...loggedOut, ...googleOff });
   renderAt("/login", routes);
-  await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+  await waitFor(() => expect(calls.some((c) => c.key === "GET /api/auth/config")).toBe(true));
   expect(screen.queryByRole("button", { name: "Continue with Google" })).not.toBeInTheDocument();
 });
 

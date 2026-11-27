@@ -8,7 +8,6 @@ import { formatCedis } from "../format";
 import { cn } from "@/lib/utils";
 import { Eyebrow, buttonClass, outlineButtonClass, photoPop, photoZoom, sectionClass } from "../landing/parts";
 import { SitePage, useEnquiry } from "../landing/SitePage";
-import { GlassScene } from "@/components/ui/glass-scene";
 import { availability, coverFor, photoFor, photoUrl, useRoom, type Residence } from "./data";
 import { RoomStatus } from "./RoomStatus";
 
@@ -91,49 +90,45 @@ export function ResidenceDetailsPage() {
   const { enquiry, enquire } = useEnquiry();
 
   return (
-    <SitePage enquiry={enquiry}>
+    <SitePage enquiry={enquiry} photo={state.status === "ready" ? coverFor(state.residence, "large") : undefined}>
       <RoomStatus state={state} />
       {state.status === "ready" && (
-        <GlassScene photo={coverFor(state.residence, "large")}>
-          <section aria-labelledby="residence-title" className={`${sectionClass} py-8 md:py-12`}>
-            <div className="glass-panel glass-stage p-5 md:p-8">
-              <Link to="/residences" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
-                <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-                All residences
-              </Link>
-              <div className="mt-6 grid items-start gap-10 lg:grid-cols-[1.5fr_1fr]">
-                <div className="flex flex-col gap-6">
-                  <Reveal from="left">
-                    <RoomGallery r={state.residence} />
-                  </Reveal>
-                  <div>
-                    <Eyebrow>
-                      {state.residence.building} · {state.residence.location}
-                    </Eyebrow>
-                    <h1 id="residence-title" className="mt-2 text-5xl font-bold tracking-tight leading-tight">
-                      {state.residence.name}
-                    </h1>
-                    <ul className="mt-4 flex flex-wrap gap-2 text-sm font-medium" aria-label="Key facts">
-                      <li className="flex items-center gap-2 rounded-full bg-accent px-3 py-1.5">
-                        <BedDouble className="h-4 w-4 text-primary" aria-hidden="true" />
-                        {state.residence.name}
-                      </li>
-                      <li className="flex items-center gap-2 rounded-full bg-accent px-3 py-1.5">
-                        <MapPin className="h-4 w-4 text-primary" aria-hidden="true" />
-                        {state.residence.location}
-                      </li>
-                    </ul>
-                    {state.residence.description && <p className="mt-4 text-muted-foreground">{state.residence.description}</p>}
-                  </div>
-                </div>
-                <aside aria-label="Price and booking" className="glass-panel flex flex-col gap-6 p-6 lg:sticky lg:top-28">
-                  <RoomFacts r={state.residence} />
-                  <BookActions r={state.residence} canBook={!user || user.role === "tenant"} loggedIn={Boolean(user)} onEnquire={() => enquire(state.residence)} />
-                </aside>
+        <section aria-labelledby="residence-title" className={`${sectionClass} py-6 md:py-8`}>
+          <Link to="/residences" className="inline-flex min-h-11 items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            All residences
+          </Link>
+          <div className="mt-6 grid items-start gap-10 lg:grid-cols-[1.5fr_1fr]">
+            <div className="flex flex-col gap-6">
+              <Reveal from="left">
+                <RoomGallery r={state.residence} />
+              </Reveal>
+              <div>
+                <Eyebrow>
+                  {state.residence.building} · {state.residence.location}
+                </Eyebrow>
+                <h1 id="residence-title" className="mt-2 text-5xl font-bold tracking-tight leading-tight">
+                  {state.residence.name}
+                </h1>
+                <ul className="mt-4 flex flex-wrap gap-2 text-sm font-medium" aria-label="Key facts">
+                  <li className="flex items-center gap-2 rounded-full bg-accent px-3 py-1.5">
+                    <BedDouble className="h-4 w-4 text-primary" aria-hidden="true" />
+                    {state.residence.name}
+                  </li>
+                  <li className="flex items-center gap-2 rounded-full bg-accent px-3 py-1.5">
+                    <MapPin className="h-4 w-4 text-primary" aria-hidden="true" />
+                    {state.residence.location}
+                  </li>
+                </ul>
+                {state.residence.description && <p className="mt-4 text-muted-foreground">{state.residence.description}</p>}
               </div>
             </div>
-          </section>
-        </GlassScene>
+            <aside aria-label="Price and booking" className="glass-panel flex flex-col gap-6 p-6 lg:sticky lg:top-28">
+              <RoomFacts r={state.residence} />
+              <BookActions r={state.residence} canBook={!user || user.role === "tenant"} loggedIn={Boolean(user)} onEnquire={() => enquire(state.residence)} />
+            </aside>
+          </div>
+        </section>
       )}
     </SitePage>
   );

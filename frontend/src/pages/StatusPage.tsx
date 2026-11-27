@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { checkHealth, type Status } from "../api";
 import { useAuth } from "../auth/AuthContext";
 import { Card, StatusPill, type Tone } from "../components";
+import { GlassScene } from "@/components/ui/glass-scene";
+import { useScenePhoto } from "../residences/scenePhoto";
 
 const SHOWN: Record<Status, { label: string; tone: Tone }> = {
   checking: { label: "Checking…", tone: "neutral" },
@@ -24,6 +26,7 @@ export function StatusPage() {
   const { user } = useAuth();
   const [api, setApi] = useState<Status>("checking");
   const [db, setDb] = useState<Status>("checking");
+  const photo = useScenePhoto();
 
   useEffect(() => {
     checkHealth("/api/health", "status").then(setApi);
@@ -31,15 +34,17 @@ export function StatusPage() {
   }, []);
 
   return (
-    <main className="wrap status-page">
-      <Card as="section" className="rise" aria-labelledby="status-title">
-        <h1 id="status-title">System status</h1>
-        <p className="muted">{user ? `Logged in as ${user.name}.` : "Not logged in."}</p>
-        <ul aria-label="System status" className="status-list">
-          <StatusRow name="API" status={api} />
-          <StatusRow name="Database" status={db} />
-        </ul>
-      </Card>
-    </main>
+    <GlassScene photo={photo} fixed className="min-h-dvh">
+      <main className="wrap status-page">
+        <Card as="section" className="rise" aria-labelledby="status-title">
+          <h1 id="status-title">System status</h1>
+          <p className="muted">{user ? `Logged in as ${user.name}.` : "Not logged in."}</p>
+          <ul aria-label="System status" className="status-list">
+            <StatusRow name="API" status={api} />
+            <StatusRow name="Database" status={db} />
+          </ul>
+        </Card>
+      </main>
+    </GlassScene>
   );
 }
