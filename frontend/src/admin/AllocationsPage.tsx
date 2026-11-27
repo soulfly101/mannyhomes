@@ -47,7 +47,7 @@ export function AllocationsPage() {
             <Reveal as="li" key={q.booking_id} delay={Math.min(i, 5) * 60}>
               <Link
                 to={`/admin/allocations/${q.booking_id}`}
-                className="group flex flex-wrap items-center justify-between gap-4 rounded-xl border border-border bg-card p-5 text-foreground shadow-sm transition duration-200 hover:shadow-md motion-safe:hover:-translate-y-0.5"
+                className="group flex flex-wrap items-center justify-between gap-4 glass-panel p-5 text-foreground transition duration-200 hover:shadow-md motion-safe:hover:-translate-y-0.5"
               >
                 <span className="min-w-0">
                   <span className="block text-xl font-bold tracking-tight">{q.tenant.name}</span>

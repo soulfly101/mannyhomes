@@ -75,7 +75,7 @@ export function AllocatePage() {
               {item.tenant.email}
               {item.tenant.phone ? ` · ${item.tenant.phone}` : ""}
             </p>
-            <dl className="mt-8 grid grid-cols-[auto_1fr] gap-x-10 gap-y-3 rounded-xl border border-border bg-card p-6 shadow-sm text-sm">
+            <dl className="mt-8 grid grid-cols-[auto_1fr] gap-x-10 gap-y-3 glass-panel p-6 text-sm">
               <dt className="text-muted-foreground">Booked</dt>
               <dd>
                 {item.room}, {item.building}, {item.location}
@@ -97,7 +97,7 @@ export function AllocatePage() {
                 </>
               )}
             </dl>
-            <div className="mt-8 rounded-xl border border-border bg-card p-6 shadow-sm">
+            <div className="mt-8 glass-panel p-6">
               {item.blocked_reason ? (
                 <div role="alert">
                   <h2 className="text-2xl font-bold tracking-tight">This can't be allocated yet</h2>

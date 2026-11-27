@@ -38,7 +38,7 @@ function StartChat() {
     }
   };
   return (
-    <form onSubmit={start} noValidate className="flex flex-wrap items-end gap-3 rounded-xl border border-border bg-card p-5 shadow-sm">
+    <form onSubmit={start} noValidate className="flex flex-wrap items-end gap-3 glass-panel p-5">
       <div className="flex min-w-60 flex-1 flex-col gap-1">
         <label htmlFor="chat-tenant" className="text-sm font-medium text-muted-foreground">
           Message a tenant

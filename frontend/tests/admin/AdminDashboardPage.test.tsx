@@ -4,7 +4,7 @@ import { MemoryRouter } from "react-router";
 import { App } from "../../src/App";
 import { AuthProvider } from "../../src/auth/AuthContext";
 import { formatMonth, timeAgo } from "../../src/format";
-import { mockApi } from "../helpers";
+import { Location, mockApi } from "../helpers";
 import { asAdmin } from "./fixtures";
 
 const recent = new Date(Date.now() - 2 * 3600 * 1000).toISOString().slice(0, 19);
@@ -57,6 +57,7 @@ const renderApp = (path = "/admin") =>
     <MemoryRouter initialEntries={[path]}>
       <AuthProvider>
         <App />
+        <Location />
       </AuthProvider>
     </MemoryRouter>,
   );
@@ -72,11 +73,12 @@ test("the figures come from the API, with the change from last month in words", 
   expect(await screen.findByRole("heading", { level: 1, name: "Dashboard" })).toBeInTheDocument();
   await screen.findByText("Active tenants");
   const stat = (label: string) => screen.getByText(label, { selector: "dt" }).parentElement!;
-  expect(within(stat("Active tenants")).getByText("3")).toBeInTheDocument();
+  // The animated number is hidden from screen readers, which get the final value straight away.
+  expect(within(stat("Active tenants")).getByText("3", { selector: ".sr-only" })).toBeInTheDocument();
   expect(within(stat("Active tenants")).getByText("2 waiting to sign")).toBeInTheDocument();
   expect(within(stat("Rooms available")).getByText("Across 2 buildings")).toBeInTheDocument();
   expect(within(stat("Waiting for a room")).getByRole("link", { name: "Open the queue" })).toHaveAttribute("href", "/admin/allocations");
-  expect(within(stat("Collected this month")).getByText("GH₵ 1,500")).toBeInTheDocument();
+  expect(within(stat("Collected this month")).getByText("GH₵ 1,500", { selector: ".sr-only" })).toBeInTheDocument();
   expect(screen.getByText("+50% from last month")).toBeInTheDocument();
   expect(screen.getByText("GH₵ 8,000 still owed")).toBeInTheDocument();
 });
@@ -97,7 +99,7 @@ test("no change from last month isn't shown as good or bad", async () => {
 
 test("the chart has a table for screen readers and a tooltip on hover", async () => {
   mockApi({ ...asAdmin, ...noPayments, "GET /api/admin/overview": { body: overview() } });
-  renderApp();
+  renderApp("/admin?view=money");
   const chart = await screen.findByRole("img", { name: "Money collected per month" });
   const table = within(screen.getByRole("table", { name: "Money collected per month" }));
   expect(table.getByText("Nov 2026")).toBeInTheDocument();
@@ -110,7 +112,7 @@ test("the chart has a table for screen readers and a tooltip on hover", async ()
 
 test("changing the range asks for that many months", async () => {
   const { calls } = mockApi({ ...asAdmin, ...noPayments, "GET /api/admin/overview": { body: overview() } });
-  renderApp();
+  renderApp("/admin?view=money");
   await userEvent.selectOptions(await screen.findByLabelText("Time range"), "12");
   await waitFor(() => expect((global.fetch as jest.Mock).mock.calls.some(([u]) => String(u).includes("months=12"))).toBe(true));
   expect(calls.length).toBeGreaterThan(0);
@@ -130,7 +132,7 @@ test("the ring labels every stage with its count, so colour is never alone", asy
 
 test("recent tenants show initials, not stock photos, and activity shows when", async () => {
   mockApi({ ...asAdmin, ...noPayments, "GET /api/admin/overview": { body: overview() } });
-  renderApp();
+  renderApp("/admin?view=people");
   const tenants = within(await screen.findByRole("region", { name: "Recent tenants" }));
   expect(tenants.getByRole("img", { name: "Ama Mensah" })).toHaveTextContent("AM");
   expect(tenants.getByText("Room A12")).toHaveAttribute("data-tone", "success");
@@ -142,12 +144,55 @@ test("recent tenants show initials, not stock photos, and activity shows when", 
 test("with nothing yet it says so, rather than showing empty charts or made-up figures", async () => {
   mockApi({ ...asAdmin, ...noPayments, "GET /api/admin/overview": { body: empty } });
   renderApp();
-  expect(await screen.findByText(/No payments in this period yet/)).toBeInTheDocument();
-  expect(screen.getByText(/No bookings yet/)).toBeInTheDocument();
-  expect(screen.getByText(/No tenants have signed up yet/)).toBeInTheDocument();
-  expect(screen.getByText(/Nothing yet\. Payments/)).toBeInTheDocument();
+  expect(await screen.findByText(/No bookings yet/)).toBeInTheDocument();
   expect(screen.getByText("Nothing collected yet")).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("tab", { name: "Money" }));
+  expect(await screen.findByText(/No payments in this period yet/)).toBeInTheDocument();
   expect(screen.queryByRole("img", { name: "Money collected per month" })).not.toBeInTheDocument();
+  await userEvent.click(screen.getByRole("tab", { name: "Tenants & activity" }));
+  expect(await screen.findByText(/No tenants have signed up yet/)).toBeInTheDocument();
+  expect(screen.getByText(/Nothing yet\. Payments/)).toBeInTheDocument();
+});
+
+test("the dock switches between views, by click or arrow keys, and remembers the view in the address", async () => {
+  mockApi({ ...asAdmin, ...noPayments, "GET /api/admin/overview": { body: overview() } });
+  renderApp();
+  const dock = await screen.findByRole("tablist", { name: "Dashboard views" });
+  const tab = (name: string) => within(dock).getByRole("tab", { name });
+  expect(tab("Overview")).toHaveAttribute("aria-selected", "true");
+  expect(await screen.findByRole("tabpanel", { name: "Overview" })).toHaveTextContent("Active tenants");
+
+  await userEvent.click(tab("Money"));
+  expect(screen.getByTestId("location")).toHaveTextContent("/admin?view=money");
+  expect(screen.getByRole("tabpanel", { name: "Money" })).toHaveTextContent("Money collected");
+  expect(screen.queryByText("Active tenants")).not.toBeInTheDocument();
+
+  tab("Money").focus();
+  await userEvent.keyboard("{ArrowRight}");
+  expect(tab("Tenants & activity")).toHaveAttribute("aria-selected", "true");
+  expect(tab("Tenants & activity")).toHaveFocus();
+  await userEvent.keyboard("{ArrowRight}");
+  expect(tab("Overview")).toHaveAttribute("aria-selected", "true");
+  expect(screen.getByTestId("location")).toHaveTextContent(/^\/admin$/);
+  await userEvent.keyboard("{End}");
+  expect(tab("Tenants & activity")).toHaveAttribute("aria-selected", "true");
+});
+
+test("quick actions open with the button or Ctrl+K, link to real pages, and close with Escape", async () => {
+  mockApi({ ...asAdmin, ...noPayments, "GET /api/admin/overview": { body: overview() } });
+  renderApp();
+  await userEvent.click(await screen.findByRole("button", { name: "Quick actions" }));
+  const dialog = screen.getByRole("dialog", { name: "Quick actions" });
+  expect(within(dialog).getByRole("link", { name: /Allocate rooms/ })).toHaveAttribute("href", "/admin/allocations");
+  expect(within(dialog).getByRole("link", { name: /Allocate rooms/ })).toHaveFocus();
+  expect(within(dialog).getByRole("link", { name: /Buildings and photos/ })).toHaveAttribute("href", "/admin/buildings");
+  await userEvent.keyboard("{Escape}");
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+
+  await userEvent.keyboard("{Control>}k{/Control}");
+  expect(screen.getByRole("dialog", { name: "Quick actions" })).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: "Close quick actions" }));
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 });
 
 test("problems loading are shown", async () => {

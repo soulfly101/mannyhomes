@@ -55,13 +55,7 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Glass surfaces */
-  /* Surfaces: solid card with a thin border (no blur). The class name is kept for existing pages. */
-  .glass {
-    background: var(--glass);
-    border: 1px solid var(--glass-edge);
-    box-shadow: var(--shadow);
-  }
+  /* Glass surfaces come from the glass layer in globals.css (DESIGN.md → Glass). */
 
   .card {
     border-radius: var(--radius-card);

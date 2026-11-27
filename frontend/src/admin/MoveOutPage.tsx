@@ -132,7 +132,7 @@ export function MoveOutPage() {
           </div>
           {preview.blocked_reason && <FormError>{preview.blocked_reason}</FormError>}
 
-          <section aria-label="Deposits held" className="rounded-xl border border-border bg-card p-5 shadow-sm">
+          <section aria-label="Deposits held" className="glass-panel p-5">
             <h2 className="text-lg font-bold tracking-tight">Deposits held</h2>
             <ul className="mt-3 flex flex-col gap-2 text-sm">
               {preview.deposits.map((d) => (
@@ -152,7 +152,7 @@ export function MoveOutPage() {
 
           <AuthField label="Move-out day" type="date" name="moved_out_on" value={day} max={today()} min={preview.start_date} onChange={(e) => setDay(e.target.value)} />
 
-          <section aria-label="Unpaid bills" className="rounded-xl border border-border bg-card p-5 shadow-sm">
+          <section aria-label="Unpaid bills" className="glass-panel p-5">
             <h2 className="text-lg font-bold tracking-tight">Unpaid bills</h2>
             {preview.arrears.length === 0 ? (
               <p className="mt-2 text-sm text-muted-foreground">Nothing unpaid. No arrears to take from the deposit.</p>
@@ -189,7 +189,7 @@ export function MoveOutPage() {
             )}
           </section>
 
-          <section aria-label="Damage and other deductions" className="rounded-xl border border-border bg-card p-5 shadow-sm">
+          <section aria-label="Damage and other deductions" className="glass-panel p-5">
             <h2 className="text-lg font-bold tracking-tight">Damage and other deductions</h2>
             <p className="mt-1 text-sm text-muted-foreground">Anything else kept back from the deposit, with the reason the tenant will see.</p>
             <ul className="mt-3 flex flex-col gap-3">

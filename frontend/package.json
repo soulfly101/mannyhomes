@@ -15,7 +15,9 @@
   },
   "dependencies": {
     "@fontsource-variable/figtree": "^5.3.0",
+    "@gsap/react": "^2.1.2",
     "clsx": "^2.1.1",
+    "gsap": "^3.15.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.67.0",
     "react": "^19.3.1",

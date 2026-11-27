@@ -1,5 +1,6 @@
 /* Tailwind + shadcn theme. Warm and friendly: warm off-white, white cards, one terracotta accent, Figtree only,
-   soft rounded shapes. Solid colours only: no gradients, glow, blur or glass. */
+   soft rounded shapes. Liquid glass over photos (the owner's choice, 2026-11-27) comes only from the glass layer
+   below, never from one-off gradients or blur. */
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -34,6 +35,15 @@
   --chart-2: #008a7a;
   --chart-3: #7c5cc4;
   --chart-4: #a8840f;
+  /* Liquid glass (see the glass layer below). Surfaces stay opaque enough for AA text over any photo,
+     because glass always sits on a tinted scene. */
+  --glass-surface: rgba(255, 252, 247, 0.72);
+  --glass-surface-strong: rgba(255, 252, 247, 0.88);
+  --glass-border: rgba(255, 255, 255, 0.7);
+  --glass-gloss: rgba(255, 255, 255, 0.55);
+  --glass-shadow: 0 10px 30px rgba(42, 33, 27, 0.12);
+  --glass-frost: 14px;
+  --glass-scene-tint: rgba(251, 247, 241, 0.62);
 }
 
 /* Dark colours: when the device asks for them, unless the admin toggle chose light... */
@@ -65,6 +75,13 @@
     --chart-2: #1f9c8c;
     --chart-3: #9a7eea;
     --chart-4: #ab8810;
+    --glass-surface: rgba(36, 29, 24, 0.64);
+    --glass-surface-strong: rgba(36, 29, 24, 0.82);
+    --glass-border: rgba(255, 240, 225, 0.14);
+    --glass-gloss: rgba(255, 240, 225, 0.1);
+    --glass-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+    --glass-frost: 14px;
+    --glass-scene-tint: rgba(18, 13, 10, 0.66);
   }
 }
 /* ...and whenever the admin toggle chooses dark. Keep this block the same as the one above. */
@@ -95,6 +112,13 @@
   --chart-2: #1f9c8c;
   --chart-3: #9a7eea;
   --chart-4: #ab8810;
+  --glass-surface: rgba(36, 29, 24, 0.64);
+  --glass-surface-strong: rgba(36, 29, 24, 0.82);
+  --glass-border: rgba(255, 240, 225, 0.14);
+  --glass-gloss: rgba(255, 240, 225, 0.1);
+  --glass-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+  --glass-frost: 14px;
+  --glass-scene-tint: rgba(18, 13, 10, 0.66);
 }
 
 @theme inline {
@@ -245,3 +269,110 @@
     transform: none;
   }
 }
+
+/* glass:start
+ * Liquid glass (DESIGN.md → Glass). The only place in the app with backdrop-filter or gradients; a test checks.
+ * Glass always sits over a photo scene (.glass-scene). Every glass class falls back to the solid card colour when
+ * the browser can't blur, the person asks for less transparency, the page is printed, or high contrast is on.
+ */
+@layer components {
+  .glass-scene {
+    position: relative;
+    isolation: isolate;
+    background: var(--background);
+  }
+  .glass-scene-photo {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .glass-scene-tint {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--glass-scene-tint);
+  }
+  /* The admin area keeps its photo still while the page scrolls. */
+  .glass-scene-fixed > .glass-scene-photo,
+  .glass-scene-fixed > .glass-scene-tint {
+    position: fixed;
+  }
+
+  .glass-panel,
+  .glass-rail,
+  .glass-chip {
+    background:
+      linear-gradient(150deg, var(--glass-gloss), transparent 30% 72%, color-mix(in srgb, var(--glass-gloss) 50%, transparent)),
+      var(--glass-surface);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-gloss);
+    -webkit-backdrop-filter: blur(var(--glass-frost)) saturate(1.3);
+    backdrop-filter: blur(var(--glass-frost)) saturate(1.3);
+  }
+  .glass-panel {
+    border-radius: calc(var(--radius) + 4px);
+  }
+  .glass-chip {
+    border-radius: 999px;
+  }
+  /* For text-heavy glass straight over a photo (e.g. a caption on a residence card). */
+  .glass-strong {
+    --glass-surface: var(--glass-surface-strong);
+  }
+  /* A page's content sits on one big frosted stage, so all its text is readable over any part of the photo.
+     Glass on the stage is more opaque so it stands out, and doesn't blur again (cheaper on phones). */
+  .glass-stage :is(.glass-panel, .glass-rail, .glass-chip) {
+    --glass-surface: var(--glass-surface-strong);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass-panel,
+  .glass-rail,
+  .glass-chip {
+    background: var(--card);
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass-panel,
+  .glass-rail,
+  .glass-chip {
+    background: var(--card);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .glass-scene-tint {
+    background: var(--background);
+    opacity: 0.85;
+  }
+}
+@media print {
+  .glass-panel,
+  .glass-rail,
+  .glass-chip {
+    background: #ffffff;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .glass-scene-photo,
+  .glass-scene-tint {
+    display: none;
+  }
+}
+@media (forced-colors: active) {
+  .glass-panel,
+  .glass-rail,
+  .glass-chip {
+    background: Canvas;
+    border-color: CanvasText;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+/* glass:end */

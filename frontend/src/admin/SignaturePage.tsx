@@ -70,7 +70,7 @@ export function SignaturePage() {
           </p>
         )}
         {saved && (
-          <section aria-label="Current signature" className="rounded-xl border border-border bg-card p-6 shadow-sm">
+          <section aria-label="Current signature" className="glass-panel p-6">
             <h2 className="font-bold tracking-tight">Current signature</h2>
             <div className="mt-3 rounded-xl bg-white p-4">
               <img src={saved} alt="Your saved signature" className="h-20 max-w-full object-contain object-left" />
@@ -78,7 +78,7 @@ export function SignaturePage() {
           </section>
         )}
         {saved === null && !error && <p className="text-muted-foreground">You haven't added a signature yet. You'll need one before you can allocate rooms.</p>}
-        <section aria-label={saved ? "Replace your signature" : "Add your signature"} className="flex flex-col gap-4 rounded-xl border border-border bg-card p-6 shadow-sm">
+        <section aria-label={saved ? "Replace your signature" : "Add your signature"} className="flex flex-col gap-4 glass-panel p-6">
           <h2 className="font-bold tracking-tight">{saved ? "Replace it" : "Add your signature"}</h2>
           <div role="group" aria-label="How to add it" className="flex flex-wrap gap-2">
             {(["upload", "draw"] as const).map((m) => (

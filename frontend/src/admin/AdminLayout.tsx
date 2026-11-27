@@ -5,8 +5,10 @@ import { useAuth } from "../auth/AuthContext";
 import { UserInitials } from "../components/UserInitials";
 import { useUnread } from "../chat/chat";
 import { CountBadge } from "@/components/ui/count-badge";
+import { GlassScene } from "@/components/ui/glass-scene";
 import { cn } from "@/lib/utils";
 import { BRAND } from "../landing/content";
+import { useScenePhoto } from "../residences/scenePhoto";
 
 const SECTIONS: { to: string; label: string; icon: LucideIcon }[] = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -51,12 +53,16 @@ function useAdminTheme() {
   return { theme, toggle: () => setTheme((t) => (t === "dark" ? "light" : "dark")) };
 }
 
-/** The admin area's frame: a sidebar on wide screens, a bar with a row of sections on phones. */
+/**
+ * The admin area's frame (DESIGN.md → Glass): the owner's building photo behind everything, a floating glass
+ * sidebar on wide screens, and a glass bar with a row of sections on phones.
+ */
 export function AdminLayout() {
   const { user, logout } = useAuth();
   const [busy, setBusy] = useState(false);
   const { theme, toggle } = useAdminTheme();
   const unread = useUnread("/api/admin/chat/unread");
+  const photo = useScenePhoto();
 
   const onLogout = async () => {
     setBusy(true);
@@ -68,42 +74,44 @@ export function AdminLayout() {
   };
 
   return (
-    <div className="min-h-dvh bg-background font-sans text-foreground md:grid md:grid-cols-[240px_minmax(0,1fr)] print:block">
-      <aside className="sticky top-0 z-40 flex print:hidden flex-wrap items-center justify-between gap-2 border-b border-border bg-card p-3 md:h-dvh md:flex-col md:flex-nowrap md:items-stretch md:justify-start md:gap-6 md:border-b-0 md:border-r md:p-4">
+    <GlassScene photo={photo} fixed className="min-h-dvh font-sans text-foreground md:grid md:grid-cols-[264px_minmax(0,1fr)] print:block">
+      <aside className="glass-rail sticky top-0 z-40 flex print:hidden flex-wrap items-center justify-between gap-2 rounded-none border-x-0 border-t-0 p-3 md:top-3 md:m-3 md:h-[calc(100dvh-1.5rem)] md:flex-col md:flex-nowrap md:items-stretch md:justify-start md:gap-6 md:rounded-[1.25rem] md:border-x md:border-t md:p-4">
         <Link to="/admin" className="flex min-h-11 items-center gap-3 text-foreground">
           <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-lg font-bold text-primary-foreground">{BRAND.monogram}</span>
           <span className="font-bold tracking-tight">{BRAND.name}</span>
         </Link>
         <nav aria-label="Admin" className="order-3 flex w-full gap-1 overflow-x-auto [scrollbar-width:none] md:order-none md:flex-1 md:flex-col md:overflow-visible">
           {SECTIONS.map(({ to, label, icon: Icon }) => (
-            <NavLink key={to} to={to} end={to === "/admin"} className={({ isActive }) => cn(linkClass, isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary hover:text-foreground")}>
+            <NavLink key={to} to={to} end={to === "/admin"} className={({ isActive }) => cn(linkClass, isActive ? "bg-primary text-primary-foreground shadow-sm" : "text-foreground/80 hover:bg-foreground/10 hover:text-foreground")}>
               <Icon className="h-5 w-5 shrink-0" aria-hidden="true" />
               {label}
               {to === "/admin/messages" && <CountBadge count={unread} label={["unread message", "unread messages"]} className="ml-auto bg-accent text-foreground" />}
             </NavLink>
           ))}
-          <Link to="/" className={cn(linkClass, "text-muted-foreground hover:bg-secondary hover:text-foreground md:mt-auto")}>
+          <Link to="/" className={cn(linkClass, "text-foreground/80 hover:bg-foreground/10 hover:text-foreground md:mt-auto")}>
             <ExternalLink className="h-5 w-5 shrink-0" aria-hidden="true" />
             View website
           </Link>
         </nav>
-        <div className="flex items-center gap-2 md:justify-between md:border-t md:border-border md:pt-4">
+        <div className="flex items-center gap-2 md:justify-between md:border-t md:border-foreground/10 md:pt-4">
           {user && <UserInitials name={user.name} className="bg-accent text-foreground" />}
           <button
             type="button"
             onClick={toggle}
             aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
             title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-border transition duration-200 hover:bg-secondary"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-foreground/15 transition duration-200 hover:bg-foreground/10"
           >
             {theme === "dark" ? <Sun className="h-5 w-5" aria-hidden="true" /> : <Moon className="h-5 w-5" aria-hidden="true" />}
           </button>
-          <button type="button" disabled={busy} aria-busy={busy || undefined} onClick={() => void onLogout()} className="min-h-11 rounded-full border border-border px-4 text-sm font-semibold transition duration-200 hover:bg-secondary disabled:opacity-70">
+          <button type="button" disabled={busy} aria-busy={busy || undefined} onClick={() => void onLogout()} className="min-h-11 rounded-full border border-foreground/15 px-4 text-sm font-semibold transition duration-200 hover:bg-foreground/10 disabled:opacity-70">
             {busy ? "Please wait…" : "Log out"}
           </button>
         </div>
       </aside>
-      <Outlet />
-    </div>
+      <div className="glass-panel glass-stage min-w-0 rounded-none border-x-0 md:my-3 md:mr-3 md:min-h-[calc(100dvh-1.5rem)] md:rounded-[1.25rem] md:border-x print:border-0 print:shadow-none">
+        <Outlet />
+      </div>
+    </GlassScene>
   );
 }

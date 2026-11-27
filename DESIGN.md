@@ -1,18 +1,18 @@
 # Altheo Homes design rules
 
-**Direction: warm and friendly, with real motion** (chosen by the owner, 4 Nov 2026). Warm off-white pages, white cards, one terracotta accent, a friendly sans-serif, soft rounded shapes and big photos that come in from the sides as you scroll and pop out on hover. **Still no gradient colouring, glow, blurred colour blobs or frosted glass.**
+**Direction: warm and friendly, with real motion and liquid glass** (warm and friendly chosen by the owner on 4 Nov 2026; liquid glass added at the owner's request on 27 Nov 2026). Warm colours, one terracotta accent, a friendly sans-serif, soft rounded shapes, and big photos that come in from the sides as you scroll and pop out on hover. Frosted-glass panels sit over the owner's own building photos (see **Glass**). **Still no gradient colouring, glow or blurred colour blobs**: the only gradients are the glass's fine gloss edge, and they come from the shared glass layer.
 
 New screens are built with **Tailwind CSS** and **shadcn**-style components:
 - Primitives live in `frontend/src/components/ui/` (shadcn installs there; see `frontend/components.json`), app components in `frontend/src/components/`.
 - Import with the `@/` alias (`@/components/ui/badge`, `@/lib/utils`), and combine classes with `cn()`.
 - Colours come from the theme variables in `frontend/src/styles/globals.css` (`bg-background`, `text-foreground`, `bg-primary`, `text-muted-foreground`, `border-border`, `text-destructive`, `text-success`, …). Never hard-code colours.
-- Components taken from 21st.dev or shadcn are adapted before use: strip gradients, blur, glow and off-brand accents (e.g. violet), and never show made-up people or testimonials.
+- Components taken from 21st.dev or shadcn are adapted before use: their gradients, blur, glow and off-brand accents (e.g. violet) are replaced with the shared glass layer and the theme. Never show made-up people, testimonials or sample figures.
 
 The shared `Button`, `Field`, `Card`, `Banner` and `StatusPill` components (`frontend/src/components/`, styled in `components.css`) are used by the admin forms and share the same theme.
 
 ## Principles
 1. **Warm and approachable, still professional.** Solid colours, generous space, one strong action per screen.
-2. **Readable first.** Text sits on solid surfaces or a solid dark overlay over photos, never a gradient. WCAG AA contrast in light and dark mode.
+2. **Readable first.** Text sits on a glass panel, a solid surface or a solid overlay over photos, never straight on a photo or a gradient. WCAG AA contrast in light and dark mode.
 3. **Money is unmistakable.** Amounts, due dates and payment states are the clearest things on any screen that shows them.
 4. **Phone first.** Most tenants pay and report problems from a phone on mobile data. Design at 360px wide, then scale up.
 
@@ -62,9 +62,30 @@ All colours are CSS variables in `frontend/src/styles/tokens.css`, with light an
 - **Spacing scale:** 4, 8, 12, 16, 24, 32, 48, 72 px (`--space-1` … `--space-8`). Page side padding is 16px on phones, 24px from 768px.
 - **Max content width:** 1120px, centred.
 - **Corner radius:** pills and buttons round (`rounded-full`); cards and photos `20px` (`rounded-xl`); banners `32px`; fields `14px`.
-- **Surfaces:** solid `card` background, 1px `border`, soft shadow. No `backdrop-filter`, no translucent glass.
-- **Background:** plain `background` colour. Photos and video (landing hero, sign-in/sign-up) sit under a **solid** dark overlay when text is on top, never a gradient scrim.
+- **Surfaces:** glass (`glass-panel`) over a photo scene; solid `card` background where there's no photo behind. See **Glass**.
+- **Background:** the owner's building photo under a tint (`GlassScene`) in the admin area and behind glass on the public site; plain `background` colour elsewhere. Photos and video with white text on top sit under a **solid** dark overlay, never a gradient scrim.
 - **Shadows:** neutral and soft: `shadow-sm` at rest, `shadow-xl` when a photo pops out. Nothing glows or takes on colour.
+
+## Glass
+Liquid glass is frosted, slightly glossy panels over a photo. It is built **only** from the shared glass layer at the end of `frontend/src/styles/globals.css` (between `glass:start` and `glass:end`) and these components. A test fails on `backdrop-filter`, gradients or Tailwind `backdrop-blur`/`bg-gradient` utilities anywhere else.
+
+| Piece | Use |
+|---|---|
+| `GlassScene` (`@/components/ui/glass-scene`) | The photo backdrop with a tint, for a whole area (`fixed` in the admin area). The photo is `useScenePhoto()` from `frontend/src/residences/scenePhoto.ts`: the owner's first uploaded building photo, else a room photo, else the stock photo. |
+| `GlassPanel` / `glass-panel` | A frosted panel. `strong` (`glass-strong`) for text straight over a photo. |
+| `glass-stage` | One big panel holding a whole page (admin pages), so every word on the page is readable over any part of the photo. Glass inside it is more opaque and doesn't blur again. |
+| `glass-rail` | The admin sidebar and the dock. |
+| `glass-chip` | Small glass buttons such as "Quick actions". |
+| `GlassDock` (`@/components/ui/glass-dock`) | A workspace's view switcher: tabs on a glass rail, arrow keys, Home and End. |
+| `AnimatedNumber` (`@/components/ui/animated-number`) | Figures that count up; screen readers get the value at once. |
+| `useViewTransition()` (`@/lib/motion`) | The view change: the new view comes into focus (GSAP). |
+
+Rules:
+- **Glass only over a photo scene.** Over plain colour it just looks grey; use a solid card there.
+- **Text on glass, not on the photo.** Page text goes on a `glass-stage` or a panel; the scene tint alone isn't enough for small grey text.
+- **Fallbacks are automatic:** solid surfaces when the browser can't blur, when someone asks their device for less transparency, when printing, and in high-contrast mode. Nothing animates for reduced-motion users.
+- **At most about three glass layers on screen** (e.g. sidebar, stage, a dialog): blur is costly on cheap phones.
+- **Real data only.** The glass workspace from 21st.dev came with sample shop figures; ours shows only Altheo's own records.
 
 ## Components
 Use the shared components. Each has tests in `frontend/tests/components/`.
@@ -121,7 +142,7 @@ Small solid status label with a `tone` (`success`, `warning`, `danger`, `neutral
 - Payment buttons always include the amount: "Pay GH₵ 200".
 
 ### Cards (`<Card>`)
-- Solid surface, 20px radius, 20px padding (16px on phones), soft shadow.
+- Glass (`glass-panel`), 20px radius, 20px padding (16px on phones).
 - A listing card is: photo (4:3) with an area chip in the top-left corner → title → room types → divider → price on the left, status pill on the right. The whole card is the link.
 - Lists of many items (tickets, payments, tenants) use **rows inside one card** with dividers, not a card per item.
 
@@ -182,7 +203,8 @@ Colours are `--chart-1` to `--chart-4` in `globals.css`, checked with the colour
 | Do | Don't |
 |---|---|
 | One primary button per screen | Two blue buttons fighting for attention |
-| Put text on a card or a solid overlay | Put text straight on a busy photo |
+| Put text on glass, a card or a solid overlay | Put text straight on a busy photo |
+| Use `GlassPanel`, `glass-stage` and the glass classes | Write your own `backdrop-filter`, blur or gradient |
 | Use `StatusPill` for every status | Colour status text by hand in a page |
 | Use tokens (`var(--accent)`) | Hard-code hex colours |
 | Show amounts as `GH₵ 1,200` | `1200`, `GHS1200.00`, `₵1,200` |
