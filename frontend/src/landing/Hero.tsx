@@ -18,7 +18,7 @@ export function Hero() {
   const photo = useScenePhoto();
 
   return (
-    <header id="top" className="relative isolate flex min-h-[88svh] flex-col overflow-hidden bg-ink text-white">
+    <header id="top" className="relative isolate z-10 flex min-h-[88svh] flex-col overflow-hidden bg-ink text-white">
       {showVideo ? (
         <video
           className="absolute inset-0 -z-20 h-full w-full object-cover"
